@@ -1,8 +1,57 @@
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, field_validator
 from typing import List, Optional
 from datetime import datetime, date
 from decimal import Decimal
 from enum import Enum
+
+class SchemeSubCategory(str, Enum):
+    """SEBI mutual fund scheme category enum."""
+    #  Equity 
+    LARGE_CAP = "Large Cap Fund"
+    MID_CAP = "Mid Cap Fund"
+    SMALL_CAP = "Small Cap Fund"
+    LARGE_MID_CAP = "Large & Mid Cap Fund"
+    MULTI_CAP = "Multi Cap Fund"
+    FLEXI_CAP = "Flexi Cap Fund"
+    FOCUSED = "Focused Fund"
+    ELSS = "ELSS"
+    VALUE = "Value Fund"
+    CONTRA = "Contra Fund"
+    DIVIDEND_YIELD = "Dividend Yield Fund"
+    SECTORAL_THEMATIC = "Sectoral/ Thematic"
+    INDEX = "Index Funds"
+
+    #  Debt 
+    OVERNIGHT = "Overnight Fund"
+    LIQUID = "Liquid Fund"
+    ULTRA_SHORT_DURATION = "Ultra Short Duration Fund"
+    LOW_DURATION = "Low Duration Fund"
+    MONEY_MARKET = "Money Market Fund"
+    SHORT_DURATION = "Short Duration Fund"
+    MEDIUM_DURATION = "Medium Duration Fund"
+    MEDIUM_TO_LONG_DURATION = "Medium to Long Duration Fund"
+    LONG_DURATION = "Long Duration Fund"
+    DYNAMIC_BOND = "Dynamic Bond"
+    CORPORATE_BOND = "Corporate Bond Fund"
+    BANKING_PSU = "Banking and PSU Fund"
+    CREDIT_RISK = "Credit Risk Fund"
+    FLOATER = "Floater Fund"
+    Gilt_Fund = "Gilt Fund"
+
+    #  Hybrid 
+    AGGRESSIVE_HYBRID = "Aggressive Hybrid Fund"
+    BALANCED_HYBRID = "Balanced Hybrid Fund"
+    CONSERVATIVE_HYBRID = "Conservative Hybrid Fund"
+    DYNAMIC_ASSET_ALLOCATION = "Dynamic Asset Allocation or Balanced Advantage"
+    EQUITY_SAVINGS = "Equity Savings"
+    MULTI_ASSET_ALLOCATION = "Multi Asset Allocation"
+    ARBITRAGE = "Arbitrage Fund"
+
+#  Others 
+    RETIREMENT = "Retirement Fund"
+    CHILDRENS = "Children’s Fund"
+    FOF_DOMESTIC = "FoF Domestic"
+    FOF_OVERSEAS = "FoF Overseas"
 
 class InstrumentType(str, Enum):
     """Financial instrument type enum."""
@@ -49,7 +98,7 @@ class SchemeMeta(BaseModel):
     plan_type: PlanType
     scheme_category: str
     scheme_class: SchemeClass
-    scheme_sub_category: str
+    scheme_sub_category: SchemeSubCategory | str
     launch_date: date
     current_date: date
     total_active_days: int

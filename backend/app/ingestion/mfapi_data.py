@@ -12,6 +12,7 @@ from app.ingestion.schemas import (
     SchemeClass,
     OptionType,
     PlanType,
+    SchemeSubCategory
 )
 from app.shared.logger import logger
 
@@ -117,21 +118,42 @@ class MFAPIFetcher:
         nav_record_count = len(nav_data)
 
         # Asset Class Mapping
-        scheme_class = SchemeClass.OTHER.value
+        scheme_class = SchemeClass.OTHER
         scheme_sub_category = scheme_category
+        if "-" in scheme_category:
+            left, right = scheme_category.split("-", 1)
+            scheme_sub_category_str = right.strip()
+            #  Case-insensitive exact enum match 
+            api_value_lower = scheme_sub_category_str.lower().strip()
+            matched_enum = None
+            for enum_member in SchemeSubCategory:
+                enum_value_lower = enum_member.value.lower()
+                # Exact match
+                if enum_value_lower == api_value_lower:
+                    matched_enum = enum_member
+                    break
 
-        if " - " in scheme_category:
-            left, right = scheme_category.split(" - ", 1)
-            scheme_sub_category = right.strip()
-            left = left.strip().lower()
-            if "equity" in left:
-                scheme_class = SchemeClass.EQUITY.value
-            elif "debt" in left:
-                scheme_class = SchemeClass.DEBT.value
-            elif "hybrid" in left:
-                scheme_class = SchemeClass.HYBRID.value
+                # Contains match (enum inside API value)
+                if enum_value_lower in api_value_lower:
+                    matched_enum = enum_member
+                    break
+
+            if matched_enum:
+                scheme_sub_category = matched_enum
             else:
-                scheme_class = SchemeClass.OTHER.value
+                scheme_sub_category = scheme_sub_category_str
+
+            #  Scheme Class Detection 
+            left = left.strip().lower()
+
+            if "equity" in left:
+                scheme_class = SchemeClass.EQUITY
+            elif "debt" in left:
+                scheme_class = SchemeClass.DEBT
+            elif "hybrid" in left:
+                scheme_class = SchemeClass.HYBRID
+            else:
+                scheme_class = SchemeClass.OTHER
 
         # Option Type
         if "growth" in name_lower:
@@ -173,13 +195,32 @@ class MFAPIFetcher:
 
     @staticmethod
     def _extract_scheme_sub_name(scheme_name: str) -> str:
-        """Return text before first hyphen as base scheme name."""
+        """Return base scheme name in title case by removing brackets, plan words and hyphen."""
         if not scheme_name:
             return ""
         cleaned = scheme_name.strip()
-        if "-" in cleaned:
-            return cleaned.split("-", 1)[0].strip()
-        return cleaned
+        # remove anything inside parentheses
+        cleaned = re.sub(r"\(.*?\)", "", cleaned).strip()
+        # remove plan/option related words
+        cleaned = re.sub(
+            r"\b(direct|regular|plan|growth|idcw|dividend|payout|reinvestment|option)\b",
+            "",
+            cleaned,
+            flags=re.IGNORECASE,
+        )
+        # remove hyphen
+        cleaned = cleaned.replace("-", " ")
+        # remove pipe symbol
+        cleaned = cleaned.replace("|", " ")
+        # remove commas
+        cleaned = cleaned.replace(",", " ")
+        # remove trailing dots
+        cleaned = re.sub(r"\.+$", "", cleaned)
+        # remove consecutive duplicate 'fund fund'
+        cleaned = re.sub(r"\b(fund)\s+\1\b", r"\1", cleaned, flags=re.IGNORECASE)
+        # normalize spaces
+        cleaned = re.sub(r"\s+", " ", cleaned).strip()
+        return cleaned.title()
     
     async def fetch_scheme(self, session, semaphore, scheme_code):
         """Fetch NAV data, enrich meta from raw, then validate full response."""
