@@ -719,7 +719,6 @@ class NavMetrics:
                         "points": rolling_points
                     }
 
-            logger.info("Monthly rolling CAGR calculated successfully")
             return results
 
         except Exception as e:
@@ -786,23 +785,31 @@ class NavMetrics:
             sip_returns["max"] = self._sip_xirr(launch_date, sip_amount=1000.0)
 
             result = {
-                "absolute_returns_percent": absolute_returns,
-                "cagr_percent": cagr_returns,
-
-                "mdd_duration_details": mdd_duration_details,
-                "yearly_mdd_last_10_years": self._yearly_mdd_last_10_years(),
-                "year_on_year_percent": self._year_on_year_returns(),
-
-                "volatility_annualized_percent": annualized_volatility,
-                "sharpe_ratio": sharpe_ratios,
-                "calmar_ratio": calmar_ratios,
-                "sortino_ratio": sortino_ratios,
-                "downside_deviation_percent": downside_deviation_values,
-                "skewness": skewness_values,
-                "kurtosis": kurtosis_values,
-                "consistency": self._consistency_metrics(),
-                "sip_returns": sip_returns,
-                # "rolling_cagr_percent": self._rolling_cagr_all_periods()
+                "returns": {
+                    "absolute_returns_percent": absolute_returns,
+                    "cagr_percent": cagr_returns,
+                    "year_on_year_percent": self._year_on_year_returns(),
+                    "sip_returns": sip_returns,
+                    "rolling_cagr_percent": self._rolling_cagr_all_periods(),
+                },
+                "risk_metrics": {
+                    "volatility_annualized_percent": annualized_volatility,
+                    "downside_deviation_percent": downside_deviation_values,
+                    "skewness": skewness_values,
+                    "kurtosis": kurtosis_values,
+                },
+                "drawdown": {
+                    "mdd_duration_details": mdd_duration_details,
+                    "yearly_mdd_last_10_years": self._yearly_mdd_last_10_years(),
+                },
+                "risk_adjusted_returns": {
+                    "sharpe_ratio": sharpe_ratios,
+                    "sortino_ratio": sortino_ratios,
+                    "calmar_ratio": calmar_ratios,
+                },
+                "consistency": {
+                    "consistency": self._consistency_metrics(),
+                },
             }
 
             try:

@@ -73,23 +73,39 @@ class RollingCagrPeriod(BaseModel):
     points: List[RollingPoint]
 
 
-class NavMetricsOutput(BaseModel):
+class ReturnsCategory(BaseModel):
     absolute_returns_percent: Dict[str, float]
     cagr_percent: Dict[str, float]
-
-    mdd_duration_details: Dict[str, DrawdownDetails]
-    yearly_mdd_last_10_years: Dict[str, DrawdownDetails]
     year_on_year_percent: Dict[str, float]
+    sip_returns: Dict[str, SipMetrics]
+    rolling_cagr_percent: Optional[Dict[str, RollingCagrPeriod]] = None
 
+
+class RiskMetricsCategory(BaseModel):
     volatility_annualized_percent: Dict[str, float]
-    sharpe_ratio: Dict[str, float]
-    calmar_ratio: Dict[str, float]
-    sortino_ratio: Dict[str, float]
     downside_deviation_percent: Dict[str, float]
     skewness: Dict[str, float]
     kurtosis: Dict[str, float]
 
-    consistency: ConsistencyMetrics
-    sip_returns: Dict[str, SipMetrics]
 
-    rolling_cagr_percent: Optional[Dict[str, RollingCagrPeriod]] = None
+class DrawdownCategory(BaseModel):
+    mdd_duration_details: Dict[str, DrawdownDetails]
+    yearly_mdd_last_10_years: Dict[str, DrawdownDetails]
+
+
+class RiskAdjustedReturnsCategory(BaseModel):
+    sharpe_ratio: Dict[str, float]
+    sortino_ratio: Dict[str, float]
+    calmar_ratio: Dict[str, float]
+
+
+class ConsistencyCategory(BaseModel):
+    consistency: ConsistencyMetrics
+
+
+class NavMetricsOutput(BaseModel):
+    returns: ReturnsCategory
+    risk_metrics: RiskMetricsCategory
+    risk_adjusted_returns: RiskAdjustedReturnsCategory
+    drawdown: DrawdownCategory
+    consistency: ConsistencyCategory
