@@ -47,6 +47,9 @@ class SchemeMeta(BaseModel):
     scheme_category: str
     asset_class: AssetClass
     scheme_sub_category: str
+    launch_date: date
+    current_date: date
+    total_active_days: int
     option_type: Optional[OptionType] = None
     plan_type: Optional[PlanType] = None
     scheme_type: Optional[SchemeType] = None

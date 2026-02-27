@@ -86,8 +86,10 @@ class MFAPIFetcher:
         logger.info(f"Filtered {len(funds)} eligible schemes")
         return funds
 
-    def _build_scheme_meta(self, meta_raw: dict) -> SchemeMeta:
+    def _build_scheme_meta(self, raw: dict) -> SchemeMeta:
         """Derive and construct SchemeMeta from raw meta dictionary."""
+
+        meta_raw = raw.get("meta", {})
 
         scheme_name = meta_raw.get("scheme_name") or meta_raw.get("schemeName")
         scheme_category = meta_raw.get("scheme_category") or meta_raw.get("schemeCategory") or ""
@@ -96,6 +98,21 @@ class MFAPIFetcher:
 
         name_lower = (scheme_name or "").lower()
 
+        # Compute launch_date, current_date, total_active_days from NAV history
+        nav_data = raw.get("data", [])
+
+        if not nav_data:
+            raise ValueError("NAV data empty")
+
+        sorted_nav = sorted(
+            nav_data,
+            key=lambda x: datetime.strptime(x["date"], "%d-%m-%Y")
+        )
+
+        launch_date = datetime.strptime(sorted_nav[0]["date"], "%d-%m-%Y")
+        current_date = datetime.strptime(sorted_nav[-1]["date"], "%d-%m-%Y")
+        total_active_days = (current_date - launch_date).days
+      
         # Asset Class Mapping
         asset_class = AssetClass.OTHER
         scheme_sub_category = scheme_category
@@ -139,6 +156,9 @@ class MFAPIFetcher:
             scheme_category=scheme_category,
             scheme_sub_category=scheme_sub_category,
             scheme_name=scheme_name,
+            launch_date=launch_date,
+            current_date=current_date,
+            total_active_days=total_active_days,
             option_type=option_type,
             plan_type=plan_type,
             scheme_type=meta_raw.get("scheme_type") or meta_raw.get("schemeType"),
@@ -159,8 +179,8 @@ class MFAPIFetcher:
 
                     try:
                         # STEP 1: Enrich meta directly from raw
-                        meta_raw = raw.get("meta", {})
-                        enriched_meta = self._build_scheme_meta(meta_raw)
+                        
+                        enriched_meta = self._build_scheme_meta(raw)
 
                         # STEP 2: Inject enriched meta
                         raw["meta"] = enriched_meta.model_dump(mode="json")
