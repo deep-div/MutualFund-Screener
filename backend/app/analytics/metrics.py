@@ -16,9 +16,12 @@ class NavMetrics:
 
             parsed_data = []
             for entry in nav_data:
+                nav_value = float(entry["nav"])
+                if nav_value <= 0:
+                    raise ValueError(f"Invalid NAV value for {entry['date']}: {entry['nav']}")
                 parsed_data.append({
                     "date": datetime.strptime(entry["date"], "%Y-%m-%d").date(),
-                    "nav": float(entry["nav"])
+                    "nav": nav_value
                 })
 
             self.nav_data = sorted(parsed_data, key=lambda x: x['date'])
@@ -42,12 +45,17 @@ class NavMetrics:
     def _absolute_return(self, past_nav):
         """Calculate absolute return percentage"""
         latest_nav = self.nav_data[-1]['nav']
+        if past_nav <= 0:
+            return 0.0
         return round(((latest_nav - past_nav) / past_nav) * 100, 2)
 
     def _cagr(self, past_nav, past_date):
         """Calculate CAGR percentage"""
         latest_nav = self.nav_data[-1]['nav']
         latest_date = self.nav_data[-1]['date']
+
+        if past_nav <= 0:
+            return 0.0
 
         years = (latest_date - past_date).days / 365.25
         if years <= 0:
@@ -858,6 +866,8 @@ class NavMetrics:
                 for i in monthly_indices:
                     start_date = dates[i]
                     start_nav = navs[i]
+                    if start_nav <= 0:
+                        continue
                     target_date = start_date + timedelta(days=window_days)
 
                     j = bisect.bisect_left(dates, target_date)
@@ -866,6 +876,8 @@ class NavMetrics:
 
                     end_date = dates[j]
                     end_nav = navs[j]
+                    if end_nav <= 0:
+                        continue
 
                     actual_years = (end_date - start_date).days / 365.25
 

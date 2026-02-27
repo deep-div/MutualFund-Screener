@@ -205,7 +205,11 @@ class MFAPIFetcher:
         connector = aiohttp.TCPConnector(limit=100)
         timeout = aiohttp.ClientTimeout(total=30)
 
-        scheme_codes = [item["scheme_code"] for item in schemes_list if "scheme_code" in item]
+        scheme_codes = [
+            item["scheme_code"]
+            for item in schemes_list
+            if isinstance(item.get("scheme_code"), int) and item["scheme_code"] > 0
+        ]
         logger.info(f"Starting NAV fetch for {len(scheme_codes)} schemes")
 
         async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
