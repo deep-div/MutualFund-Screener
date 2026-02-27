@@ -50,6 +50,7 @@ class SchemeMeta(BaseModel):
     launch_date: date
     current_date: date
     total_active_days: int
+    nav_record_count: int
     option_type: Optional[OptionType] = None
     plan_type: Optional[PlanType] = None
     scheme_type: Optional[SchemeType] = None
