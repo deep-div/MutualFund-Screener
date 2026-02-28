@@ -959,6 +959,26 @@ class NavMetrics:
                 ulcer_index_values[name] = self._ulcer_index(past_date)
                 sip_returns[name] = self._sip_xirr(past_date, sip_amount=1000.0)
 
+            ordered_absolute_periods = [
+                ("one_day", 1),
+                ("one_week", 7),
+                ("one_month", 30),
+                ("three_month", 90),
+                ("six_month", 180),
+                ("one_year", 365),
+                ("two_year", 730),
+                ("three_year", 1095),
+                ("four_year", 1460),
+                ("five_year", 1825),
+                ("seven_year", 2555),
+                ("ten_year", 3650),
+            ]
+
+            absolute_returns = {}
+            for name, days in ordered_absolute_periods:
+                past_nav, _ = self._get_nav_for_period(days)
+                absolute_returns[name] = self._absolute_return(past_nav)
+
             launch_nav = self.nav_data[0]['nav']
             launch_date = self.nav_data[0]['date']
 
