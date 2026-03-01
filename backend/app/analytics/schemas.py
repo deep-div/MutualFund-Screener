@@ -3,15 +3,15 @@ from pydantic import BaseModel, Field, ConfigDict
 
 
 class DrawdownDetails(BaseModel):
-    max_drawdown_percent: float
+    max_drawdown_percent: Optional[float]
     peak_date: Optional[str]
     peak_nav: Optional[float]
     trough_date: Optional[str]
     trough_nav: Optional[float]
     recovery_date: Optional[str]
     recovery_nav: Optional[float]
-    drawdown_duration_days: int
-    drawdown_duration_navs: int
+    drawdown_duration_days: Optional[int]
+    drawdown_duration_navs: Optional[int]
     recovery_duration_days: Optional[int]
     recovery_duration_navs: Optional[int]
 

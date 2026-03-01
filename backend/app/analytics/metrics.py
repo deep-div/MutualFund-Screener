@@ -228,15 +228,15 @@ class NavMetrics:
             if len(entries) < 2:
                 if not entries:
                     results[str(year)] = {
-                        "max_drawdown_percent": 0.0,
+                        "max_drawdown_percent": None,
                         "peak_date": None,
                         "peak_nav": None,
                         "trough_date": None,
                         "trough_nav": None,
                         "recovery_date": None,
                         "recovery_nav": None,
-                        "drawdown_duration_days": 0,
-                        "drawdown_duration_navs": 0,
+                        "drawdown_duration_days": None,
+                        "drawdown_duration_navs": None,
                         "recovery_duration_days": None,
                         "recovery_duration_navs": None
                     }
@@ -332,7 +332,10 @@ class NavMetrics:
         }
 
         for year, details in yearly_mdd.items():
-            dd_abs = abs(details.get("max_drawdown_percent", 0.0))
+            dd_value = details.get("max_drawdown_percent")
+            if dd_value is None:
+                continue
+            dd_abs = abs(dd_value)
             for key, threshold in thresholds.items():
                 if dd_abs >= threshold:
                     frequency[key]["years"].append(year)
