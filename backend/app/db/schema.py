@@ -1,9 +1,9 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, Date, BigInteger
-from app.db.utils import Base, SCHEMA_NAME_MF
+from backend.app.db.session import Base, SCHEMA_NAME_MF
 
 """Defines single mutual fund scheme table"""
 class SchemeMetaORM(Base):
-    __tablename__ = "mutual_funds"
+    __tablename__ = "mutual_fund_meta"
     __table_args__ = {"schema": SCHEMA_NAME_MF}
     
     id = Column(Integer, primary_key=True, index=True)

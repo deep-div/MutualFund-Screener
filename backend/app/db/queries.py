@@ -1,6 +1,6 @@
 from sqlalchemy.dialects.postgresql import insert
 from app.db.schema import SchemeMetaORM
-from app.db.utils import get_session
+from backend.app.db.session import get_session
 
 
 """Bulk insert or update scheme metadata"""
