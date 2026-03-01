@@ -47,7 +47,7 @@ class SchemeSubCategory(str, Enum):
     MULTI_ASSET_ALLOCATION = "Multi Asset Allocation"
     ARBITRAGE = "Arbitrage Fund"
 
-#  Others 
+    #  Others 
     RETIREMENT = "Retirement Fund"
     CHILDRENS = "Children’s Fund"
     FOF_DOMESTIC = "FoF Domestic"
