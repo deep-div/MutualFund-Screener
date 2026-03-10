@@ -26,7 +26,7 @@ def run_workflow_api(background_tasks: BackgroundTasks):
         raise HTTPException(status_code=500, detail=f"Failed to queue workflow: {exc}")
 
 
-@router.get("/schemes")
+@router.post("/schemes")
 def list_schemes(
     filters: str | None = Query(
         default=None,
