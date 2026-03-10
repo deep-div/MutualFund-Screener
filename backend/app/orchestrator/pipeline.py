@@ -1,5 +1,5 @@
 from app.ingestion.mfapi_data import run_ingestion
-from app.analytics.metrics import run_analytics
+from app.metrics.metrics import run_analytics
 from app.db.write import run_store_in_db
 from app.shared.logger import logger
 
