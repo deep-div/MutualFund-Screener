@@ -6,7 +6,7 @@ from app.db.base import Base
 
 TABLE_NAME_1 = "mutual_fund_screener"
 TABLE_NAME_2 = "mutual_fund_metrics"
-TABLE_NAME_3 = "workflow_runs"
+TABLE_NAME_3 = "mutual_fund_workflows"
 
 """Defines single mutual fund screener table"""
 class SchemeMetaORM(Base):
@@ -14,8 +14,6 @@ class SchemeMetaORM(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     scheme_code = Column(BigInteger, unique=True, index=True, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
     # Meta Information
     instrument_type = Column(String)
@@ -94,6 +92,8 @@ class SchemeMetaORM(Base):
     mdd_seven_year_pct = Column(Float)
     mdd_ten_year_pct = Column(Float)
 
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
 """Stores complete mutual fund output JSON"""
 class SchemeAnalyticsORM(Base):
@@ -107,9 +107,9 @@ class SchemeAnalyticsORM(Base):
         index=True,
         nullable=False
     )
+    full_data = Column(JSONB)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
-    full_data = Column(JSONB)
 
 
 """Stores workflow execution status and summary"""
@@ -121,15 +121,15 @@ class WorkflowRunORM(Base):
     workflow_status = Column(String, nullable=False)
 
     ingestion_status = Column(String)
-    ingestion_records = Column(Integer)
-    ingestion_error = Column(String)
-
     metrics_status = Column(String)
-    metrics_records = Column(Integer)
-    metrics_error = Column(String)
-
     db_status = Column(String)
+
+    ingestion_records = Column(Integer)
+    metrics_records = Column(Integer)
     db_records = Column(Integer)
+
+    ingestion_error = Column(String)
+    metrics_error = Column(String)
     db_error = Column(String)
 
     started_at = Column(DateTime(timezone=True), server_default=func.now())
