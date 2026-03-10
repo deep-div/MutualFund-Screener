@@ -339,7 +339,8 @@ def run_ingestion():
         fetcher = MFAPIFetcher()
         days = 7
         schemes_list = fetcher.fetch_recent_active_schemes(days)
-        data = asyncio.run(fetcher.fetch_schemes_from_list(schemes_list))
+        # data = asyncio.run(fetcher.fetch_schemes_from_list(schemes_list))
+        data = asyncio.run(fetcher.fetch_schemes_from_list(schemes_list[:10]))
         logger.info("NAV fetch | Execution completed successfully")
         return data
     except Exception as e:

@@ -1068,8 +1068,8 @@ class NavMetrics:
         except Exception as e:
             logger.error(f"Metric calculation failed: {str(e)}")
             raise
-def run_analytics(raw_data):
-    """Run NAV analytics on raw scheme data and return structured response"""
+def run_metrics(raw_data):
+    """Run NAV metrics on raw scheme data and return structured response"""
     final_response = []
     failed_count = 0
 
@@ -1095,5 +1095,5 @@ def run_analytics(raw_data):
 
     return final_response
 
-# metrics = run_analytics(data)
+# metrics = run_metrics(data)
 # print(json.dumps(metrics, indent=2))
