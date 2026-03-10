@@ -1,21 +1,29 @@
 import json
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 
 from app.db.read import get_filtered_schemes, get_scheme_analytics
 from app.orchestrator.pipeline import run_pipeline
+from app.shared.logger import logger
 
 
 router = APIRouter()
 
 
-@router.post("/workflows/trigger")
-def run_pipeline_api():
+def _run_workflow_background():
     try:
         run_pipeline()
-        return {"status": "ok"}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Pipeline failed: {exc}")
+        logger.error(f"Pipeline failed: {exc}", exc_info=True)
+
+
+@router.post("/workflows/trigger", status_code=202)
+def run_workflow_api(background_tasks: BackgroundTasks):
+    try:
+        background_tasks.add_task(_run_workflow_background)
+        return {"status": "queued"}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to queue workflow: {exc}")
 
 
 @router.get("/schemes")
