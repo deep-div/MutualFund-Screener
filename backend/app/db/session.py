@@ -1,34 +1,21 @@
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from app.core.config import settings
+from app.db.base import Base
 
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import declarative_base, sessionmaker
-from dotenv import load_dotenv
-import os
-load_dotenv()
-Base = declarative_base()
+engine = create_engine(settings.DATABASE_URL)
 
-USER = os.getenv("user")
-PASSWORD = os.getenv("password")
-HOST = os.getenv("host")
-PORT = os.getenv("port")
-DBNAME = os.getenv("dbname")
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
 
-DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=require"
-SCHEMA_NAME_MF = "mf_data"
-
-"""Creates database session and ensures schema exists"""
 def get_session():
-    engine = create_engine(
-        DATABASE_URL,
-        pool_pre_ping=True,
-        pool_recycle=300,
-        connect_args={"sslmode": "require"}
-    )
-
-    # Create schema if not exists
-    with engine.connect() as connection:
-        connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA_NAME_MF}"))
-        connection.commit()
-
-    Base.metadata.create_all(engine)
-    SessionLocal = sessionmaker(bind=engine)
+    """Returns a plain database session (non-generator)"""
     return SessionLocal()
+
+def init_db():
+    """Create tables if they don't exist."""
+    # Ensure model metadata is registered before create_all
+    Base.metadata.create_all(bind=engine)

@@ -1,6 +1,6 @@
 from sqlalchemy.dialects.postgresql import insert
 from app.db.schema import SchemeMetaORM, SchemeAnalyticsORM
-from app.db.session import get_session
+from app.db.session import get_session, init_db
 from sqlalchemy.sql import func
 from app.shared.logger import logger
 
@@ -134,6 +134,7 @@ def bulk_upsert_analytics(session, data: list[dict]):
 
 """Runs full mutual fund pipeline in batches"""
 def run_store_in_db(data: list[dict], batch_size: int = 500):
+    init_db()
     session = get_session()
     total_records = len(data)
     logger.info(f"Starting DB pipeline | Total Records: {total_records} | Batch Size: {batch_size}")

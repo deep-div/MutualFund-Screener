@@ -1,16 +1,15 @@
 from sqlalchemy import Column, Integer, String, Float, Date, BigInteger, ForeignKey
-from app.db.session import Base, SCHEMA_NAME_MF
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import DateTime
 from sqlalchemy.sql import func
+from app.db.base import Base
 
 TABLE_NAME_1 = "mutual_fund_screener"
-TABLE_NAME_2 = "mutual_fund_analytics"
+TABLE_NAME_2 = "mutual_fund_metrics"
 
 """Defines single mutual fund screener table"""
 class SchemeMetaORM(Base):
     __tablename__ = TABLE_NAME_1
-    __table_args__ = {"schema": SCHEMA_NAME_MF}
     
     id = Column(Integer, primary_key=True, index=True)
     scheme_code = Column(BigInteger, unique=True, index=True, nullable=False)
@@ -98,12 +97,11 @@ class SchemeMetaORM(Base):
 """Stores complete mutual fund output JSON"""
 class SchemeAnalyticsORM(Base):
     __tablename__ = TABLE_NAME_2
-    __table_args__ = {"schema": SCHEMA_NAME_MF}
 
     id = Column(Integer, primary_key=True, index=True)
     scheme_code = Column(
         BigInteger,
-        ForeignKey(f"{SCHEMA_NAME_MF}.{TABLE_NAME_1}.scheme_code", ondelete="CASCADE"),
+        ForeignKey(f"{TABLE_NAME_1}.scheme_code", ondelete="CASCADE"),
         unique=True,
         index=True,
         nullable=False
