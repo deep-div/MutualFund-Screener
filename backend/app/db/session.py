@@ -19,3 +19,9 @@ def init_db():
     """Create tables if they don't exist."""
     # Ensure model metadata is registered before create_all
     Base.metadata.create_all(bind=engine)
+
+def warm_up_db():
+    """Initialize tables and open a first connection on startup."""
+    init_db()
+    with engine.connect():
+        pass

@@ -3,7 +3,7 @@ import json
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 
 from app.db.read import get_filtered_schemes, get_scheme_analytics
-from app.orchestrator.pipeline import run_pipeline
+from app.orchestrator.pipeline import run_workflow
 from app.shared.logger import logger
 
 
@@ -12,7 +12,7 @@ router = APIRouter()
 
 def _run_workflow_background():
     try:
-        run_pipeline()
+        run_workflow()
     except Exception as exc:
         logger.error(f"Pipeline failed: {exc}", exc_info=True)
 
