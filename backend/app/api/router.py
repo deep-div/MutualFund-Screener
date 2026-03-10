@@ -9,7 +9,7 @@ from app.orchestrator.pipeline import run_pipeline
 router = APIRouter()
 
 
-@router.post("/pipeline/run")
+@router.post("/workflows/trigger")
 def run_pipeline_api():
     try:
         run_pipeline()
