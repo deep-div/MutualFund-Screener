@@ -30,18 +30,30 @@ def orm_to_dict(row):
     return {c.name: getattr(row, c.name) for c in row.__table__.columns}
 
 
-"""Fetch schemes using dynamic screener filters and print results"""
-def get_filtered_schemes(filters: dict, limit: int = 10):
+"""Fetch schemes using dynamic screener filters and pagination"""
+def get_filtered_schemes(filters: dict, limit: int, offset: int):
     db = SessionLocal()
     try:
         query = db.query(SchemeMetaORM)
         query = build_dynamic_filters(query, filters)
-        query = query.limit(limit)
+
+        total = query.count()
+
+        query = (
+            query.order_by(SchemeMetaORM.scheme_code)
+            .offset(offset)
+            .limit(limit)
+        )
 
         results = query.all()
         json_results = [orm_to_dict(row) for row in results]
 
-        return json_results
+        return {
+            "items": json_results,
+            "limit": limit,
+            "offset": offset,
+            "total": total,
+        }
     finally:
         db.close()
 

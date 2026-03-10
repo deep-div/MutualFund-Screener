@@ -33,6 +33,7 @@ def list_schemes(
         description="JSON string of filters, e.g. {'scheme_class':'Equity','cagr_3y':{'gte':15}}",
     ),
     limit: int = Query(default=10, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0),
 ):
     if filters is None:
         filters_dict = {}
@@ -45,7 +46,7 @@ def list_schemes(
         if not isinstance(filters_dict, dict):
             raise HTTPException(status_code=400, detail="filters must be a JSON object")
 
-    return get_filtered_schemes(filters_dict, limit=limit)
+    return get_filtered_schemes(filters_dict, limit=limit, offset=offset)
 
 
 @router.get("/schemes/{scheme_code}/analytics")
