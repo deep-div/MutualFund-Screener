@@ -1,7 +1,7 @@
 from sqlalchemy.dialects.postgresql import insert
-from app.db.schema import SchemeMetaORM, SchemeAnalyticsORM
-from app.db.session import get_session, init_db
 from sqlalchemy.sql import func
+from app.db.schema import SchemeMetaORM, SchemeAnalyticsORM, WorkflowRunORM
+from app.db.session import get_session, init_db
 from app.shared.logger import logger
 
 def safe_get(d, *keys):
@@ -132,12 +132,51 @@ def bulk_upsert_analytics(session, data: list[dict]):
 
     session.execute(stmt)
 
-"""Runs full mutual fund pipeline in batches"""
+def create_workflow_run(workflow_name: str) -> int:
+    """Create a new workflow run and return its id."""
+    init_db()
+    session = get_session()
+
+    try:
+        run = WorkflowRunORM(
+            workflow_name=workflow_name,
+            workflow_status="running"
+        )
+        session.add(run)
+        session.commit()
+        session.refresh(run)
+        return run.id
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to create workflow run | Error: {str(e)}", exc_info=True)
+        raise
+    finally:
+        session.close()
+
+def update_workflow_run(run_id: int, **fields) -> None:
+    """Update fields for a workflow run by id."""
+    if not fields:
+        return
+
+    init_db()
+    session = get_session()
+
+    try:
+        session.query(WorkflowRunORM).filter(WorkflowRunORM.id == run_id).update(fields)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to update workflow run {run_id} | Error: {str(e)}", exc_info=True)
+        raise
+    finally:
+        session.close()
+
+"""Runs full mutual fund workflow in batches"""
 def run_store_in_db(data: list[dict], batch_size: int = 500):
     init_db()
     session = get_session()
     total_records = len(data)
-    logger.info(f"Starting DB pipeline | Total Records: {total_records} | Batch Size: {batch_size}")
+    logger.info(f"Starting DB workflow | Total Records: {total_records} | Batch Size: {batch_size}")
 
     try:
         for i in range(0, total_records, batch_size):
@@ -150,11 +189,12 @@ def run_store_in_db(data: list[dict], batch_size: int = 500):
             session.commit()
             logger.info(f"Batch {(i // batch_size) + 1} committed successfully")
 
-        logger.info("DB pipeline completed successfully")
+        logger.info("DB workflow completed successfully")
+        return total_records
 
     except Exception as e:
         session.rollback()
-        logger.error(f"DB pipeline failed | Error: {str(e)}", exc_info=True)
+        logger.error(f"DB workflow failed | Error: {str(e)}", exc_info=True)
         raise
 
     finally:
