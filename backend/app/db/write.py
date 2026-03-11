@@ -1,6 +1,13 @@
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.sql import func
-from app.db.schema import SchemeMetaORM, SchemeAnalyticsORM, WorkflowRunORM
+from app.db.schema import (
+    SchemeMetaORM,
+    SchemeAnalyticsORM,
+    WorkflowRunORM,
+    UserORM,
+    UserWatchlistORM,
+    UserFilterORM,
+)
 from app.db.session import get_session, init_db
 from app.shared.logger import logger
 
@@ -167,6 +174,71 @@ def update_workflow_run(run_id: int, **fields) -> None:
     except Exception as e:
         session.rollback()
         logger.error(f"Failed to update workflow run {run_id} | Error: {str(e)}", exc_info=True)
+        raise
+    finally:
+        session.close()
+
+
+def upsert_user(user: dict) -> None:
+    """Insert or update a user by uid."""
+    init_db()
+    session = get_session()
+
+    try:
+        stmt = insert(UserORM).values(user)
+        update_columns = {
+            c.name: getattr(stmt.excluded, c.name)
+            for c in UserORM.__table__.columns
+            if c.name not in ["created_at"]
+        }
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["uid"],
+            set_=update_columns
+        )
+        session.execute(stmt)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to upsert user | Error: {str(e)}", exc_info=True)
+        raise
+    finally:
+        session.close()
+
+
+def add_watchlist_item(uid: str, scheme_code: int) -> None:
+    """Add a watchlist item for a user."""
+    init_db()
+    session = get_session()
+
+    try:
+        stmt = insert(UserWatchlistORM).values(
+            {"uid": uid, "scheme_code": scheme_code}
+        )
+        stmt = stmt.on_conflict_do_nothing(
+            index_elements=["uid", "scheme_code"]
+        )
+        session.execute(stmt)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to add watchlist item | Error: {str(e)}", exc_info=True)
+        raise
+    finally:
+        session.close()
+
+
+def add_user_filters(uid: str, filters: dict) -> None:
+    """Store applied filters for a user."""
+    init_db()
+    session = get_session()
+
+    try:
+        record = UserFilterORM(uid=uid, filters=filters)
+        session.add(record)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to add user filters | Error: {str(e)}", exc_info=True)
         raise
     finally:
         session.close()
