@@ -15,6 +15,14 @@ class SchemeListRequest(BaseModel):
             }
         },
     )
+    sort_field: str | None = Field(
+        default="cagr_3y",
+        examples=["cagr_3y", "expense_ratio", "aum"],
+    )
+    sort_order: str | None = Field(
+        default="desc",
+        examples=["desc", "asc"],
+    )
 
 
 class UserFilterCreate(BaseModel):

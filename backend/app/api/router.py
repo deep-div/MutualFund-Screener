@@ -33,15 +33,13 @@ def list_schemes(
     payload: SchemeListRequest,
     limit: int = 10,
     offset: int = 0,
-    sort_field: str | None = "cagr_3y",
-    sort_order: str | None = "desc",
 ):
     return get_filtered_schemes(
         filters=payload.filters,
         limit=limit,
         offset=offset,
-        sort_field=sort_field,
-        sort_order=sort_order,
+        sort_field=payload.sort_field,
+        sort_order=payload.sort_order,
     )
 
 
