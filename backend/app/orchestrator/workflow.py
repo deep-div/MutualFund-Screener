@@ -1,8 +1,8 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from app.ingestion.mfapi_data import run_ingestion
-from app.metrics.metrics import run_metrics
-from app.db.write import run_store_in_db, create_workflow_run, update_workflow_run
+from app.domains.ingestion.mf_ingest import run_ingestion
+from app.domains.metrics.metrics import run_metrics
+from app.domains.mutual_funds.repository.write import run_store_in_db, create_workflow_run, update_workflow_run
 from app.core.logging import logger
 
 def run_workflow():

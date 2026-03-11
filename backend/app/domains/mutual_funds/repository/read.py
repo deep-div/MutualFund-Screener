@@ -1,6 +1,7 @@
-from app.db.schema import SchemeMetaORM, SchemeAnalyticsORM, UserWatchlistORM, UserFilterORM
-from app.db.session import SessionLocal
 from sqlalchemy import asc, desc
+
+from app.db.session import SessionLocal
+from app.domains.mutual_funds.models import SchemeMetaORM, SchemeAnalyticsORM
 
 ALLOWED_OPERATORS = {"gte", "lte", "gt", "lt", "eq"}
 
@@ -53,6 +54,7 @@ def orm_to_dict(row):
     """Convert SQLAlchemy ORM row into dictionary"""
     return {c.name: getattr(row, c.name) for c in row.__table__.columns}
 
+
 """Fetch schemes using dynamic screener filters and sorting"""
 def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str, sort_order: str):
     """Fetch schemes with filters, sorting, and pagination"""
@@ -75,6 +77,7 @@ def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str
             "total": total,
         }
 
+
 def get_scheme_analytics(scheme_code: int):
     """Fetch scheme analytics JSON directly using scheme code"""
     db = SessionLocal()
@@ -93,40 +96,3 @@ def get_scheme_analytics(scheme_code: int):
         return data
     finally:
         db.close()
-
-
-def get_user_watchlist(uid: str):
-    """Fetch watchlist items for a user."""
-    with SessionLocal() as db:
-        rows = (
-            db.query(UserWatchlistORM)
-            .filter(UserWatchlistORM.uid == uid)
-            .order_by(UserWatchlistORM.created_at.desc())
-            .all()
-        )
-        return [orm_to_dict(row) for row in rows]
-
-
-def get_user_filters(uid: str):
-    """Fetch filter records for a user."""
-    with SessionLocal() as db:
-        rows = (
-            db.query(UserFilterORM)
-            .filter(UserFilterORM.uid == uid)
-            .order_by(UserFilterORM.created_at.desc())
-            .all()
-        )
-        return [orm_to_dict(row) for row in rows]
-
-# filters = {
-#     "scheme_class": {"eq": "Equity"},
-#     "cagr_3y": {"gte": 15},
-# }
-
-# get_filtered_schemes(
-#     filters=filters,
-#     limit=15,
-#     offset=0,
-#     sort_field="cagr_3y",
-#     sort_order="desc"
-# )

@@ -5,7 +5,7 @@ import nest_asyncio
 import re
 from typing import List, Dict, Any
 from datetime import datetime, timedelta
-from app.ingestion.schemas import (
+from app.domains.ingestion.schemas import (
     InstrumentType,
     MutualFundNavResponse,
     SchemeMeta,

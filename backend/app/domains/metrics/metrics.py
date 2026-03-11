@@ -3,7 +3,7 @@ import bisect
 from datetime import timedelta
 from app.core.logging import logger
 from datetime import datetime
-from app.metrics.schemas import NavMetricsOutput
+from app.domains.metrics.schemas import NavMetricsOutput
 
 class NavMetrics:
     """Compute absolute return, CAGR, MDD, YoY and Rolling CAGR from NAV history"""

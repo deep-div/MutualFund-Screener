@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query
 
 from backend.app.api.v1.schemas import UserFilterCreate, UserFilterUpdate
-from app.db.read import get_user_filters, get_user_watchlist
-from app.db.write import (
+from app.domains.users.repository.read import get_user_filters, get_user_watchlist
+from app.domains.users.repository.write import (
     add_user_filters,
     add_watchlist_item,
     delete_user_filter,
