@@ -227,13 +227,18 @@ def add_watchlist_item(uid: str, scheme_code: int) -> None:
         session.close()
 
 
-def add_user_filters(uid: str, filters: dict) -> None:
+def add_user_filters(uid: str, filters: dict, name: str | None = None, description: str | None = None) -> None:
     """Store applied filters for a user."""
     init_db()
     session = get_session()
 
     try:
-        record = UserFilterORM(uid=uid, filters=filters)
+        record = UserFilterORM(
+            uid=uid,
+            name=name,
+            description=description,
+            filters=filters
+        )
         session.add(record)
         session.commit()
     except Exception as e:

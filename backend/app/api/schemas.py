@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Any
 
 
@@ -18,5 +18,21 @@ class SchemeListRequest(BaseModel):
 
 
 class UserFilterCreate(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "scheme_class": {"eq": "Equity"},
+                "cagr_3y": {"gte": 15},
+            }
+        }
+    )
+
     uid: str
-    filters: dict[str, Any]
+    name: str | None = None
+    description: str | None = None
+    filters: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "scheme_class": {"eq": "Equity"},
+            "cagr_3y": {"gte": 15},
+        }
+    )

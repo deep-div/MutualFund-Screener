@@ -88,7 +88,12 @@ def add_filters(uid: str, payload: UserFilterCreate):
     if payload.uid != uid:
         raise HTTPException(status_code=400, detail="Payload uid does not match path uid")
     try:
-        add_user_filters(uid=uid, filters=payload.filters)
+        add_user_filters(
+            uid=uid,
+            filters=payload.filters,
+            name=payload.name,
+            description=payload.description,
+        )
         return {"status": "ok"}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to add user filters: {exc}")
