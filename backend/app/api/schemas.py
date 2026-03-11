@@ -21,18 +21,33 @@ class UserFilterCreate(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "scheme_class": {"eq": "Equity"},
-                "cagr_3y": {"gte": 15},
+                "name": "High Growth Equity",
+                "description": "Equity funds with 3Y CAGR >= 15",
+                "filters": {
+                    "scheme_class": {"eq": "Equity"},
+                    "cagr_3y": {"gte": 15},
+                },
             }
         }
     )
 
-    uid: str
-    name: str | None = None
-    description: str | None = None
+    name: str | None = Field(
+        default=None,
+        examples=["High Growth Equity"],
+    )
+    description: str | None = Field(
+        default=None,
+        examples=["Equity funds with 3Y CAGR >= 15"],
+    )
     filters: dict[str, Any] = Field(
         default_factory=lambda: {
             "scheme_class": {"eq": "Equity"},
             "cagr_3y": {"gte": 15},
-        }
+        },
+        examples=[
+            {
+                "scheme_class": {"eq": "Equity"},
+                "cagr_3y": {"gte": 15},
+            }
+        ],
     )

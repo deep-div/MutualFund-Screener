@@ -90,8 +90,6 @@ def add_to_watchlist(
 
 @router.post("/users/{uid}/filters", status_code=201)
 def add_filters(uid: str, payload: UserFilterCreate):
-    if payload.uid != uid:
-        raise HTTPException(status_code=400, detail="Payload uid does not match path uid")
     try:
         add_user_filters(
             uid=uid,
