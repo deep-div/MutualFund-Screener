@@ -49,22 +49,6 @@ def add_to_watchlist(
         raise HTTPException(status_code=500, detail=f"Failed to add watchlist item: {exc}")
 
 
-@router.post("/users/{uid}/filters", status_code=201)
-def add_filters(uid: str, payload: UserFilterCreate):
-    try:
-        add_user_filters(
-            uid=uid,
-            filters=payload.filters,
-            name=payload.name,
-            description=payload.description,
-            sort_field=payload.sort_field,
-            sort_order=payload.sort_order,
-        )
-        return {"status": "ok"}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to add user filters: {exc}")
-
-
 @router.get("/users/{uid}/watchlist")
 def get_watchlist(uid: str):
     try:
@@ -92,6 +76,21 @@ def delete_from_watchlist(
         raise HTTPException(status_code=500, detail=f"Failed to delete watchlist item: {exc}")
 
 
+@router.post("/users/{uid}/filters", status_code=201)
+def add_filters(uid: str, payload: UserFilterCreate):
+    try:
+        add_user_filters(
+            uid=uid,
+            filters=payload.filters,
+            name=payload.name,
+            description=payload.description,
+            sort_field=payload.sort_field,
+            sort_order=payload.sort_order,
+        )
+        return {"status": "ok"}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to add user filters: {exc}")
+    
 @router.get("/users/{uid}/filters")
 def get_filters(uid: str):
     try:
