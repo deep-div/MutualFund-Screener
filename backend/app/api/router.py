@@ -1,29 +1,10 @@
-from typing import Any
-
 from fastapi import APIRouter, BackgroundTasks, HTTPException
-from pydantic import BaseModel, Field
-
 from app.db.read import get_filtered_schemes, get_scheme_analytics
 from app.orchestrator.pipeline import run_workflow
 from app.shared.logger import logger
-
+from app.api.schemas import SchemeListRequest
 
 router = APIRouter()
-
-class SchemeListRequest(BaseModel):
-    filters: dict[str, dict[str, Any]] = Field(
-        default_factory=lambda: {
-            "scheme_class": {"eq": "Equity"},
-            "cagr_3y": {"gte": 15},
-        },
-        json_schema_extra={
-            "example": {
-                "scheme_class": {"eq": "Equity"},
-                "cagr_3y": {"gte": 15},
-            }
-        },
-    )
-
 
 def _run_workflow_background():
     try:
