@@ -1,6 +1,7 @@
-import json
+from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+from pydantic import BaseModel, Field
 
 from app.db.read import get_filtered_schemes, get_scheme_analytics
 from app.orchestrator.pipeline import run_workflow
@@ -8,6 +9,20 @@ from app.shared.logger import logger
 
 
 router = APIRouter()
+
+class SchemeListRequest(BaseModel):
+    filters: dict[str, dict[str, Any]] = Field(
+        default_factory=lambda: {
+            "scheme_class": {"eq": "Equity"},
+            "cagr_3y": {"gte": 15},
+        },
+        json_schema_extra={
+            "example": {
+                "scheme_class": {"eq": "Equity"},
+                "cagr_3y": {"gte": 15},
+            }
+        },
+    )
 
 
 def _run_workflow_background():
@@ -28,25 +43,19 @@ def run_workflow_api(background_tasks: BackgroundTasks):
 
 @router.post("/schemes")
 def list_schemes(
-    filters: str | None = Query(
-        default=None,
-        description="JSON string of filters, e.g. {'scheme_class':'Equity','cagr_3y':{'gte':15}}",
-    ),
-    limit: int = Query(default=10, ge=1, le=1000),
-    offset: int = Query(default=0, ge=0),
+    payload: SchemeListRequest,
+    limit: int = 10,
+    offset: int = 0,
+    sort_field: str | None = "cagr_3y",
+    sort_order: str | None = "desc",
 ):
-    if filters is None:
-        filters_dict = {}
-    else:
-        try:
-            filters_dict = json.loads(filters)
-        except json.JSONDecodeError:
-            raise HTTPException(status_code=400, detail="filters must be valid JSON")
-
-        if not isinstance(filters_dict, dict):
-            raise HTTPException(status_code=400, detail="filters must be a JSON object")
-
-    return get_filtered_schemes(filters_dict, limit=limit, offset=offset)
+    return get_filtered_schemes(
+        filters=payload.filters,
+        limit=limit,
+        offset=offset,
+        sort_field=sort_field,
+        sort_order=sort_order,
+    )
 
 
 @router.get("/schemes/{scheme_code}/analytics")

@@ -1,61 +1,79 @@
 from app.db.schema import SchemeMetaORM, SchemeAnalyticsORM
 from app.db.session import SessionLocal
+from sqlalchemy import asc, desc
 
+ALLOWED_OPERATORS = {"gte", "lte", "gt", "lt", "eq"}
 
-"""Builds SQLAlchemy filters dynamically from user filters"""
+ALL_COLUMNS = {c.name: getattr(SchemeMetaORM, c.name) for c in SchemeMetaORM.__table__.columns}
+
+"""Build SQLAlchemy filters dynamically using model columns"""
 def build_dynamic_filters(query, filters):
+    """Build validated SQLAlchemy filter conditions from model columns"""
     for field, value in filters.items():
-        column = getattr(SchemeMetaORM, field, None)
-        if column is None:
-            continue
+        if field not in ALL_COLUMNS:
+            raise ValueError(f"Invalid filter field: {field}")
+        column = ALL_COLUMNS[field]
         if isinstance(value, dict):
-            if "gte" in value:
-                query = query.filter(column >= value["gte"])
-            if "lte" in value:
-                query = query.filter(column <= value["lte"])
-            if "gt" in value:
-                query = query.filter(column > value["gt"])
-            if "lt" in value:
-                query = query.filter(column < value["lt"])
-            if "eq" in value:
-                query = query.filter(column == value["eq"])
+            for op, val in value.items():
+                if op not in ALLOWED_OPERATORS:
+                    raise ValueError(f"Invalid operator '{op}' for field '{field}'")
+                if op == "gte":
+                    query = query.filter(column >= val)
+                elif op == "lte":
+                    query = query.filter(column <= val)
+                elif op == "gt":
+                    query = query.filter(column > val)
+                elif op == "lt":
+                    query = query.filter(column < val)
+                elif op == "eq":
+                    query = query.filter(column == val)
         else:
             query = query.filter(column == value)
 
     return query
 
 
-"""Converts ORM row to dictionary"""
+"""Apply safe sorting with NULL handling"""
+def apply_sorting(query, sort_field, sort_order):
+    """Apply validated sorting with NULL placement"""
+    if sort_field not in ALL_COLUMNS:
+        raise ValueError(f"Invalid sort field: {sort_field}")
+    column = ALL_COLUMNS[sort_field]
+    if sort_order == "asc":
+        query = query.order_by(asc(column).nullsfirst())
+    elif sort_order == "desc":
+        query = query.order_by(desc(column).nullslast())
+    else:
+        raise ValueError("sort_order must be 'asc' or 'desc'")
+    return query
+
+
+"""Convert ORM row to dictionary"""
 def orm_to_dict(row):
+    """Convert SQLAlchemy ORM row into dictionary"""
     return {c.name: getattr(row, c.name) for c in row.__table__.columns}
 
-
-"""Fetch schemes using dynamic screener filters and pagination"""
-def get_filtered_schemes(filters: dict, limit: int, offset: int):
-    db = SessionLocal()
-    try:
+"""Fetch schemes using dynamic screener filters and sorting"""
+def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str, sort_order: str):
+    """Fetch schemes with filters, sorting, and pagination"""
+    with SessionLocal() as db:
         query = db.query(SchemeMetaORM)
-        query = build_dynamic_filters(query, filters)
-
+        if filters:
+            query = build_dynamic_filters(query, filters)
         total = query.count()
-
-        query = (
-            query.order_by(SchemeMetaORM.scheme_code)
-            .offset(offset)
+        query = apply_sorting(query, sort_field, sort_order)
+        results = (
+            query.offset(offset)
             .limit(limit)
+            .all()
         )
-
-        results = query.all()
         json_results = [orm_to_dict(row) for row in results]
-
         return {
             "items": json_results,
             "limit": limit,
             "offset": offset,
             "total": total,
         }
-    finally:
-        db.close()
 
 def get_scheme_analytics(scheme_code: int):
     """Fetch scheme analytics JSON directly using scheme code"""
@@ -76,9 +94,15 @@ def get_scheme_analytics(scheme_code: int):
     finally:
         db.close()
 
-
 # filters = {
-#         "scheme_class": "Equity",
-#         "cagr_3y": {"gte": 15},
-#     }
-# get_filtered_schemes(filters)
+#     "scheme_class": {"eq": "Equity"},
+#     "cagr_3y": {"gte": 15},
+# }
+
+# get_filtered_schemes(
+#     filters=filters,
+#     limit=15,
+#     offset=0,
+#     sort_field="cagr_3y",
+#     sort_order="desc"
+# )
