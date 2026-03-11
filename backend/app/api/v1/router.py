@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import users
-from backend.app.api.v1.endpoints import mutual_fund
+from app.api.v1.endpoints import mutual_fund
 
 router = APIRouter()
 

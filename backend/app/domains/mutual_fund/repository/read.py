@@ -1,7 +1,7 @@
 from sqlalchemy import asc, desc
 
 from app.db.session import SessionLocal
-from app.domains.mutual_funds.models import SchemeMetaORM, SchemeAnalyticsORM
+from app.domains.mutual_fund.models import SchemeMetaORM, SchemeAnalyticsORM
 
 ALLOWED_OPERATORS = {"gte", "lte", "gt", "lt", "eq"}
 

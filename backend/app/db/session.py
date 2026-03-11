@@ -15,16 +15,15 @@ SessionLocal = sessionmaker(
 )
 
 def get_session():
-    """Returns a plain database session (non-generator)"""
-    return SessionLocal()
+    """Provide a database session and ensure it closes after request"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def init_db():
     """Create tables if they don't exist."""
     # Ensure model metadata is registered before create_all
     Base.metadata.create_all(bind=engine)
 
-def warm_up_db():
-    """Initialize tables and open a first connection on startup."""
-    init_db()
-    with engine.connect():
-        pass

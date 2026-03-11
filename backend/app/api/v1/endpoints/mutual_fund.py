@@ -1,9 +1,9 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 
-from app.domains.mutual_funds.repository.read import get_filtered_schemes, get_scheme_analytics
+from app.domains.mutual_fund.repository.read import get_filtered_schemes, get_scheme_analytics
 from app.orchestrator.workflow import run_workflow
 from app.core.logging import logger
-from backend.app.api.v1.schemas import SchemeListRequest
+from app.api.v1.schemas import SchemeListRequest
 
 router = APIRouter()
 

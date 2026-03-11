@@ -3,13 +3,13 @@ from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
 
 from app.api.v1.router import router as api_router
-from app.db.session import warm_up_db
+from app.db.session import init_db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handles startup and shutdown events for the FastAPI app"""
-    warm_up_db()
+    init_db()
     yield
 
 
