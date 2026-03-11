@@ -1,5 +1,10 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
-from app.db.read import get_filtered_schemes, get_scheme_analytics
+from app.db.read import (
+    get_filtered_schemes,
+    get_scheme_analytics,
+    get_user_watchlist,
+    get_user_filters,
+)
 from app.db.write import upsert_user, add_watchlist_item, add_user_filters
 from app.orchestrator.pipeline import run_workflow
 from app.shared.logger import logger
@@ -97,3 +102,25 @@ def add_filters(uid: str, payload: UserFilterCreate):
         return {"status": "ok"}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to add user filters: {exc}")
+
+
+@router.get("/users/{uid}/watchlist")
+def get_watchlist(uid: str):
+    try:
+        return {
+            "uid": uid,
+            "watchlist": get_user_watchlist(uid),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch watchlist: {exc}")
+
+
+@router.get("/users/{uid}/filters")
+def get_filters(uid: str):
+    try:
+        return {
+            "uid": uid,
+            "filters": get_user_filters(uid),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch filters: {exc}")

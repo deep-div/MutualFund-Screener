@@ -1,4 +1,4 @@
-from app.db.schema import SchemeMetaORM, SchemeAnalyticsORM
+from app.db.schema import SchemeMetaORM, SchemeAnalyticsORM, UserWatchlistORM, UserFilterORM
 from app.db.session import SessionLocal
 from sqlalchemy import asc, desc
 
@@ -93,6 +93,30 @@ def get_scheme_analytics(scheme_code: int):
         return data
     finally:
         db.close()
+
+
+def get_user_watchlist(uid: str):
+    """Fetch watchlist items for a user."""
+    with SessionLocal() as db:
+        rows = (
+            db.query(UserWatchlistORM)
+            .filter(UserWatchlistORM.uid == uid)
+            .order_by(UserWatchlistORM.created_at.desc())
+            .all()
+        )
+        return [orm_to_dict(row) for row in rows]
+
+
+def get_user_filters(uid: str):
+    """Fetch filter records for a user."""
+    with SessionLocal() as db:
+        rows = (
+            db.query(UserFilterORM)
+            .filter(UserFilterORM.uid == uid)
+            .order_by(UserFilterORM.created_at.desc())
+            .all()
+        )
+        return [orm_to_dict(row) for row in rows]
 
 # filters = {
 #     "scheme_class": {"eq": "Equity"},
