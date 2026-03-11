@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
 
-from app.api.router import router as api_router
+from app.api.v1.router import router as api_router
 from app.db.session import warm_up_db
 
 

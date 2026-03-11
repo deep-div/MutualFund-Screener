@@ -9,7 +9,7 @@ from app.db.schema import (
     UserFilterORM,
 )
 from app.db.session import get_session, init_db
-from app.shared.logger import logger
+from app.core.logging import logger
 
 def safe_get(d, *keys):
     """Safely fetch nested dictionary values without KeyError"""

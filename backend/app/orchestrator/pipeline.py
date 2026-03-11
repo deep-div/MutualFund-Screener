@@ -3,7 +3,7 @@ from zoneinfo import ZoneInfo
 from app.ingestion.mfapi_data import run_ingestion
 from app.metrics.metrics import run_metrics
 from app.db.write import run_store_in_db, create_workflow_run, update_workflow_run
-from app.shared.logger import logger
+from app.core.logging import logger
 
 def run_workflow():
     """Execute full ingestion, metrics, and storage workflow"""

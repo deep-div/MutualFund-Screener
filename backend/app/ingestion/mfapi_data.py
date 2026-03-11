@@ -14,7 +14,7 @@ from app.ingestion.schemas import (
     PlanType,
     SchemeSubCategory
 )
-from app.shared.logger import logger
+from app.core.logging import logger
 
 nest_asyncio.apply()
 

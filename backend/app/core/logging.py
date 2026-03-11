@@ -1,7 +1,8 @@
-import logging
 import json
-from datetime import datetime, timezone
+import logging
 import traceback
+from datetime import datetime, timezone
+
 
 class JsonFormatter(logging.Formatter):
     """Format log records as structured JSON."""
@@ -25,6 +26,7 @@ class JsonFormatter(logging.Formatter):
             )
 
         return json.dumps(log_record)
+
 
 # Setup logger
 logger = logging.getLogger("service_logger")

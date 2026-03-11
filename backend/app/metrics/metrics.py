@@ -1,7 +1,7 @@
 import json
 import bisect
 from datetime import timedelta
-from app.shared.logger import logger
+from app.core.logging import logger
 from datetime import datetime
 from app.metrics.schemas import NavMetricsOutput
 
