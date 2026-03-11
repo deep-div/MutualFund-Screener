@@ -227,6 +227,30 @@ def add_watchlist_item(uid: str, scheme_code: int) -> None:
         session.close()
 
 
+def delete_watchlist_item(uid: str, scheme_code: int) -> int:
+    """Delete a watchlist item for a user. Returns rows deleted."""
+    init_db()
+    session = get_session()
+
+    try:
+        deleted = (
+            session.query(UserWatchlistORM)
+            .filter(
+                UserWatchlistORM.uid == uid,
+                UserWatchlistORM.scheme_code == scheme_code,
+            )
+            .delete(synchronize_session=False)
+        )
+        session.commit()
+        return deleted
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to delete watchlist item | Error: {str(e)}", exc_info=True)
+        raise
+    finally:
+        session.close()
+
+
 def add_user_filters(
     uid: str,
     filters: dict,
@@ -256,6 +280,30 @@ def add_user_filters(
     except Exception as e:
         session.rollback()
         logger.error(f"Failed to add user filters | Error: {str(e)}", exc_info=True)
+        raise
+    finally:
+        session.close()
+
+
+def delete_user_filter(uid: str, filter_id: int) -> int:
+    """Delete a saved filter for a user. Returns rows deleted."""
+    init_db()
+    session = get_session()
+
+    try:
+        deleted = (
+            session.query(UserFilterORM)
+            .filter(
+                UserFilterORM.uid == uid,
+                UserFilterORM.id == filter_id,
+            )
+            .delete(synchronize_session=False)
+        )
+        session.commit()
+        return deleted
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to delete user filter | Error: {str(e)}", exc_info=True)
         raise
     finally:
         session.close()

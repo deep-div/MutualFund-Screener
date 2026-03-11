@@ -5,7 +5,13 @@ from app.db.read import (
     get_user_watchlist,
     get_user_filters,
 )
-from app.db.write import upsert_user, add_watchlist_item, add_user_filters
+from app.db.write import (
+    upsert_user,
+    add_watchlist_item,
+    add_user_filters,
+    delete_watchlist_item,
+    delete_user_filter,
+)
 from app.orchestrator.pipeline import run_workflow
 from app.shared.logger import logger
 from app.api.schemas import SchemeListRequest, UserFilterCreate
@@ -113,6 +119,22 @@ def get_watchlist(uid: str):
         raise HTTPException(status_code=500, detail=f"Failed to fetch watchlist: {exc}")
 
 
+@router.delete("/users/{uid}/watchlist", status_code=200)
+def delete_from_watchlist(
+    uid: str,
+    scheme_code: int = Query(...),
+):
+    try:
+        deleted = delete_watchlist_item(uid=uid, scheme_code=scheme_code)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Watchlist item not found")
+        return {"status": "ok"}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to delete watchlist item: {exc}")
+
+
 @router.get("/users/{uid}/filters")
 def get_filters(uid: str):
     try:
@@ -122,3 +144,16 @@ def get_filters(uid: str):
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to fetch filters: {exc}")
+
+
+@router.delete("/users/{uid}/filters/{filter_id}", status_code=200)
+def delete_filter(uid: str, filter_id: int):
+    try:
+        deleted = delete_user_filter(uid=uid, filter_id=filter_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Filter not found")
+        return {"status": "ok"}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to delete filter: {exc}")
