@@ -227,17 +227,29 @@ def add_watchlist_item(uid: str, scheme_code: int) -> None:
         session.close()
 
 
-def add_user_filters(uid: str, filters: dict, name: str | None = None, description: str | None = None) -> None:
+def add_user_filters(
+    uid: str,
+    filters: dict,
+    name: str | None = None,
+    description: str | None = None,
+    sort_field: str | None = "cagr_3y",
+    sort_order: str | None = "desc",
+) -> None:
     """Store applied filters for a user."""
     init_db()
     session = get_session()
 
     try:
+        filters_payload = {
+            "filters": filters,
+            "sort_field": sort_field,
+            "sort_order": sort_order,
+        }
         record = UserFilterORM(
             uid=uid,
             name=name,
             description=description,
-            filters=filters
+            filters=filters_payload,
         )
         session.add(record)
         session.commit()

@@ -94,6 +94,8 @@ def add_filters(uid: str, payload: UserFilterCreate):
             filters=payload.filters,
             name=payload.name,
             description=payload.description,
+            sort_field=payload.sort_field,
+            sort_order=payload.sort_order,
         )
         return {"status": "ok"}
     except Exception as exc:

@@ -17,7 +17,7 @@ class SchemeListRequest(BaseModel):
     )
     sort_field: str | None = Field(
         default="cagr_3y",
-        examples=["cagr_3y", "expense_ratio", "aum"],
+        examples=["cagr_3y", "cagr_1y"],
     )
     sort_order: str | None = Field(
         default="desc",
@@ -35,6 +35,8 @@ class UserFilterCreate(BaseModel):
                     "scheme_class": {"eq": "Equity"},
                     "cagr_3y": {"gte": 15},
                 },
+                "sort_field": "cagr_3y",
+                "sort_order": "desc",
             }
         }
     )
@@ -58,4 +60,12 @@ class UserFilterCreate(BaseModel):
                 "cagr_3y": {"gte": 15},
             }
         ],
+    )
+    sort_field: str | None = Field(
+        default="cagr_3y",
+        examples=["cagr_3y", "expense_ratio", "aum"],
+    )
+    sort_order: str | None = Field(
+        default="desc",
+        examples=["desc", "asc"],
     )
