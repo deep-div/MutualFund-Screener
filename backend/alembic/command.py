@@ -1,2 +1,2 @@
-# alembic revision --autogenerate -m "yo"
+# alembic revision --autogenerate -m "create schema"
 # alembic upgrade head
