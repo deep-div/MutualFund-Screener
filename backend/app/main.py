@@ -3,9 +3,6 @@ from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
 
 from app.api.v1.router import router as api_router
-from app.db.session import init_db
-from app.core.logging import logger
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,5 +17,12 @@ app = FastAPI(
 
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.include_router(api_router, prefix="/api")
+
+
+@app.get("/health")
+async def health_check():
+    """Basic health check endpoint"""
+    return {"status": "ok"}
+
 
 # py -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000

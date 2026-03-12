@@ -1,7 +1,7 @@
 from sqlalchemy.dialects.postgresql import insert
 
 from app.core.logging import logger
-from app.db.session import get_session, init_db
+from app.db.session import get_session
 from app.domains.users.models import UserORM, UserWatchlistORM, UserFilterORM
 
 

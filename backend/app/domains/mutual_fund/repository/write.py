@@ -2,7 +2,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.sql import func
 
 from app.core.logging import logger
-from app.db.session import get_session, init_db
+from app.db.session import get_session
 from app.domains.mutual_fund.models import (
     SchemeMetaORM,
     SchemeAnalyticsORM,
