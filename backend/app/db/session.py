@@ -7,6 +7,10 @@ from app.db.base import Base
 engine = create_engine(
     settings.DATABASE_URL,
     connect_args={"options": "-c timezone=Asia/Kolkata"},
+    pool_pre_ping=True,
+    pool_recycle=1800,
+    pool_size=5,
+    max_overflow=10,
 )
 
 SessionLocal = sessionmaker(
