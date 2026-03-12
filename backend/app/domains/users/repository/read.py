@@ -1,4 +1,4 @@
-from app.db.session import SessionLocal
+from app.db.session import get_session
 from app.domains.users.models import UserWatchlistORM, UserFilterORM
 
 
@@ -10,7 +10,7 @@ def orm_to_dict(row):
 
 def get_user_watchlist(uid: str):
     """Fetch watchlist items for a user."""
-    with SessionLocal() as db:
+    with get_session() as db:
         rows = (
             db.query(UserWatchlistORM)
             .filter(UserWatchlistORM.uid == uid)
@@ -22,7 +22,7 @@ def get_user_watchlist(uid: str):
 
 def get_user_filters(uid: str):
     """Fetch filter records for a user."""
-    with SessionLocal() as db:
+    with get_session() as db:
         rows = (
             db.query(UserFilterORM)
             .filter(UserFilterORM.uid == uid)

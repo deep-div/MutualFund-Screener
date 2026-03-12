@@ -1,6 +1,6 @@
 from sqlalchemy import asc, desc
 
-from app.db.session import SessionLocal
+from app.db.session import get_session
 from app.domains.mutual_fund.models import SchemeMetaORM, SchemeAnalyticsORM
 
 ALLOWED_OPERATORS = {"gte", "lte", "gt", "lt", "eq"}
@@ -58,7 +58,7 @@ def orm_to_dict(row):
 """Fetch schemes using dynamic screener filters and sorting"""
 def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str, sort_order: str):
     """Fetch schemes with filters, sorting, and pagination"""
-    with SessionLocal() as db:
+    with get_session() as db:
         query = db.query(SchemeMetaORM)
         if filters:
             query = build_dynamic_filters(query, filters)
@@ -80,8 +80,7 @@ def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str
 
 def get_scheme_analytics(scheme_code: int):
     """Fetch scheme analytics JSON directly using scheme code"""
-    db = SessionLocal()
-    try:
+    with get_session() as db:
         result = (
             db.query(SchemeAnalyticsORM.full_data)
             .filter(SchemeAnalyticsORM.scheme_code == scheme_code)
@@ -94,5 +93,3 @@ def get_scheme_analytics(scheme_code: int):
             data = None
 
         return data
-    finally:
-        db.close()
