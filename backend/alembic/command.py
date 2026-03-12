@@ -1,2 +1,2 @@
-# alembic revision --autogenerate -m "your message"
+# alembic revision --autogenerate -m "yo"
 # alembic upgrade head

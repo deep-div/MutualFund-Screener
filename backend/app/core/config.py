@@ -9,7 +9,5 @@ class Settings(BaseSettings):
 
     # Load ENV variables
     DATABASE_URL: str
-    # Production default: migrations are run explicitly in deploys, not on app startup
-    RUN_DB_MIGRATIONS_ON_STARTUP: bool = True
 
 settings = Settings()
