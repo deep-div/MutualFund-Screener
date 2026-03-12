@@ -10,10 +10,8 @@ from app.core.logging import logger
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handles startup and shutdown events for the FastAPI app"""
-    logger.info("Starting DB Connections")
     init_db()
     yield
-    logger.info("Shutting down DB Connections")
 
 
 app = FastAPI(
