@@ -15,7 +15,7 @@ SessionLocal = sessionmaker(
 )
 
 def get_session():
-    """Provide a database session and ensure it closes after request"""
+    """Provide a database session and ensure it closes after use."""
     db = SessionLocal()
     try:
         yield db

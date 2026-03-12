@@ -153,24 +153,20 @@ def bulk_upsert_analytics(session, data: list[dict]):
 
 def create_workflow_run(workflow_name: str) -> int:
     """Create a new workflow run and return its id."""
-    init_db()
-    session = get_session()
-
-    try:
-        run = WorkflowRunORM(
-            workflow_name=workflow_name,
-            workflow_status="running"
-        )
-        session.add(run)
-        session.commit()
-        session.refresh(run)
-        return run.id
-    except Exception as e:
-        session.rollback()
-        logger.error(f"Failed to create workflow run | Error: {str(e)}", exc_info=True)
-        raise
-    finally:
-        session.close()
+    for session in get_session():
+        try:
+            run = WorkflowRunORM(
+                workflow_name=workflow_name,
+                workflow_status="running"
+            )
+            session.add(run)
+            session.commit()
+            session.refresh(run)
+            return run.id
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Failed to create workflow run | Error: {str(e)}", exc_info=True)
+            raise
 
 
 def update_workflow_run(run_id: int, **fields) -> None:
@@ -178,46 +174,38 @@ def update_workflow_run(run_id: int, **fields) -> None:
     if not fields:
         return
 
-    init_db()
-    session = get_session()
-
-    try:
-        session.query(WorkflowRunORM).filter(WorkflowRunORM.id == run_id).update(fields)
-        session.commit()
-    except Exception as e:
-        session.rollback()
-        logger.error(f"Failed to update workflow run {run_id} | Error: {str(e)}", exc_info=True)
-        raise
-    finally:
-        session.close()
+    for session in get_session():
+        try:
+            session.query(WorkflowRunORM).filter(WorkflowRunORM.id == run_id).update(fields)
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Failed to update workflow run {run_id} | Error: {str(e)}", exc_info=True)
+            raise
 
 
 """Runs full mutual fund workflow in batches"""
 def run_store_in_db(data: list[dict], batch_size: int = 500):
-    init_db()
-    session = get_session()
     total_records = len(data)
     logger.info(f"Starting DB workflow | Total Records: {total_records} | Batch Size: {batch_size}")
 
-    try:
-        for i in range(0, total_records, batch_size):
-            chunk = data[i:i + batch_size]
-            logger.info(f"Processing batch {(i // batch_size) + 1} | Records: {len(chunk)}")
+    for session in get_session():
+        try:
+            for i in range(0, total_records, batch_size):
+                chunk = data[i:i + batch_size]
+                logger.info(f"Processing batch {(i // batch_size) + 1} | Records: {len(chunk)}")
 
-            bulk_upsert_schema(session, chunk)
-            bulk_upsert_analytics(session, chunk)
+                bulk_upsert_schema(session, chunk)
+                bulk_upsert_analytics(session, chunk)
 
-            session.commit()
-            logger.info(f"Batch {(i // batch_size) + 1} committed successfully")
+                session.commit()
+                logger.info(f"Batch {(i // batch_size) + 1} committed successfully")
 
-        logger.info("DB workflow completed successfully")
-        return total_records
-
-    except Exception as e:
-        session.rollback()
-        logger.error(f"DB workflow failed | Error: {str(e)}", exc_info=True)
-        raise
-
-    finally:
-        session.close()
-        logger.info("DB session closed")
+            logger.info("DB workflow completed successfully")
+            return total_records
+        except Exception as e:
+            session.rollback()
+            logger.error(f"DB workflow failed | Error: {str(e)}", exc_info=True)
+            raise
+        finally:
+            logger.info("DB session closed")
