@@ -6,7 +6,7 @@ from app.db.session import get_session
 from app.domains.mutual_fund.models import (
     SchemeMetaORM,
     SchemeAnalyticsORM,
-    WorkflowRunORM,
+    PipelineRunORM,
 )
 
 
@@ -151,13 +151,13 @@ def bulk_upsert_analytics(session, data: list[dict]):
     session.execute(stmt)
 
 
-def create_workflow_run(workflow_name: str) -> int:
-    """Create a new workflow run and return its id."""
+def create_pipeline_run(pipeline_name: str) -> int:
+    """Create a new pipeline run and return its id."""
     with get_session() as session:
         try:
-            run = WorkflowRunORM(
-                workflow_name=workflow_name,
-                workflow_status="running"
+            run = PipelineRunORM(
+                pipeline_name=pipeline_name,
+                pipeline_status="running"
             )
             session.add(run)
             session.commit()
@@ -165,29 +165,29 @@ def create_workflow_run(workflow_name: str) -> int:
             return run.id
         except Exception as e:
             session.rollback()
-            logger.error(f"Failed to create workflow run | Error: {str(e)}", exc_info=True)
+            logger.error(f"Failed to create pipeline run | Error: {str(e)}", exc_info=True)
             raise
 
 
-def update_workflow_run(run_id: int, **fields) -> None:
-    """Update fields for a workflow run by id."""
+def update_pipeline_run(run_id: int, **fields) -> None:
+    """Update fields for a pipeline run by id."""
     if not fields:
         return
 
     with get_session() as session:
         try:
-            session.query(WorkflowRunORM).filter(WorkflowRunORM.id == run_id).update(fields)
+            session.query(PipelineRunORM).filter(PipelineRunORM.id == run_id).update(fields)
             session.commit()
         except Exception as e:
             session.rollback()
-            logger.error(f"Failed to update workflow run {run_id} | Error: {str(e)}", exc_info=True)
+            logger.error(f"Failed to update pipeline run {run_id} | Error: {str(e)}", exc_info=True)
             raise
 
 
-"""Runs full mutual fund workflow in batches"""
+"""Runs full mutual fund pipeline in batches"""
 def run_store_in_db(data: list[dict], batch_size: int = 500):
     total_records = len(data)
-    logger.info(f"Starting DB workflow | Total Records: {total_records} | Batch Size: {batch_size}")
+    logger.info(f"Starting DB pipeline | Total Records: {total_records} | Batch Size: {batch_size}")
 
     with get_session() as session:
         try:
@@ -201,11 +201,11 @@ def run_store_in_db(data: list[dict], batch_size: int = 500):
                 session.commit()
                 logger.info(f"Batch {(i // batch_size) + 1} committed successfully")
 
-            logger.info("DB workflow completed successfully")
+            logger.info("DB pipeline completed successfully")
             return total_records
         except Exception as e:
             session.rollback()
-            logger.error(f"DB workflow failed | Error: {str(e)}", exc_info=True)
+            logger.error(f"DB pipeline failed | Error: {str(e)}", exc_info=True)
             raise
         finally:
             logger.info("DB session closed")

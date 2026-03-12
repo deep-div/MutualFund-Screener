@@ -7,7 +7,7 @@ from app.db.base import Base
 
 TABLE_NAME_1 = "mutual_fund_screener"
 TABLE_NAME_2 = "mutual_fund_metrics"
-TABLE_NAME_3 = "mutual_fund_workflows"
+TABLE_NAME_3 = "mutual_fund_pipelines"
 
 
 """Defines single mutual fund screener table"""
@@ -115,13 +115,13 @@ class SchemeAnalyticsORM(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
 
-"""Stores workflow execution status and summary"""
-class WorkflowRunORM(Base):
+"""Stores pipeline execution status and summary"""
+class PipelineRunORM(Base):
     __tablename__ = TABLE_NAME_3
 
     id = Column(Integer, primary_key=True, index=True)
-    workflow_name = Column(String, index=True, nullable=False)
-    workflow_status = Column(String, nullable=False)
+    pipeline_name = Column(String, index=True, nullable=False)
+    pipeline_status = Column(String, nullable=False)
 
     ingestion_status = Column(String)
     metrics_status = Column(String)

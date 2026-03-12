@@ -1,27 +1,27 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 
 from app.domains.mutual_fund.repository.read import get_filtered_schemes, get_scheme_analytics
-from app.orchestrator.workflow import run_workflow
+from app.orchestrator.pipeline import run_pipeline
 from app.core.logging import logger
 from app.api.v1.schemas import SchemeListRequest
 
 router = APIRouter()
 
 
-def _run_workflow_background():
+def _run_pipeline_background():
     try:
-        run_workflow()
+        run_pipeline()
     except Exception as exc:
         logger.error(f"Pipeline failed: {exc}", exc_info=True)
 
 
-@router.post("/workflows/trigger", status_code=202)
-def run_workflow_api(background_tasks: BackgroundTasks):
+@router.post("/pipeline/trigger", status_code=202)
+def run_pipeline_api(background_tasks: BackgroundTasks):
     try:
-        background_tasks.add_task(_run_workflow_background)
+        background_tasks.add_task(_run_pipeline_background)
         return {"status": "queued"}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to queue workflow: {exc}")
+        raise HTTPException(status_code=500, detail=f"Failed to queue pipeline: {exc}")
 
 
 @router.post("/schemes")

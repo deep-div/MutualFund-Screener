@@ -334,7 +334,7 @@ class MFAPIFetcher:
             return final_results
 
 def run_ingestion():
-    """Run mutual fund ingestion workflow"""
+    """Run mutual fund ingestion pipeline"""
     try:
         fetcher = MFAPIFetcher()
         days = 7
