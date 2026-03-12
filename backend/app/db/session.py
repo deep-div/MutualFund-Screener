@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
@@ -14,6 +15,7 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
+@contextmanager
 def get_session():
     """Provide a database session and ensure it closes after use."""
     db = SessionLocal()

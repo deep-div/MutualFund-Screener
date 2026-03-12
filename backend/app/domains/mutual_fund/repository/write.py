@@ -153,7 +153,7 @@ def bulk_upsert_analytics(session, data: list[dict]):
 
 def create_workflow_run(workflow_name: str) -> int:
     """Create a new workflow run and return its id."""
-    for session in get_session():
+    with get_session() as session:
         try:
             run = WorkflowRunORM(
                 workflow_name=workflow_name,
@@ -174,7 +174,7 @@ def update_workflow_run(run_id: int, **fields) -> None:
     if not fields:
         return
 
-    for session in get_session():
+    with get_session() as session:
         try:
             session.query(WorkflowRunORM).filter(WorkflowRunORM.id == run_id).update(fields)
             session.commit()
@@ -189,7 +189,7 @@ def run_store_in_db(data: list[dict], batch_size: int = 500):
     total_records = len(data)
     logger.info(f"Starting DB workflow | Total Records: {total_records} | Batch Size: {batch_size}")
 
-    for session in get_session():
+    with get_session() as session:
         try:
             for i in range(0, total_records, batch_size):
                 chunk = data[i:i + batch_size]

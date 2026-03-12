@@ -7,7 +7,7 @@ from app.domains.users.models import UserORM, UserWatchlistORM, UserFilterORM
 
 def upsert_user(user: dict) -> None:
     """Insert or update a user by uid."""
-    for session in get_session():
+    with get_session() as session:
         try:
             stmt = insert(UserORM).values(user)
             update_columns = {
@@ -29,7 +29,7 @@ def upsert_user(user: dict) -> None:
 
 def add_watchlist_item(uid: str, scheme_code: int) -> None:
     """Add a watchlist item for a user."""
-    for session in get_session():
+    with get_session() as session:
         try:
             stmt = insert(UserWatchlistORM).values(
                 {"uid": uid, "scheme_code": scheme_code}
@@ -47,7 +47,7 @@ def add_watchlist_item(uid: str, scheme_code: int) -> None:
 
 def delete_watchlist_item(uid: str, scheme_code: int) -> int:
     """Delete a watchlist item for a user. Returns rows deleted."""
-    for session in get_session():
+    with get_session() as session:
         try:
             deleted = (
                 session.query(UserWatchlistORM)
@@ -74,7 +74,7 @@ def add_user_filters(
     sort_order: str | None = "desc",
 ) -> None:
     """Store applied filters for a user."""
-    for session in get_session():
+    with get_session() as session:
         try:
             filters_payload = {
                 "filters": filters,
@@ -97,7 +97,7 @@ def add_user_filters(
 
 def delete_user_filter(uid: str, filter_id: int) -> int:
     """Delete a saved filter for a user. Returns rows deleted."""
-    for session in get_session():
+    with get_session() as session:
         try:
             deleted = (
                 session.query(UserFilterORM)
@@ -126,7 +126,7 @@ def update_user_filter(
     sort_order: str | None = None,
 ) -> int:
     """Update a saved filter for a user. Returns rows updated."""
-    for session in get_session():
+    with get_session() as session:
         try:
             update_payload: dict = {}
 
