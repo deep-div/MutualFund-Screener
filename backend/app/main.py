@@ -16,13 +16,13 @@ app = FastAPI(
 )
 
 app.add_middleware(GZipMiddleware, minimum_size=1024)
-app.include_router(api_router, prefix="/api")
 
-
-@app.get("/health")
+@app.get("/health", tags=["Health"])
 async def health_check():
     """Basic health check endpoint"""
     return {"status": "ok"}
+
+app.include_router(api_router, prefix="/api")
 
 
 # py -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
