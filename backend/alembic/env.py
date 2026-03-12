@@ -35,10 +35,7 @@ def _is_destructive_op(op) -> bool:
         alembic_ops.DropIndexOp,
         alembic_ops.DropConstraintOp,
         alembic_ops.DropColumnOp,
-        alembic_ops.DropSchemaOp,
-        alembic_ops.DropSequenceOp,
-        alembic_ops.DropTypeOp,
-    )
+)
     return isinstance(op, destructive)
 
 
