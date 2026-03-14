@@ -100,7 +100,7 @@ def add_user_filters(
     sort_field: str | None = "cagr_3y",
     sort_order: str | None = "desc",
 ) -> None:
-    """Store applied filters for a user."""
+    """Store applied filters for a user. Upsert by (uid, name) when name is provided."""
     with get_session() as session:
         try:
             filters_payload = {
@@ -108,6 +108,21 @@ def add_user_filters(
                 "sort_field": sort_field,
                 "sort_order": sort_order,
             }
+            if name:
+                existing = (
+                    session.query(UserFilterORM)
+                    .filter(
+                        UserFilterORM.uid == uid,
+                        UserFilterORM.name == name,
+                    )
+                    .first()
+                )
+                if existing:
+                    existing.description = description
+                    existing.filters = filters_payload
+                    session.commit()
+                    return
+
             record = UserFilterORM(
                 uid=uid,
                 name=name,

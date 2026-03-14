@@ -73,3 +73,7 @@ class UserFilterORM(Base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("uid", "name", name="uq_user_filters_uid_name"),
+    )
