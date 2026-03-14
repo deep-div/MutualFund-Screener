@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, BigInteger, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, BigInteger, ForeignKey, UniqueConstraint, Boolean
 from sqlalchemy import DateTime
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
@@ -10,7 +10,6 @@ TABLE_NAME_5 = "user_watchlist"
 TABLE_NAME_6 = "user_filters"
 TABLE_NAME_1 = "mutual_fund_screener"
 
-
 """Stores user profile information"""
 class UserORM(Base):
     __tablename__ = TABLE_NAME_4
@@ -18,6 +17,7 @@ class UserORM(Base):
     uid = Column(String, primary_key=True, index=True)
     email = Column(String, index=True)
     phone_number = Column(String, index=True)
+    email_verified = Column(Boolean)
     name = Column(String)
     provider = Column(String)
 
