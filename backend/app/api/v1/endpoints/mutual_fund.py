@@ -1,6 +1,10 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 
-from app.domains.mutual_fund.repository.read import get_filtered_schemes, get_scheme_analytics
+from app.domains.mutual_fund.repository.read import (
+    get_filtered_schemes,
+    get_scheme_analytics,
+    get_scheme_basic_details,
+)
 from app.orchestrator.pipeline import run_pipeline
 from app.core.logging import logger
 from app.api.v1.schemas import SchemeListRequest
@@ -37,6 +41,15 @@ def list_schemes(
         sort_field=payload.sort_field,
         sort_order=payload.sort_order,
     )
+
+
+
+@router.get("/schemes/{scheme_code}")
+def scheme_basic(scheme_code: int):
+    data = get_scheme_basic_details(scheme_code)
+    if data is None:
+        raise HTTPException(status_code=404, detail="Scheme not found")
+    return data
 
 
 @router.get("/schemes/{scheme_code}/analytics")

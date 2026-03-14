@@ -118,3 +118,42 @@ def get_scheme_analytics(scheme_code: int):
             data = None
 
         return data
+
+
+def get_scheme_basic_details(scheme_code: int):
+    """Fetch basic scheme information by scheme code."""
+    with get_session() as db:
+        row = (
+            db.query(
+                SchemeMetaORM.scheme_code,
+                SchemeMetaORM.scheme_name,
+                SchemeMetaORM.scheme_sub_name,
+                SchemeMetaORM.fund_house,
+                SchemeMetaORM.scheme_category,
+                SchemeMetaORM.scheme_class,
+                SchemeMetaORM.scheme_sub_category,
+                SchemeMetaORM.option_type,
+                SchemeMetaORM.plan_type,
+                SchemeMetaORM.current_nav,
+                SchemeMetaORM.current_date,
+            )
+            .filter(SchemeMetaORM.scheme_code == scheme_code)
+            .first()
+        )
+
+        if row is None:
+            return None
+
+        return {
+            "scheme_code": row.scheme_code,
+            "scheme_name": row.scheme_name,
+            "scheme_sub_name": row.scheme_sub_name,
+            "plan_type": row.plan_type,
+            "option_type": row.option_type,
+            "scheme_category": row.scheme_category,
+            "scheme_class": row.scheme_class,
+            "scheme_sub_category": row.scheme_sub_category,
+            "fund_house": row.fund_house,
+            "current_nav": row.current_nav,
+            "launch_date": row.current_date,
+        }
