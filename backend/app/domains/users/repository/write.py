@@ -70,6 +70,28 @@ def delete_watchlist_item(uid: str, scheme_code: int, watchlist_name: str) -> in
             raise
 
 
+def update_watchlist_name(uid: str, old_name: str, new_name: str) -> int:
+    """Rename a watchlist for a user. Returns rows updated."""
+    with get_session() as session:
+        try:
+            updated = (
+                session.query(UserWatchlistORM)
+                .filter(
+                    UserWatchlistORM.uid == uid,
+                    UserWatchlistORM.watchlist_name == old_name,
+                )
+                .update({"watchlist_name": new_name}, synchronize_session=False)
+            )
+            session.commit()
+            return updated
+        except Exception as e:
+            session.rollback()
+            logger.error(
+                f"Failed to update watchlist name | Error: {str(e)}", exc_info=True
+            )
+            raise
+
+
 def add_user_filters(
     uid: str,
     filters: dict,

@@ -7,6 +7,7 @@ from app.domains.users.repository.write import (
     add_watchlist_item,
     delete_user_filter,
     delete_watchlist_item,
+    update_watchlist_name,
     update_user_filter,
     upsert_user,
 )
@@ -78,6 +79,23 @@ def delete_from_watchlist(
         raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to delete watchlist item: {exc}")
+
+
+@router.put("/users/{uid}/watchlist/rename", status_code=200)
+def rename_watchlist(
+    uid: str,
+    old_name: str = Query(...),
+    new_name: str = Query(...),
+):
+    try:
+        updated = update_watchlist_name(uid=uid, old_name=old_name, new_name=new_name)
+        if not updated:
+            raise HTTPException(status_code=404, detail="Watchlist not found")
+        return {"status": "ok"}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to rename watchlist: {exc}")
 
 
 @router.post("/users/{uid}/filters", status_code=201)
