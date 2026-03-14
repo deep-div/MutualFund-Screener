@@ -23,7 +23,7 @@ if config.config_file_name is not None:
 # Provide metadata for 'autogenerate' support
 target_metadata = Base.metadata
 
-ALLOW_DESTRUCTIVE_MIGRATIONS = False
+ALLOW_DESTRUCTIVE_MIGRATIONS = True
 
 def _get_database_url() -> str:
     return settings.DATABASE_URL

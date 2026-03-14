@@ -69,7 +69,19 @@ def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str
             .limit(limit)
             .all()
         )
-        json_results = [orm_to_dict(row) for row in results]
+
+        remove_fields = { 
+            "id", "instrument_type", "scheme_name", "scheme_category", 
+            "scheme_type", "launch_date", "current_date", "total_active_days", "nav_record_count", 
+            "isin_growth", "isin_div_reinvestment", "created_at", "updated_at",
+        }
+
+        json_results = []
+        for row in results:
+            data = orm_to_dict(row)
+            filtered_data = {k: v for k, v in data.items() if k not in remove_fields}
+            json_results.append(filtered_data)
+
         return {
             "items": json_results,
             "limit": limit,

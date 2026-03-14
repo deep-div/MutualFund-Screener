@@ -44,6 +44,24 @@ FIELD_MAP = {
     "rolling_avg_7y": ("returns", "rolling_cagr_percent", "7_year", "summary", "average"),
     "rolling_avg_10y": ("returns", "rolling_cagr_percent", "10_year", "summary", "average"),
 
+    # Rolling minimum
+    "rolling_min_1y": ("returns", "rolling_cagr_percent", "1_year", "summary", "minimum"),
+    "rolling_min_2y": ("returns", "rolling_cagr_percent", "2_year", "summary", "minimum"),
+    "rolling_min_3y": ("returns", "rolling_cagr_percent", "3_year", "summary", "minimum"),
+    "rolling_min_4y": ("returns", "rolling_cagr_percent", "4_year", "summary", "minimum"),
+    "rolling_min_5y": ("returns", "rolling_cagr_percent", "5_year", "summary", "minimum"),
+    "rolling_min_7y": ("returns", "rolling_cagr_percent", "7_year", "summary", "minimum"),
+    "rolling_min_10y": ("returns", "rolling_cagr_percent", "10_year", "summary", "minimum"),
+
+    # Rolling maximum
+    "rolling_max_1y": ("returns", "rolling_cagr_percent", "1_year", "summary", "maximum"),
+    "rolling_max_2y": ("returns", "rolling_cagr_percent", "2_year", "summary", "maximum"),
+    "rolling_max_3y": ("returns", "rolling_cagr_percent", "3_year", "summary", "maximum"),
+    "rolling_max_4y": ("returns", "rolling_cagr_percent", "4_year", "summary", "maximum"),
+    "rolling_max_5y": ("returns", "rolling_cagr_percent", "5_year", "summary", "maximum"),
+    "rolling_max_7y": ("returns", "rolling_cagr_percent", "7_year", "summary", "maximum"),
+    "rolling_max_10y": ("returns", "rolling_cagr_percent", "10_year", "summary", "maximum"),
+
     # Risk metrics
     "volatility_max": ("risk_metrics", "volatility_annualized_percent", "max"),
     "downside_deviation_max": ("risk_metrics", "downside_deviation_percent", "max"),
