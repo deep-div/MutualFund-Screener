@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert
 
 from app.core.logging import logger
@@ -27,16 +28,29 @@ def upsert_user(user: dict) -> None:
             raise
 
 
-def add_watchlist_item(uid: str, scheme_code: int) -> None:
+def add_watchlist_item(uid: str, scheme_code: int, watchlist_name: str | None = None) -> None:
     """Add a watchlist item for a user."""
     with get_session() as session:
         try:
             stmt = insert(UserWatchlistORM).values(
-                {"uid": uid, "scheme_code": scheme_code}
+                {
+                    "uid": uid,
+                    "scheme_code": scheme_code,
+                    "watchlist_name": watchlist_name,
+                }
             )
-            stmt = stmt.on_conflict_do_nothing(
-                index_elements=["uid", "scheme_code"]
-            )
+            if watchlist_name is None:
+                stmt = stmt.on_conflict_do_nothing(
+                    index_elements=["uid", "scheme_code"]
+                )
+            else:
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=["uid", "scheme_code"],
+                    set_={
+                        "watchlist_name": stmt.excluded.watchlist_name,
+                        "updated_at": func.now(),
+                    },
+                )
             session.execute(stmt)
             session.commit()
         except Exception as e:

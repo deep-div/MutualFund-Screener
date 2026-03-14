@@ -43,9 +43,10 @@ def create_or_update_user(
 def add_to_watchlist(
     uid: str,
     scheme_code: int = Query(...),
+    watchlist_name: str | None = Query(),
 ):
     try:
-        add_watchlist_item(uid=uid, scheme_code=scheme_code)
+        add_watchlist_item(uid=uid, scheme_code=scheme_code, watchlist_name=watchlist_name)
         return {"status": "ok"}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to add watchlist item: {exc}")
