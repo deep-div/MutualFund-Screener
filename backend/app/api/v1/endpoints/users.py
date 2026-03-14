@@ -18,7 +18,7 @@ router = APIRouter()
 def create_or_update_user(
     uid: str = Query(...),
     email: str | None = Query(None),
-    phone_number: str | None = Query(None),
+    phone: str | None = Query(None),
     email_verified: bool | None = Query(None),
     name: str | None = Query(None),
     provider: str | None = Query(None),
@@ -28,7 +28,7 @@ def create_or_update_user(
             {
                 "uid": uid,
                 "email": email,
-                "phone_number": phone_number,
+                "phone": phone,
                 "email_verified": email_verified,
                 "name": name,
                 "provider": provider,
