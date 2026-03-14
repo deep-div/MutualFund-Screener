@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query
 
-from app.api.v1.schemas import UserFilterCreate, UserFilterUpdate
+from app.api.v1.schemas import UserFilterCreate
 from app.domains.users.repository.read import get_user_filters, get_user_watchlist
 from app.domains.users.repository.write import (
     add_user_filters,
@@ -8,7 +8,6 @@ from app.domains.users.repository.write import (
     delete_user_filter,
     delete_watchlist_item,
     update_watchlist_name,
-    update_user_filter,
     upsert_user,
 )
 
@@ -135,24 +134,3 @@ def delete_filter(uid: str, filter_id: int):
         raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to delete filter: {exc}")
-
-
-@router.put("/users/{uid}/filters/{filter_id}", status_code=200)
-def update_filter(uid: str, filter_id: int, payload: UserFilterUpdate):
-    try:
-        updated = update_user_filter(
-            uid=uid,
-            filter_id=filter_id,
-            name=payload.name,
-            description=payload.description,
-            filters=payload.filters,
-            sort_field=payload.sort_field,
-            sort_order=payload.sort_order,
-        )
-        if not updated:
-            raise HTTPException(status_code=404, detail="Filter not found")
-        return {"status": "ok"}
-    except HTTPException:
-        raise
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to update filter: {exc}")
