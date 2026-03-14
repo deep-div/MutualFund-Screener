@@ -101,6 +101,19 @@ def get_scheme_analytics(scheme_code: int):
 
         if result:
             data = result.full_data
+
+            remove_fields = {
+                "id", "instrument_type", "scheme_name", "scheme_category",
+                "scheme_type", "launch_date", "total_active_days", "nav_record_count",
+                "isin_growth", "isin_div_reinvestment", "created_at", "updated_at"
+            }
+
+            if isinstance(data, dict) and "meta" in data and isinstance(data["meta"], dict):
+                meta = data["meta"]
+
+                for field in remove_fields:
+                    meta.pop(field, None)
+
         else:
             data = None
 
