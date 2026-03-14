@@ -42,13 +42,17 @@ class UserWatchlistORM(Base):
         index=True,
         nullable=False
     )
-    watchlist_name = Column(String, nullable=True)
+    watchlist_name = Column(String, nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
     __table_args__ = (
-        UniqueConstraint("uid", "scheme_code", name="uq_user_watchlist_uid_scheme_code"),
+        UniqueConstraint(
+            "uid",
+            "watchlist_name",
+            "scheme_code",
+        ),
     )
 
 

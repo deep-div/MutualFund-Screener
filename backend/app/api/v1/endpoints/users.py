@@ -43,7 +43,7 @@ def create_or_update_user(
 def add_to_watchlist(
     uid: str,
     scheme_code: int = Query(...),
-    watchlist_name: str | None = Query(),
+    watchlist_name: str = Query("default"),
 ):
     try:
         add_watchlist_item(uid=uid, scheme_code=scheme_code, watchlist_name=watchlist_name)
@@ -67,9 +67,10 @@ def get_watchlist(uid: str):
 def delete_from_watchlist(
     uid: str,
     scheme_code: int = Query(...),
+    watchlist_name: str = Query("default"),
 ):
     try:
-        deleted = delete_watchlist_item(uid=uid, scheme_code=scheme_code)
+        deleted = delete_watchlist_item(uid=uid, scheme_code=scheme_code, watchlist_name=watchlist_name)
         if not deleted:
             raise HTTPException(status_code=404, detail="Watchlist item not found")
         return {"status": "ok"}

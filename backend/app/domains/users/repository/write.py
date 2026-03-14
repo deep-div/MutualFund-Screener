@@ -1,4 +1,3 @@
-from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert
 
 from app.core.logging import logger
@@ -28,7 +27,7 @@ def upsert_user(user: dict) -> None:
             raise
 
 
-def add_watchlist_item(uid: str, scheme_code: int, watchlist_name: str | None = None) -> None:
+def add_watchlist_item(uid: str, scheme_code: int, watchlist_name: str) -> None:
     """Add a watchlist item for a user."""
     with get_session() as session:
         try:
@@ -39,18 +38,9 @@ def add_watchlist_item(uid: str, scheme_code: int, watchlist_name: str | None = 
                     "watchlist_name": watchlist_name,
                 }
             )
-            if watchlist_name is None:
-                stmt = stmt.on_conflict_do_nothing(
-                    index_elements=["uid", "scheme_code"]
-                )
-            else:
-                stmt = stmt.on_conflict_do_update(
-                    index_elements=["uid", "scheme_code"],
-                    set_={
-                        "watchlist_name": stmt.excluded.watchlist_name,
-                        "updated_at": func.now(),
-                    },
-                )
+            stmt = stmt.on_conflict_do_nothing(
+                index_elements=["uid", "watchlist_name", "scheme_code"]
+            )
             session.execute(stmt)
             session.commit()
         except Exception as e:
@@ -59,7 +49,7 @@ def add_watchlist_item(uid: str, scheme_code: int, watchlist_name: str | None = 
             raise
 
 
-def delete_watchlist_item(uid: str, scheme_code: int) -> int:
+def delete_watchlist_item(uid: str, scheme_code: int, watchlist_name: str) -> int:
     """Delete a watchlist item for a user. Returns rows deleted."""
     with get_session() as session:
         try:
@@ -67,6 +57,7 @@ def delete_watchlist_item(uid: str, scheme_code: int) -> int:
                 session.query(UserWatchlistORM)
                 .filter(
                     UserWatchlistORM.uid == uid,
+                    UserWatchlistORM.watchlist_name == watchlist_name,
                     UserWatchlistORM.scheme_code == scheme_code,
                 )
                 .delete(synchronize_session=False)
