@@ -15,8 +15,8 @@ class UserORM(Base):
     __tablename__ = TABLE_NAME_4
 
     uid = Column(String, primary_key=True, index=True)
-    email = Column(String, index=True)
-    phone_number = Column(String, index=True)
+    email = Column(String, index=True, unique=True)
+    phone = Column(String, index=True, unique=True)
     email_verified = Column(Boolean)
     name = Column(String)
     provider = Column(String)
