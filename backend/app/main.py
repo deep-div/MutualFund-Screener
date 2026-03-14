@@ -22,7 +22,7 @@ async def health_check():
     """Basic health check endpoint"""
     return {"status": "ok"}
 
-app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="/api/v1")
 
 
 # py -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
