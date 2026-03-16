@@ -157,3 +157,47 @@ def get_scheme_basic_details(scheme_code: int):
             "current_nav": row.current_nav,
             "launch_date": row.current_date,
         }
+
+
+def search_schemes(query: str, limit: int, offset: int):
+    """Incremental search by scheme_sub_name."""
+    if not query:
+        return {
+            "limit": limit,
+            "offset": offset,
+            "total": 0,
+            "items": [],
+        }
+
+    q = f"%{query.strip()}%"
+
+    with get_session() as db:
+        base = db.query(SchemeMetaORM).filter(SchemeMetaORM.scheme_sub_name.ilike(q))
+        total = base.count()
+        results = (
+            base.order_by(SchemeMetaORM.scheme_sub_name.asc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+        items = [
+            {
+                "scheme_code": row.scheme_code,
+                "fund_house": row.fund_house,
+                "scheme_sub_name": row.scheme_sub_name,
+                "option_type": row.option_type,
+                "plan_type": row.plan_type,
+                "scheme_sub_category": row.scheme_sub_category,
+                "current_nav": row.current_nav,
+                "nav_change_1d": row.nav_change_1d,
+            }
+            for row in results
+        ]
+
+        return {
+            "limit": limit,
+            "offset": offset,
+            "total": total,
+            "items": items,
+        }

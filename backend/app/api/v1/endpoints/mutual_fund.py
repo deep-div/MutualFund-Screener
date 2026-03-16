@@ -4,6 +4,7 @@ from app.domains.mutual_fund.repository.read import (
     get_filtered_schemes,
     get_scheme_analytics,
     get_scheme_basic_details,
+    search_schemes,
 )
 from app.orchestrator.pipeline import run_pipeline
 from app.core.logging import logger
@@ -42,6 +43,14 @@ def list_schemes(
         sort_order=payload.sort_order,
     )
 
+
+@router.get("/schemes/search")
+def scheme_search(
+    query: str,
+    limit: int = 10,
+    offset: int = 0,
+):
+    return search_schemes(query=query, limit=limit, offset=offset)
 
 
 @router.get("/schemes/{scheme_code}")
