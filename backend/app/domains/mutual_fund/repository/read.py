@@ -1,4 +1,4 @@
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, desc, and_
 
 from app.db.session import get_session
 from app.domains.mutual_fund.models import SchemeMetaORM, SchemeAnalyticsORM
@@ -169,10 +169,18 @@ def search_schemes(query: str, limit: int, offset: int):
             "items": [],
         }
 
-    q = f"%{query.strip()}%"
+    # Match all terms independently so "smallcap index" finds "smallcap 250 index"
+    terms = [t for t in query.strip().split() if t]
 
     with get_session() as db:
-        base = db.query(SchemeMetaORM).filter(SchemeMetaORM.scheme_sub_name.ilike(q))
+        if terms:
+            term_filters = [
+                SchemeMetaORM.scheme_sub_name.ilike(f"%{t}%")
+                for t in terms
+            ]
+            base = db.query(SchemeMetaORM).filter(and_(*term_filters))
+        else:
+            base = db.query(SchemeMetaORM).filter(SchemeMetaORM.scheme_sub_name.ilike("%%"))
         total = base.count()
         results = (
             base.order_by(SchemeMetaORM.scheme_sub_name.asc())
