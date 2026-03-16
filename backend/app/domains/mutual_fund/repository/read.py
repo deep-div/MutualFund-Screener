@@ -83,10 +83,10 @@ def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str
             json_results.append(filtered_data)
 
         return {
-            "items": json_results,
             "limit": limit,
             "offset": offset,
             "total": total,
+            "items": json_results
         }
 
 
