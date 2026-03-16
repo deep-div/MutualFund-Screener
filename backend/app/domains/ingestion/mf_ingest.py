@@ -116,7 +116,11 @@ class MFAPIFetcher:
         current_date = datetime.strptime(sorted_nav[-1]["date"], "%d-%m-%Y")
         current_nav = float(sorted_nav[-1]["nav"])
         prev_nav = float(sorted_nav[-2]["nav"]) if len(sorted_nav) >= 2 else None
-        nav_change_1d = round((current_nav - prev_nav), 4) if prev_nav is not None else None
+        nav_change_1d = (
+            round(((current_nav - prev_nav) / prev_nav) * 100, 4)
+            if prev_nav not in (None, 0.0)
+            else None
+        )
         total_active_days = (current_date - launch_date).days
         time_since_inception_years = round(total_active_days / 365.25, 2)
         nav_record_count = len(nav_data)
