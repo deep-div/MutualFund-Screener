@@ -20,7 +20,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
+        "http://localhost:4000",
     ],
     allow_credentials=True,
     allow_methods=["*"],
