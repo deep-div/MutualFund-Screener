@@ -102,6 +102,7 @@ class SchemeMeta(BaseModel):
     launch_date: date
     current_date: date
     current_nav: float
+    nav_change_1d: Optional[float] = None
     time_since_inception_years: float
     total_active_days: int
     nav_record_count: int

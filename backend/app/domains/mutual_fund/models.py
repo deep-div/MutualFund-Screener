@@ -31,6 +31,7 @@ class SchemeMetaORM(Base):
     launch_date = Column(Date)
     current_date = Column(Date)
     current_nav = Column(Float)
+    nav_change_1d = Column(Float)
     time_since_inception_years = Column(Float)
     total_active_days = Column(Integer)
     nav_record_count = Column(Integer)
