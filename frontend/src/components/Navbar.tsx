@@ -23,9 +23,10 @@ const Navbar = () => {
         {/* LEFT: Logo */}
         <div
           onClick={() => navigate("/")}
-          className="text-nav-foreground font-bold text-lg tracking-tight cursor-pointer"
+          className="flex items-center gap-2 text-nav-foreground font-bold text-lg tracking-tight cursor-pointer"
         >
-          screener
+          <img src="/logo.svg" alt="Screener logo" className="w-8 h-8" />
+          MF Screener
         </div>
 
         {/* CENTER: Nav + Search (Centered, no empty space) */}
