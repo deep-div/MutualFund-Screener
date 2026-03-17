@@ -154,7 +154,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-10 text-[13px]"
@@ -171,7 +170,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="h-10 text-[13px] pr-10"
@@ -196,7 +194,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="h-10 text-[13px] pr-10"
