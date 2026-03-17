@@ -49,6 +49,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           return "No account found with this email.";
         case "auth/wrong-password":
           return "Incorrect password. Please try again.";
+        case "auth/invalid-credential":
+          return "Invalid email or password. Please try again.";
         case "auth/too-many-requests":
           return "Too many attempts. Please try again later.";
         case "auth/email-already-in-use":

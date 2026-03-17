@@ -14,6 +14,26 @@ const Login = () => {
   const { loginWithEmail } = useAuth();
   const navigate = useNavigate();
 
+  const parseAuthError = (err: unknown) => {
+    if (err instanceof FirebaseError) {
+      switch (err.code) {
+        case "auth/invalid-email":
+          return "Please enter a valid email address.";
+        case "auth/user-not-found":
+          return "No account found with this email.";
+        case "auth/wrong-password":
+          return "Incorrect password. Please try again.";
+        case "auth/invalid-credential":
+          return "Invalid email or password. Please try again.";
+        case "auth/too-many-requests":
+          return "Too many attempts. Please try again later.";
+        default:
+          return "Sign in failed. Please try again.";
+      }
+    }
+    return "Sign in failed. Please try again.";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -28,11 +48,7 @@ const Login = () => {
       await loginWithEmail(email.trim(), password);
       navigate("/");
     } catch (err) {
-      if (err instanceof FirebaseError) {
-        setError(err.message);
-      } else {
-        setError("Sign in failed. Please try again.");
-      }
+      setError(parseAuthError(err));
     } finally {
       setSubmitting(false);
     }
