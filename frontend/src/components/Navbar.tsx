@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, ChevronDown, LogOut, User, Moon, Sun, Monitor } from "lucide-react";
+import { Search, ChevronDown, LogOut, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import {
@@ -9,24 +9,12 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const { isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
-
-  const setTheme = (mode: "light" | "dark" | "system") => {
-    if (mode === "system") {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      document.documentElement.classList.toggle("dark", prefersDark);
-    } else {
-      document.documentElement.classList.toggle("dark", mode === "dark");
-    }
-  };
 
   return (
     <>
@@ -80,27 +68,6 @@ const Navbar = () => {
                 <User className="w-3.5 h-3.5 mr-2" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="text-[13px] cursor-pointer">
-                  <Sun className="w-3.5 h-3.5 mr-2" />
-                  Appearance
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuItem className="text-[13px] cursor-pointer" onClick={() => setTheme("light")}>
-                    <Sun className="w-3.5 h-3.5 mr-2" />
-                    Light
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-[13px] cursor-pointer" onClick={() => setTheme("dark")}>
-                    <Moon className="w-3.5 h-3.5 mr-2" />
-                    Dark
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-[13px] cursor-pointer" onClick={() => setTheme("system")}>
-                    <Monitor className="w-3.5 h-3.5 mr-2" />
-                    System
-                  </DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              <DropdownMenuSeparator />
               <DropdownMenuItem className="text-[13px] cursor-pointer text-destructive" onClick={logout}>
                 <LogOut className="w-3.5 h-3.5 mr-2" />
                 Logout
