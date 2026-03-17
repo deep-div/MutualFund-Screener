@@ -9,6 +9,7 @@ import {
   signOut,
 } from "firebase/auth";
 import { auth, googleProvider } from "@/core/firebase";
+import { syncUser } from "@/services/userService";
 
 interface AuthContextType {
   isLoggedIn: boolean;
@@ -44,6 +45,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const sync = async () => {
+      try {
+        const token = await user.getIdToken();
+        await syncUser(token);
+      } catch (err) {
+        // Don't block login flow if backend sync fails.
+        console.error("User sync failed", err);
+      }
+    };
+
+    void sync();
+  }, [user]);
 
   const value = useMemo<AuthContextType>(
     () => ({

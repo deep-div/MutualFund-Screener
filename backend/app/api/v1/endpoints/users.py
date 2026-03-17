@@ -1,4 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query
+import jwt
+from jwt import PyJWTError
 
 from app.api.v1.schemas import UserFilterCreate
 from app.domains.users.repository.read import get_user_filters, get_user_watchlist
@@ -16,25 +18,35 @@ router = APIRouter()
 
 @router.post("/users", status_code=201)
 def create_or_update_user(
-    uid: str = Query(...),
-    email: str | None = Query(None),
-    phone: str | None = Query(None),
-    email_verified: bool | None = Query(None),
-    name: str | None = Query(None),
-    provider: str | None = Query(None),
+    firebase_token: str = Query(...),
 ):
     try:
+        print("Received Firebase token:", firebase_token)  # Debug log
+        claims = jwt.decode(firebase_token, options={"verify_signature": False})
+        uid = claims.get("user_id") or claims.get("uid") or claims.get("sub")
+        if not uid:
+            raise HTTPException(status_code=400, detail="Invalid Firebase token: missing uid")
+
+        provider = None
+        firebase_claim = claims.get("firebase")
+        if isinstance(firebase_claim, dict):
+            provider = firebase_claim.get("sign_in_provider")
+
         upsert_user(
             {
                 "uid": uid,
-                "email": email,
-                "phone": phone,
-                "email_verified": email_verified,
-                "name": name,
+                "email": claims.get("email"),
+                "phone": claims.get("phone_number"),
+                "email_verified": claims.get("email_verified"),
+                "name": claims.get("name") or claims.get("displayName"),
                 "provider": provider,
             }
         )
         return {"status": "ok"}
+    except HTTPException:
+        raise
+    except PyJWTError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid Firebase token: {exc}")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to upsert user: {exc}")
 
