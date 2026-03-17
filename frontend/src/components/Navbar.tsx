@@ -49,7 +49,7 @@ const Navbar = () => {
             <Search className="w-3.5 h-3.5 text-nav-foreground/50" />
             <input
               type="text"
-              placeholder="Search for Indices"
+              placeholder="Search for Mutual Funds"
               className="bg-transparent text-[13px] text-nav-foreground placeholder:text-nav-foreground/40 outline-none w-full"
             />
           </div>
