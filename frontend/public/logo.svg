@@ -4,7 +4,4 @@
   <rect x="16" y="30" width="6" height="20" rx="2" fill="#F8FAFC"/>
   <rect x="29" y="24" width="6" height="26" rx="2" fill="#F8FAFC"/>
   <rect x="42" y="18" width="6" height="32" rx="2" fill="#F8FAFC"/>
-
-  <path d="M16 40 L26 30 L34 34 L46 22" stroke="#F8FAFC" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M42 22 H46 V26" stroke="#F8FAFC" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
