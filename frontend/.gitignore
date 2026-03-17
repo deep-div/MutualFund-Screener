@@ -1,5 +1,4 @@
 # Logs
-
 logs
 *.log
 npm-debug.log*
@@ -8,31 +7,12 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# dependencies
-
 node_modules
-
-# build output
-
 dist
 dist-ssr
-
-# local env files
-
-.env
-.env.*
 *.local
 
-# vite cache
-
-.vite
-
-# build caches
-
-.cache
-
 # Editor directories and files
-
 .vscode/*
 !.vscode/extensions.json
 .idea
