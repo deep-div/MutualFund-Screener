@@ -81,7 +81,9 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       try {
         setSubmitting(true);
         await resetPassword(email.trim());
-        toast({ title: "Reset email sent", description: `Password reset link sent to ${email.trim()}.` });
+        toast("Reset email sent", {
+          description: `Password reset link sent to ${email.trim()}.`,
+        });
         switchMode("login");
       } catch (err) {
         setError(parseAuthError(err));
@@ -111,10 +113,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       setSubmitting(true);
       if (mode === "signup") {
         await signupWithEmail(email.trim(), password);
-        toast({ title: "Account created", description: "You're now signed in." });
       } else {
         await loginWithEmail(email.trim(), password);
-        toast({ title: "Welcome back", description: "You're signed in." });
       }
       resetForm();
       onClose();
@@ -130,7 +130,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     try {
       setSubmitting(true);
       await loginWithGoogle();
-      toast({ title: "Signed in with Google", description: "You're all set." });
       resetForm();
       onClose();
     } catch (err) {
