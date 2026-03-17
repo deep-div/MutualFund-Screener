@@ -13,7 +13,7 @@ interface AuthModalProps {
 
 const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
-  const [emailOrMobile, setEmailOrMobile] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -24,7 +24,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   if (!isOpen) return null;
 
   const resetForm = () => {
-    setEmailOrMobile("");
+    setEmail("");
     setPassword("");
     setConfirmPassword("");
     setError("");
@@ -41,15 +41,15 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     e.preventDefault();
     setError("");
 
-    if (!emailOrMobile.trim()) {
-      setError("Please enter your email or mobile number.");
+    if (!email.trim()) {
+      setError("Please enter your email.");
       return;
     }
 
     if (mode === "forgot") {
       // Mock: just show success
       setError("");
-      alert("Password reset link sent to " + emailOrMobile);
+      alert("Password reset link sent to " + email);
       switchMode("login");
       return;
     }
@@ -70,7 +70,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       }
     }
 
-    login(emailOrMobile.trim());
+    login(email.trim());
     resetForm();
     onClose();
   };
@@ -148,15 +148,15 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="emailOrMobile" className="text-foreground text-[13px]">
-                Email or Mobile Number
+              <Label htmlFor="email" className="text-foreground text-[13px]">
+                Email
               </Label>
               <Input
-                id="emailOrMobile"
-                type="text"
-                placeholder="you@example.com or +91 9876543210"
-                value={emailOrMobile}
-                onChange={(e) => setEmailOrMobile(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="h-10 text-[13px]"
                 autoFocus
               />
