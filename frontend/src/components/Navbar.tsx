@@ -57,8 +57,10 @@ const Navbar = () => {
         </div>
 
         {/* RIGHT: Auth / Account */}
-        <div className="ml-6">
-          {isLoggedIn ? (
+        <div className="ml-6 min-w-[140px] flex justify-end">
+          {loading ? (
+            <div className="h-7 w-24 rounded-md bg-nav-hover/70 animate-pulse" />
+          ) : isLoggedIn ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 text-[13px] text-nav-foreground">
