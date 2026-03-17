@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { X, Eye, EyeOff } from "lucide-react";
+import { FirebaseError } from "firebase/app";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "@/components/ui/sonner";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -19,7 +21,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
+  const { loginWithEmail, signupWithEmail, loginWithGoogle, resetPassword, loading } = useAuth();
 
   if (!isOpen) return null;
 
@@ -37,7 +40,35 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     setMode(newMode);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const parseAuthError = (err: unknown) => {
+    if (err instanceof FirebaseError) {
+      switch (err.code) {
+        case "auth/invalid-email":
+          return "Please enter a valid email address.";
+        case "auth/user-not-found":
+          return "No account found with this email.";
+        case "auth/wrong-password":
+          return "Incorrect password. Please try again.";
+        case "auth/too-many-requests":
+          return "Too many attempts. Please try again later.";
+        case "auth/email-already-in-use":
+          return "This email is already registered.";
+        case "auth/weak-password":
+          return "Password should be at least 6 characters.";
+        case "auth/popup-blocked":
+          return "Popup was blocked. Please allow popups and try again.";
+        case "auth/popup-closed-by-user":
+          return "Popup closed before sign-in completed.";
+        case "auth/account-exists-with-different-credential":
+          return "An account already exists with a different sign-in method.";
+        default:
+          return err.message || "Something went wrong. Please try again.";
+      }
+    }
+    return "Something went wrong. Please try again.";
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -47,10 +78,16 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     }
 
     if (mode === "forgot") {
-      // Mock: just show success
-      setError("");
-      alert("Password reset link sent to " + email);
-      switchMode("login");
+      try {
+        setSubmitting(true);
+        await resetPassword(email.trim());
+        toast({ title: "Reset email sent", description: `Password reset link sent to ${email.trim()}.` });
+        switchMode("login");
+      } catch (err) {
+        setError(parseAuthError(err));
+      } finally {
+        setSubmitting(false);
+      }
       return;
     }
 
@@ -70,15 +107,37 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       }
     }
 
-    login(email.trim());
-    resetForm();
-    onClose();
+    try {
+      setSubmitting(true);
+      if (mode === "signup") {
+        await signupWithEmail(email.trim(), password);
+        toast({ title: "Account created", description: "You're now signed in." });
+      } else {
+        await loginWithEmail(email.trim(), password);
+        toast({ title: "Welcome back", description: "You're signed in." });
+      }
+      resetForm();
+      onClose();
+    } catch (err) {
+      setError(parseAuthError(err));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    login("google-user@gmail.com");
-    resetForm();
-    onClose();
+  const handleGoogleLogin = async () => {
+    setError("");
+    try {
+      setSubmitting(true);
+      await loginWithGoogle();
+      toast({ title: "Signed in with Google", description: "You're all set." });
+      resetForm();
+      onClose();
+    } catch (err) {
+      setError(parseAuthError(err));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -115,6 +174,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                 variant="outline"
                 className="w-full h-10 text-[13px] gap-2"
                 onClick={handleGoogleLogin}
+                disabled={submitting || loading}
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -158,6 +218,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-10 text-[13px]"
                 autoFocus
+                disabled={submitting || loading}
               />
             </div>
 
@@ -173,11 +234,13 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="h-10 text-[13px] pr-10"
+                    disabled={submitting || loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    disabled={submitting || loading}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -197,11 +260,13 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="h-10 text-[13px] pr-10"
+                    disabled={submitting || loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    disabled={submitting || loading}
                   >
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -216,6 +281,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                   type="button"
                   onClick={() => switchMode("forgot")}
                   className="text-primary text-[12px] hover:underline"
+                  disabled={submitting || loading}
                 >
                   Forgot Password?
                 </button>
@@ -226,10 +292,10 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               <p className="text-destructive text-[12px]">{error}</p>
             )}
 
-            <Button type="submit" className="w-full h-10 text-[13px]">
-              {mode === "login" && "Sign In"}
-              {mode === "signup" && "Create Account"}
-              {mode === "forgot" && "Send Reset Link"}
+            <Button type="submit" className="w-full h-10 text-[13px]" disabled={submitting || loading}>
+              {mode === "login" && (submitting ? "Signing In..." : "Sign In")}
+              {mode === "signup" && (submitting ? "Creating..." : "Create Account")}
+              {mode === "forgot" && (submitting ? "Sending..." : "Send Reset Link")}
             </Button>
           </form>
 
@@ -238,7 +304,11 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             {mode === "login" && (
               <p className="text-muted-foreground text-[12px]">
                 Don't have an account?{" "}
-                <button onClick={() => switchMode("signup")} className="text-primary hover:underline font-medium">
+                <button
+                  onClick={() => switchMode("signup")}
+                  className="text-primary hover:underline font-medium"
+                  disabled={submitting || loading}
+                >
                   Sign Up
                 </button>
               </p>
@@ -246,7 +316,11 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             {mode === "signup" && (
               <p className="text-muted-foreground text-[12px]">
                 Already have an account?{" "}
-                <button onClick={() => switchMode("login")} className="text-primary hover:underline font-medium">
+                <button
+                  onClick={() => switchMode("login")}
+                  className="text-primary hover:underline font-medium"
+                  disabled={submitting || loading}
+                >
                   Sign In
                 </button>
               </p>
@@ -254,7 +328,11 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             {mode === "forgot" && (
               <p className="text-muted-foreground text-[12px]">
                 Remember your password?{" "}
-                <button onClick={() => switchMode("login")} className="text-primary hover:underline font-medium">
+                <button
+                  onClick={() => switchMode("login")}
+                  className="text-primary hover:underline font-medium"
+                  disabled={submitting || loading}
+                >
                   Sign In
                 </button>
               </p>

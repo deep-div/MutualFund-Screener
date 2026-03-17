@@ -1,18 +1,22 @@
+import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import TickerTape from "@/components/TickerTape";
 import { Button } from "@/components/ui/button";
-import { User, Mail, Shield, LogOut } from "lucide-react";
+import { Mail, Shield, LogOut } from "lucide-react";
 
 const Profile = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
 
-  if (!user) {
-    navigate("/");
-    return null;
-  }
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/");
+    }
+  }, [loading, navigate, user]);
+
+  if (loading || !user) return null;
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
@@ -23,7 +27,7 @@ const Profile = () => {
           <div className="flex flex-col items-center gap-5">
             {/* Avatar */}
             <div className="w-20 h-20 rounded-full bg-primary/15 flex items-center justify-center text-3xl font-bold text-primary border-2 border-primary/20">
-              {user.email[0].toUpperCase()}
+              {(user.displayName || user.email || "A")[0].toUpperCase()}
             </div>
 
             {/* Info */}
@@ -38,7 +42,7 @@ const Profile = () => {
                 <Mail className="w-4 h-4 text-muted-foreground" />
                 <div>
                   <p className="text-[11px] text-muted-foreground">Email / Mobile</p>
-                  <p className="text-[13px] text-foreground font-medium">{user.email}</p>
+                  <p className="text-[13px] text-foreground font-medium">{user.email || "No email on file"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
@@ -56,7 +60,7 @@ const Profile = () => {
               size="sm"
               className="mt-2 w-full gap-2"
               onClick={() => {
-                logout();
+                void logout();
                 navigate("/");
               }}
             >

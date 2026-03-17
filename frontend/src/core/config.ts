@@ -5,6 +5,7 @@ type FirebaseClientConfig = {
   appId: string;
   storageBucket?: string;
   messagingSenderId?: string;
+  measurementId?: string;
 };
 
 const getEnv = (key: string): string => {
@@ -23,5 +24,6 @@ export const config = {
     appId: getEnv("VITE_FIREBASE_APP_ID"),
     storageBucket: getEnv("VITE_FIREBASE_STORAGE_BUCKET"),
     messagingSenderId: getEnv("VITE_FIREBASE_MESSAGING_SENDER_ID"),
+    measurementId: getEnv("VITE_FIREBASE_MEASUREMENT_ID"),
   } satisfies FirebaseClientConfig,
 };

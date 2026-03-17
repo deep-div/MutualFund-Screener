@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FirebaseError } from "firebase/app";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,14 +9,32 @@ import { Label } from "@/components/ui/label";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useAuth();
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const { loginWithEmail } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim()) {
-      login(email.trim());
+    setError("");
+
+    if (!email.trim() || !password) {
+      setError("Please enter your email and password.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await loginWithEmail(email.trim(), password);
       navigate("/");
+    } catch (err) {
+      if (err instanceof FirebaseError) {
+        setError(err.message);
+      } else {
+        setError("Sign in failed. Please try again.");
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -46,19 +65,21 @@ const Login = () => {
             <Input
               id="password"
               type="password"
-              placeholder="••••••••"
+              placeholder="********"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="h-9 text-[13px]"
             />
           </div>
 
-          <Button type="submit" className="w-full h-9 text-[13px]">
-            Sign In
+          {error && <p className="text-destructive text-[12px]">{error}</p>}
+
+          <Button type="submit" className="w-full h-9 text-[13px]" disabled={submitting}>
+            {submitting ? "Signing In..." : "Sign In"}
           </Button>
 
           <p className="text-center text-muted-foreground text-[11px]">
-            This is a mock login — enter any email to continue.
+            Use your registered email and password.
           </p>
         </form>
       </div>

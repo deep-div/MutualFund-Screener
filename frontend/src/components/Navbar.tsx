@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
-  const { isLoggedIn, user, logout } = useAuth();
+  const { isLoggedIn, user, logout, loading } = useAuth();
   const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
@@ -63,7 +63,7 @@ const Navbar = () => {
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 text-[13px] text-nav-foreground">
                   <div className="w-7 h-7 rounded-full bg-primary/30 flex items-center justify-center text-[11px] font-medium">
-                    {user?.email?.[0]?.toUpperCase() || "A"}
+                    {(user?.displayName || user?.email || "A")[0]?.toUpperCase()}
                   </div>
                   <ChevronDown className="w-3.5 h-3.5 text-nav-foreground/60" />
                 </button>
@@ -71,7 +71,7 @@ const Navbar = () => {
 
               <DropdownMenuContent align="end" className="w-52">
                 <div className="px-2 py-1.5">
-                  <p className="text-[13px] font-medium">{user?.email}</p>
+                  <p className="text-[13px] font-medium">{user?.displayName || user?.email}</p>
                 </div>
 
                 <DropdownMenuSeparator />
@@ -84,9 +84,9 @@ const Navbar = () => {
                   Profile
                 </DropdownMenuItem>
 
-                <DropdownMenuItem
+              <DropdownMenuItem
                   className="text-[13px] cursor-pointer text-destructive"
-                  onClick={logout}
+                  onClick={() => void logout()}
                 >
                   <LogOut className="w-3.5 h-3.5 mr-2" />
                   Logout
@@ -97,9 +97,10 @@ const Navbar = () => {
             <div className="flex items-center">
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="text-[13px] bg-primary text-white px-4 py-1.5 rounded-md hover:opacity-90"
+                className="text-[13px] bg-primary text-white px-4 py-1.5 rounded-md hover:opacity-90 disabled:opacity-60"
+                disabled={loading}
               >
-                Get Started
+                {loading ? "Loading..." : "Get Started"}
               </button>
             </div>
           )}
