@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { TrendingUp, TrendingDown, Activity, BarChart3, Shield, Zap } from "lucide-react";
 import { motion } from "framer-motion";
@@ -167,8 +167,7 @@ const FundAnalytics = () => {
   const [returnPeriod, setReturnPeriod] = useState<
     "one_day" | "one_week" | "one_month" | "three_month" | "six_month" | "one_year" | "two_year" | "three_year" | "five_year" | "max"
   >("one_year");
-  const [hoveredYear, setHoveredYear] = useState<string | null>(null);
-  const [lockedYear, setLockedYear] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["scheme-analytics", code],
@@ -195,7 +194,14 @@ const FundAnalytics = () => {
       .map(([year, ret]) => ({ year, return: ret as number }))
       .sort((a, b) => Number(a.year) - Number(b.year));
   }, [yoyReturns]);
-  const activeYear = lockedYear ?? hoveredYear;
+  const heatmapYears = useMemo(() => Object.keys(heatmap).sort((a, b) => Number(a) - Number(b)), [heatmap]);
+  const latestHeatmapYear = heatmapYears[heatmapYears.length - 1] ?? null;
+
+  useEffect(() => {
+    if (!selectedYear && latestHeatmapYear) {
+      setSelectedYear(latestHeatmapYear);
+    }
+  }, [selectedYear, latestHeatmapYear]);
 
   const rollingKeys = Object.keys(metrics?.returns?.rolling_cagr_percent || {});
   const defaultRolling = rollingKeys[0] || "1_year";
@@ -313,6 +319,15 @@ const FundAnalytics = () => {
   const absScale = useMemo(() => getReturnScale(absReturnSeries), [absReturnSeries]);
   const cagrScale = useMemo(() => getReturnScale(cagrReturnSeries), [cagrReturnSeries]);
 
+  const monthlyScale = useMemo(() => {
+    if (!selectedYear || !heatmap[selectedYear]) return 1;
+    const values = Object.values(heatmap[selectedYear] as Record<string, number>)
+      .filter((val) => typeof val === "number");
+    if (values.length === 0) return 1;
+    const maxAbs = Math.max(...values.map((val) => Math.abs(val)));
+    return maxAbs === 0 ? 1 : maxAbs;
+  }, [heatmap, selectedYear]);
+
   const getNavTickFormat = () => "month";
 
   const formatNavTick = (value: string, mode: "month") => {
@@ -397,16 +412,17 @@ const FundAnalytics = () => {
                 </div>
               </motion.div>
 
-              {/* NAV + Return Summary */}
+              {/* Return Metrics */}
+              <SectionHeader icon={TrendingUp} title="Return Metrics" />
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch">
                 <div className="flex flex-col h-full">
-                  <SectionHeader icon={TrendingUp} title="Return Summary" />
                   <div className="bg-surface border border-border/60 rounded-xl p-4 shadow-sm flex-1">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="text-[13px] font-semibold text-foreground">
-                        {heatmapReturnType === "cagr" ? "CAGR Returns" : "Absolute Returns"}
-                      </div>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="text-[13px] font-semibold text-foreground">Return Summary</div>
                       <div className="text-[11px] text-muted-foreground">Return %</div>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mb-3">
+                      {heatmapReturnType === "cagr" ? "CAGR Returns" : "Absolute Returns"}
                     </div>
                     <div className="flex items-center gap-2 mb-4">
                       {(["absolute", "cagr"] as const).map((type) => (
@@ -504,8 +520,8 @@ const FundAnalytics = () => {
                   </div>
                 </div>
                 <div className="flex flex-col h-full">
-                  <SectionHeader icon={BarChart3} title="NAV Performance" />
                   <div className="bg-surface border border-border rounded-lg p-4 flex-1">
+                    <div className="text-[13px] font-semibold text-foreground mb-3">NAV Performance</div>
                     <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                       <div className="flex items-center gap-2">
                         {(["absolute", "cagr"] as const).map((type) => (
@@ -600,116 +616,95 @@ const FundAnalytics = () => {
 
               {/* Performance Explorer */}
               <SectionHeader icon={Activity} title="Performance Explorer" />
-              <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
-                <div className="mb-4">
-                  <div className="text-[13px] font-semibold text-foreground">Yearly Performance</div>
-                  <div className="text-[11px] text-muted-foreground mt-1">
-                    Hover a bar to preview. Click to lock selection.
-                  </div>
-                </div>
-                <div className="h-56 mb-5">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={yoyData}
-                      onMouseLeave={() => setHoveredYear(null)}
-                      margin={{ left: 4, right: 8, bottom: 4 }}
+              <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch">
+                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-[13px] font-semibold text-foreground">Monthly Breakdown</div>
+                    <select
+                      value={selectedYear ?? ""}
+                      onChange={(event) => setSelectedYear(event.target.value || null)}
+                      className="h-8 rounded-md border border-border bg-background px-2 text-[11px] text-foreground"
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="year" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                      <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
-                      <Tooltip
-                        contentStyle={{
-                          background: "hsl(var(--popover))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: 8,
-                          fontSize: 12,
-                        }}
-                        formatter={(value: number) => [`${value.toFixed(2)}%`, "Return"]}
-                      />
-                      <Bar
-                        dataKey="return"
-                        radius={[4, 4, 0, 0]}
-                        onMouseEnter={(data) => setHoveredYear((data as { year?: string })?.year ?? null)}
-                        onClick={(data) => {
-                          const year = (data as { year?: string })?.year ?? null;
-                          setLockedYear((prev) => (prev === year ? null : year));
-                        }}
-                      >
-                        {yoyData.map((entry) => {
-                          const isActive = activeYear === entry.year;
-                          const fill = entry.return >= 0 ? "hsl(var(--positive))" : "hsl(var(--negative))";
-                          return (
-                            <Cell
-                              key={entry.year}
-                              fill={fill}
-                              opacity={activeYear ? (isActive ? 1 : 0.35) : 0.9}
-                            />
-                          );
-                        })}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-[13px] font-semibold text-foreground">Monthly Breakdown</div>
-                  {activeYear ? (
-                    <div className="text-[11px] text-muted-foreground">Selected: {activeYear}</div>
-                  ) : (
-                    <div className="text-[11px] text-muted-foreground">All years</div>
-                  )}
-                </div>
-                <div className="overflow-x-auto rounded-xl border border-border/40 bg-card/60">
-                  <table className="w-full text-[11px]">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="px-3 py-2 text-left text-muted-foreground font-medium">Year</th>
-                        {MONTHS.map((m) => (
-                          <th key={m} className="px-2 py-2 text-center text-muted-foreground font-medium">
-                            {m}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.entries(heatmap).map(([year, months]) => {
-                        const isActive = activeYear === year;
+                      {!selectedYear && <option value="">Select year</option>}
+                      {heatmapYears.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {selectedYear && heatmap[selectedYear] ? (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                      {MONTHS.map((month, index) => {
+                        const key = String(index + 1).padStart(2, "0");
+                        const val = (heatmap[selectedYear] as Record<string, number>)[key];
+                        const intensity = val !== undefined ? Math.min(0.22, Math.max(0.08, Math.abs(val) / monthlyScale)) : 0;
+                        const bg =
+                          val !== undefined
+                            ? val >= 0
+                              ? `hsl(var(--positive) / ${intensity})`
+                              : `hsl(var(--negative) / ${intensity})`
+                            : undefined;
                         return (
-                          <tr
-                            key={year}
-                            className={`border-b border-border last:border-0 transition-colors ${
-                              isActive ? "bg-primary/10" : "hover:bg-muted/40"
-                            }`}
-                            onMouseEnter={() => setHoveredYear(year)}
-                            onMouseLeave={() => setHoveredYear(null)}
-                            onClick={() => setLockedYear((prev) => (prev === year ? null : year))}
+                          <div
+                            key={month}
+                            className="group relative rounded-xl border border-border/40 shadow-sm hover:shadow-md transition-all bg-card"
                           >
-                            <td className="px-3 py-2 font-medium text-foreground">{year}</td>
-                            {Array.from({ length: 12 }, (_, i) => {
-                              const key = String(i + 1).padStart(2, "0");
-                              const val = (months as Record<string, number>)[key];
-                              return (
-                                <td key={i} className="px-1 py-1.5 text-center">
-                                  {val !== undefined ? (
-                                    <span
-                                      title={`${year} ${MONTHS[i]}: ${val.toFixed(2)}%`}
-                                      className={`inline-block w-full px-1 py-0.5 rounded text-[10px] font-medium ${getHeatmapColor(
-                                        val
-                                      )}`}
-                                    >
-                                      {val.toFixed(1)}
-                                    </span>
-                                  ) : (
-                                    <span className="text-muted-foreground/30">-</span>
-                                  )}
-                                </td>
-                              );
-                            })}
-                          </tr>
+                            <div
+                              className="rounded-xl px-3 py-3 min-h-[72px] flex flex-col justify-between"
+                              style={{ backgroundColor: bg }}
+                            >
+                              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{month}</div>
+                              <div
+                                className={`text-[14px] font-semibold ${val !== undefined && val >= 0 ? "text-positive" : "text-negative"}`}
+                              >
+                                {val !== undefined ? `${val >= 0 ? "+" : ""}${val.toFixed(2)}%` : "-"}
+                              </div>
+                            </div>
+                            {val !== undefined && (
+                              <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-foreground opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+                                {month} {selectedYear} · {val >= 0 ? "+" : ""}
+                                {val.toFixed(2)}%
+                              </div>
+                            )}
+                          </div>
                         );
                       })}
-                    </tbody>
-                  </table>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No monthly data available.</div>
+                  )}
+                </div>
+
+                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                  <div className="mb-3">
+                    <div className="text-[13px] font-semibold text-foreground">Yearly Performance</div>
+                    <div className="text-[11px] text-muted-foreground mt-1">Returns by calendar year.</div>
+                  </div>
+                  <div className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={yoyData} margin={{ left: 4, right: 8, bottom: 4 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="year" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                        <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
+                        <Tooltip
+                          contentStyle={{
+                            background: "hsl(var(--popover))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: 8,
+                            fontSize: 12,
+                          }}
+                          formatter={(value: number) => [`${value.toFixed(2)}%`, "Return"]}
+                        />
+                        <Bar dataKey="return" radius={[4, 4, 0, 0]}>
+                          {yoyData.map((entry) => {
+                            const fill = entry.return >= 0 ? "hsl(var(--positive))" : "hsl(var(--negative))";
+                            return <Cell key={entry.year} fill={fill} opacity={0.9} />;
+                          })}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
 
