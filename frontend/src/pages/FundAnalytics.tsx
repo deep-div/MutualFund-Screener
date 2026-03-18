@@ -168,6 +168,7 @@ const ABS_RETURN_ORDER = [
 ];
 
 const CAGR_RETURN_ORDER = ["one_year", "two_year", "three_year", "four_year", "five_year", "seven_year", "ten_year", "max"];
+const METRIC_PERIOD_ORDER = ["one_year", "two_year", "three_year", "four_year", "five_year", "seven_year", "ten_year", "max"];
 
 const FundAnalytics = () => {
   const { schemeCode } = useParams();
@@ -265,6 +266,8 @@ const FundAnalytics = () => {
       }));
     return [...entries, ...extras];
   };
+  const buildMetricSeries = (source?: Record<string, number | null>) =>
+    buildReturnSeries(source || {}, METRIC_PERIOD_ORDER);
 
   const getReturnScale = (series: { value: number }[]) => {
     if (series.length === 0) return 1;
@@ -965,7 +968,7 @@ const FundAnalytics = () => {
                 <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm min-h-[420px]">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
-                      <div className="text-[13px] font-semibold text-foreground">Yearly Max Drawdown</div>
+                      <div className="text-[13px] font-semibold text-foreground">Year on Year Drawdown Analysis</div>
                       <div className="text-[11px] text-muted-foreground mt-1">
                         Worst peak-to-trough drawdown for each year.
                       </div>
@@ -1197,87 +1200,232 @@ const FundAnalytics = () => {
               {/* Consistency */}
 
               <SectionHeader icon={Zap} title="Consistency" />
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-                <MetricCard label="Positive Days" value={consistency?.positive_days_percent} />
-                <MetricCard label="Positive Months" value={consistency?.positive_months_percent} />
-                <MetricCard label="Positive Years" value={consistency?.positive_years_percent} />
-                <MetricCard
-                  label="Max +ve Streak"
-                  value={consistency?.max_consecutive_positive_months}
-                  suffix=" mo"
-                  color="text-positive"
-                />
-                <MetricCard
-                  label="Max -ve Streak"
-                  value={consistency?.max_consecutive_negative_months}
-                  suffix=" mo"
-                  color="text-negative"
-                />
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-3">
-                <MetricCard label="Best Day" value={consistency?.best_day?.return} />
-                <MetricCard label="Worst Day" value={consistency?.worst_day?.return} />
-                <MetricCard label="Best Month" value={consistency?.best_month?.return} />
-                <MetricCard label="Worst Month" value={consistency?.worst_month?.return} />
-                <MetricCard label="Best Year" value={consistency?.best_year?.return} />
-                <MetricCard label="Worst Year" value={consistency?.worst_year?.return} />
+              <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6 mb-6">
+                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <div className="text-[13px] font-semibold text-foreground">Win Rate Snapshot</div>
+                      <div className="text-[11px] text-muted-foreground mt-1">Percent of positive periods.</div>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Consistency</div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {[
+                      { label: "Positive Days", value: consistency?.positive_days_percent },
+                      { label: "Positive Months", value: consistency?.positive_months_percent },
+                      { label: "Positive Years", value: consistency?.positive_years_percent },
+                    ].map((item) => (
+                      <div key={item.label} className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{item.label}</div>
+                        <div className="text-[16px] font-semibold text-foreground">
+                          {typeof item.value === "number" ? `${item.value.toFixed(2)}%` : "-"}
+                        </div>
+                        <div className="h-2 rounded-full bg-border/70 overflow-hidden mt-2">
+                          <div
+                            className="h-full bg-primary"
+                            style={{ width: `${Math.min(100, Math.max(0, item.value ?? 0))}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max +ve Streak</div>
+                      <div className="text-[15px] font-semibold text-positive">
+                        {typeof consistency?.max_consecutive_positive_months === "number"
+                          ? `${consistency.max_consecutive_positive_months} mo`
+                          : "-"}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">Longest positive run</div>
+                    </div>
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max -ve Streak</div>
+                      <div className="text-[15px] font-semibold text-negative">
+                        {typeof consistency?.max_consecutive_negative_months === "number"
+                          ? `${consistency.max_consecutive_negative_months} mo`
+                          : "-"}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">Longest negative run</div>
+                    </div>
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Best Month</div>
+                      <div className="text-[15px] font-semibold text-positive">
+                        {typeof consistency?.best_month?.return === "number" ? `${consistency.best_month.return.toFixed(2)}%` : "-"}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">
+                        {consistency?.best_month?.month ? formatMonthYear(consistency.best_month.month) : "-"}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Worst Month</div>
+                      <div className="text-[15px] font-semibold text-negative">
+                        {typeof consistency?.worst_month?.return === "number" ? `${consistency.worst_month.return.toFixed(2)}%` : "-"}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">
+                        {consistency?.worst_month?.month ? formatMonthYear(consistency.worst_month.month) : "-"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <div className="text-[13px] font-semibold text-foreground">Best vs Worst Returns</div>
+                      <div className="text-[11px] text-muted-foreground mt-1">Extremes across day, month, and year.</div>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Extremes</div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      {
+                        label: "Best Day",
+                        value: consistency?.best_day?.return,
+                        date: consistency?.best_day?.date ? formatLongDate(consistency.best_day.date) : null,
+                      },
+                      {
+                        label: "Worst Day",
+                        value: consistency?.worst_day?.return,
+                        date: consistency?.worst_day?.date ? formatLongDate(consistency.worst_day.date) : null,
+                      },
+                      {
+                        label: "Best Month",
+                        value: consistency?.best_month?.return,
+                        date: consistency?.best_month?.month ? formatMonthYear(consistency.best_month.month) : null,
+                      },
+                      {
+                        label: "Worst Month",
+                        value: consistency?.worst_month?.return,
+                        date: consistency?.worst_month?.month ? formatMonthYear(consistency.worst_month.month) : null,
+                      },
+                      {
+                        label: "Best Year",
+                        value: consistency?.best_year?.return,
+                        date: consistency?.best_year?.year ? String(consistency.best_year.year) : null,
+                      },
+                      {
+                        label: "Worst Year",
+                        value: consistency?.worst_year?.return,
+                        date: consistency?.worst_year?.year ? String(consistency.worst_year.year) : null,
+                      },
+                    ].map((item) => {
+                      const isPositive = typeof item.value === "number" ? item.value >= 0 : null;
+                      return (
+                        <div key={item.label} className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{item.label}</div>
+                          <div
+                            className={`text-[16px] font-semibold ${
+                              isPositive === null ? "text-foreground" : isPositive ? "text-positive" : "text-negative"
+                            }`}
+                          >
+                            {typeof item.value === "number" ? `${item.value >= 0 ? "+" : ""}${item.value.toFixed(2)}%` : "-"}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground mt-1">{item.date || "-"}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
               {/* Risk Metrics */}
               <SectionHeader icon={Shield} title="Risk Metrics" />
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
                 {[
-                  { label: "Volatility (Ann.)", data: riskMetrics?.volatility_annualized_percent },
-                  { label: "Downside Deviation", data: riskMetrics?.downside_deviation_percent },
-                  { label: "Skewness", data: riskMetrics?.skewness },
-                  { label: "Kurtosis", data: riskMetrics?.kurtosis },
-                ].map(({ label, data }) => (
-                  <div key={label} className="bg-surface border border-border rounded-lg p-3">
-                    <div className="text-[11px] text-muted-foreground uppercase mb-2">{label}</div>
-                    <div className="flex gap-4 flex-wrap">
-                      {Object.entries(data || {})
-                        .filter(([, v]) => v !== null)
-                        .map(([period, val]) => (
-                          <div key={period} className="text-center min-w-[50px]">
-                            <div className="text-[14px] font-semibold text-foreground">
-                              {(val as number).toFixed(2)}
+                  {
+                    label: "Volatility (Ann.)",
+                    data: riskMetrics?.volatility_annualized_percent,
+                    format: (v: number) => `${v.toFixed(2)}%`,
+                  },
+                  {
+                    label: "Downside Deviation",
+                    data: riskMetrics?.downside_deviation_percent,
+                    format: (v: number) => `${v.toFixed(2)}%`,
+                  },
+                  { label: "Skewness", data: riskMetrics?.skewness, format: (v: number) => v.toFixed(2) },
+                  { label: "Kurtosis", data: riskMetrics?.kurtosis, format: (v: number) => v.toFixed(2) },
+                ].map(({ label, data, format }) => {
+                  const series = buildMetricSeries(data as Record<string, number | null>);
+                  const maxAbs = series.length ? Math.max(...series.map((item) => Math.abs(item.value))) : 1;
+                  return (
+                    <div key={label} className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-[13px] font-semibold text-foreground">{label}</div>
+                        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Period</div>
+                      </div>
+                      {series.length > 0 ? (
+                        <div className="space-y-2">
+                          {series.map((item) => (
+                            <div key={item.key} className="flex items-center gap-2">
+                              <div className="w-8 text-[10px] text-muted-foreground">{item.label}</div>
+                              <div className="flex-1 h-2 rounded-full bg-border/60 overflow-hidden">
+                                <div
+                                  className={`h-full ${item.value >= 0 ? "bg-primary" : "bg-negative"}`}
+                                  style={{ width: `${Math.min(100, (Math.abs(item.value) / maxAbs) * 100)}%` }}
+                                />
+                              </div>
+                              <div
+                                className={`text-[11px] font-medium ${item.value >= 0 ? "text-foreground" : "text-negative"}`}
+                              >
+                                {format(item.value)}
+                              </div>
                             </div>
-                            <div className="text-[10px] text-muted-foreground">{PERIOD_LABELS[period] || period}</div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">No data available.</div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Risk Adjusted Returns */}
               <SectionHeader icon={Shield} title="Risk-Adjusted Returns" />
-              <div className="space-y-3 mb-12">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-12">
                 {[
                   { label: "Sharpe Ratio", data: riskAdj?.sharpe_ratio },
                   { label: "Sortino Ratio", data: riskAdj?.sortino_ratio },
                   { label: "Calmar Ratio", data: riskAdj?.calmar_ratio },
                   { label: "Ulcer Index", data: riskAdj?.ulcer_index },
                   { label: "Pain Index", data: riskAdj?.pain_index },
-                ].map(({ label, data }) => (
-                  <div key={label} className="bg-surface border border-border rounded-lg p-3">
-                    <div className="text-[11px] text-muted-foreground uppercase mb-2">{label}</div>
-                    <div className="flex gap-4 flex-wrap">
-                      {Object.entries(data || {})
-                        .filter(([, v]) => v !== null)
-                        .map(([period, val]) => (
-                          <div key={period} className="text-center min-w-[50px]">
-                            <div className="text-[14px] font-semibold text-foreground">
-                              {(val as number).toFixed(2)}
+                ].map(({ label, data }) => {
+                  const series = buildMetricSeries(data as Record<string, number | null>);
+                  const maxAbs = series.length ? Math.max(...series.map((item) => Math.abs(item.value))) : 1;
+                  return (
+                    <div key={label} className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-[13px] font-semibold text-foreground">{label}</div>
+                        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Period</div>
+                      </div>
+                      {series.length > 0 ? (
+                        <div className="space-y-2">
+                          {series.map((item) => (
+                            <div key={item.key} className="flex items-center gap-2">
+                              <div className="w-8 text-[10px] text-muted-foreground">{item.label}</div>
+                              <div className="flex-1 h-2 rounded-full bg-border/60 overflow-hidden">
+                                <div
+                                  className={`h-full ${item.value >= 0 ? "bg-primary" : "bg-negative"}`}
+                                  style={{ width: `${Math.min(100, (Math.abs(item.value) / maxAbs) * 100)}%` }}
+                                />
+                              </div>
+                              <div
+                                className={`text-[11px] font-medium ${item.value >= 0 ? "text-foreground" : "text-negative"}`}
+                              >
+                                {item.value.toFixed(2)}
+                              </div>
                             </div>
-                            <div className="text-[10px] text-muted-foreground">{PERIOD_LABELS[period] || period}</div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">No data available.</div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            </>
+</>
           )}
         </div>
       </div>
