@@ -743,7 +743,7 @@ const FundAnalytics = () => {
                       <div className="text-sm text-muted-foreground">No absolute return data available.</div>
                     ) : (
                       <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-4 gap-3">
-                        {absReturnSeries.map((entry) => {
+                        {absReturnSeries.filter((entry) => entry.key !== "one_day").map((entry) => {
                           const intensity = Math.min(0.22, Math.max(0.08, Math.abs(entry.value) / absScale));
                           const bg =
                             entry.value >= 0
