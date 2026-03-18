@@ -62,7 +62,7 @@ const Navbar = () => {
       setSearchError(null);
       try {
         const data = await searchSchemes(trimmed, {
-          limit: 10,
+          limit: 15,
           offset: 0,
           signal: controller.signal,
         });
