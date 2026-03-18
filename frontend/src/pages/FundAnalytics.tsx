@@ -318,6 +318,7 @@ const FundAnalytics = () => {
   >("one_year");
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [rollingKey, setRollingKey] = useState<string>("");
+  const [riskMetricKey, setRiskMetricKey] = useState<string>("volatility");
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["scheme-analytics", code],
@@ -1662,6 +1663,7 @@ const FundAnalytics = () => {
                           color: "hsl(var(--negative))",
                         },
                       ];
+                      const activeMetric = metricRows.find((row) => row.key === riskMetricKey) ?? metricRows[0];
                       const periods = METRIC_PERIOD_ORDER.map((key) => ({
                         key,
                         label: PERIOD_LABELS[key] || key,
@@ -1670,17 +1672,34 @@ const FundAnalytics = () => {
                         ...row,
                         series: buildMetricSeries(row.data as Record<string, number | null>),
                       }));
-                      const hasAny = seriesByMetric.some((row) => row.series.length > 0);
+                      const activeSeries = activeMetric
+                        ? buildMetricSeries(activeMetric.data as Record<string, number | null>)
+                        : [];
+                      const hasAny = activeSeries.length > 0;
                       const chartData = periods.map((period) => {
                         const entry: Record<string, string | number> = { period: period.label };
-                        seriesByMetric.forEach((row) => {
-                          const match = row.series.find((item) => item.key === period.key);
-                          entry[row.key] = typeof match?.value === "number" ? match.value : null;
-                        });
+                        const match = activeSeries.find((item) => item.key === period.key);
+                        entry.value = typeof match?.value === "number" ? match.value : null;
                         return entry;
                       });
                       return hasAny ? (
                         <div className="h-72">
+                          <div className="flex flex-wrap items-center gap-2 mb-3">
+                            {metricRows.map((row) => (
+                              <button
+                                key={row.key}
+                                type="button"
+                                onClick={() => setRiskMetricKey(row.key)}
+                                className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                                  (activeMetric?.key ?? metricRows[0].key) === row.key
+                                    ? "bg-primary text-primary-foreground border-primary"
+                                    : "bg-background text-muted-foreground border-border hover:text-foreground"
+                                }`}
+                              >
+                                {row.label}
+                              </button>
+                            ))}
+                          </div>
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chartData} margin={{ left: 6, right: 12, bottom: 4 }}>
                               <XAxis dataKey="period" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
@@ -1693,16 +1712,13 @@ const FundAnalytics = () => {
                                   fontSize: 12,
                                 }}
                               />
-                              {seriesByMetric.map((row) => (
-                                <Bar
-                                  key={row.key}
-                                  dataKey={row.key}
-                                  name={row.label}
-                                  fill={row.color}
-                                  radius={[4, 4, 0, 0]}
-                                  maxBarSize={24}
-                                />
-                              ))}
+                              <Bar
+                                dataKey="value"
+                                name={activeMetric?.label ?? "Metric"}
+                                fill={activeMetric?.color ?? "hsl(var(--primary))"}
+                                radius={[4, 4, 0, 0]}
+                                maxBarSize={28}
+                              />
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
