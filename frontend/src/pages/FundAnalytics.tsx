@@ -894,57 +894,6 @@ const FundAnalytics = () => {
                 </div>
               </div>
 
-              {/* Rolling CAGR */}
-              <SectionHeader icon={Activity} title="Rolling CAGR" />
-              <Tabs defaultValue={defaultRolling}>
-                <TabsList className="mb-3">
-                  {rollingKeys.map((k) => (
-                    <TabsTrigger key={k} value={k} className="text-[12px]">
-                      {k.replace("_", " ")}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                {rollingKeys.map((k) => {
-                  const rolling = metrics?.returns?.rolling_cagr_percent?.[k];
-                  if (!rolling) return null;
-                  return (
-                    <TabsContent key={k} value={k}>
-                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
-                        <MetricCard label="Avg" value={rolling.summary.average} />
-                        <MetricCard label="Median" value={rolling.summary.median} />
-                        <MetricCard label="Max" value={rolling.summary.maximum} />
-                        <MetricCard label="Min" value={rolling.summary.minimum} />
-                        <MetricCard label="Positive %" value={rolling.summary.positive_percent} />
-                        <MetricCard label="Obs" value={rolling.summary.observations} suffix="" color="text-foreground" />
-                      </div>
-                      <div className="h-56 bg-surface border border-border rounded-lg p-4">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={rolling.points}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                            <XAxis
-                              dataKey="date"
-                              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                              tickFormatter={(d: string) => d.slice(0, 7)}
-                            />
-                            <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
-                            <Tooltip
-                              contentStyle={{
-                                background: "hsl(var(--popover))",
-                                border: "1px solid hsl(var(--border))",
-                                borderRadius: 8,
-                                fontSize: 12,
-                              }}
-                              formatter={(value: number) => [`${value.toFixed(2)}%`, "CAGR"]}
-                            />
-                            <Line type="monotone" dataKey="cagr_percent" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </TabsContent>
-                  );
-                })}
-              </Tabs>
-
               {/* Drawdown */}
               <SectionHeader icon={TrendingDown} title="Drawdown Analysis" />
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
