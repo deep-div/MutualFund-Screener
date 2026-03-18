@@ -141,21 +141,29 @@ const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: 
   </div>
 );
 
-const DISPLAY_RETURN_PERIODS = [
+const ABS_RETURN_ORDER = [
+  "one_day",
+  "one_week",
   "one_month",
   "three_month",
   "six_month",
   "one_year",
+  "two_year",
   "three_year",
+  "four_year",
   "five_year",
+  "seven_year",
   "ten_year",
   "max",
 ];
+
+const CAGR_RETURN_ORDER = ["one_year", "two_year", "three_year", "four_year", "five_year", "seven_year", "ten_year", "max"];
 
 const FundAnalytics = () => {
   const { schemeCode } = useParams();
   const code = schemeCode ? Number(schemeCode) : NaN;
   const [returnType, setReturnType] = useState<"absolute" | "cagr">("absolute");
+  const [heatmapReturnType, setHeatmapReturnType] = useState<"absolute" | "cagr">("absolute");
   const [returnPeriod, setReturnPeriod] = useState<
     "one_day" | "one_week" | "one_month" | "three_month" | "six_month" | "one_year" | "two_year" | "three_year" | "five_year" | "max"
   >("one_year");
@@ -300,29 +308,32 @@ const FundAnalytics = () => {
   const baseNav = filteredNavSeries.length > 0 ? filteredNavSeries[0].nav : null;
   const baseDate = filteredNavSeries.length > 0 ? filteredNavSeries[0].date : null;
 
-  const absReturnSeries = useMemo(() => buildReturnSeries(absReturns, DISPLAY_RETURN_PERIODS), [absReturns]);
-  const cagrReturnSeries = useMemo(() => buildReturnSeries(cagrReturns, DISPLAY_RETURN_PERIODS), [cagrReturns]);
+  const absReturnSeries = useMemo(() => buildReturnSeries(absReturns, ABS_RETURN_ORDER), [absReturns]);
+  const cagrReturnSeries = useMemo(() => buildReturnSeries(cagrReturns, CAGR_RETURN_ORDER), [cagrReturns]);
   const absScale = useMemo(() => getReturnScale(absReturnSeries), [absReturnSeries]);
   const cagrScale = useMemo(() => getReturnScale(cagrReturnSeries), [cagrReturnSeries]);
 
+  const getNavTickFormat = () => "month";
+
+  const formatNavTick = (value: string, mode: "month") => {
+    const [y, m, d] = value.split("-").map(Number);
+    if (!y || !m) return value;
+    const date = new Date(y, m - 1, d || 1);
+    return date.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+  };
+
+  const navTickMode = getNavTickFormat();
+
   const navTicks = useMemo(() => {
     if (filteredNavSeries.length === 0) return [];
-    const months: string[] = [];
-    const seen = new Set<string>();
-    for (const point of filteredNavSeries) {
-      const monthKey = point.date.slice(0, 7);
-      if (!seen.has(monthKey)) {
-        seen.add(monthKey);
-        months.push(point.date);
-      }
+    const targetTicks = 5;
+    if (filteredNavSeries.length <= targetTicks) {
+      return filteredNavSeries.map((p) => p.date);
     }
-    if (months.length <= 12) {
-      return months;
-    }
-    const useQuarterly = months.length > 18;
-    const step = useQuarterly ? 3 : 2;
-    return months.filter((_, index) => index % step === 0);
-  }, [filteredNavSeries]);
+    const step = (filteredNavSeries.length - 1) / (targetTicks - 1);
+    const indices = Array.from({ length: targetTicks }, (_, i) => Math.round(i * step));
+    return indices.map((i) => filteredNavSeries[Math.min(i, filteredNavSeries.length - 1)].date);
+  }, [filteredNavSeries, navTickMode]);
 
   if (!Number.isFinite(code)) {
     return (
@@ -339,7 +350,7 @@ const FundAnalytics = () => {
       <TickerTape />
       <Navbar />
       <div className="flex-1 overflow-auto scrollbar-thin">
-        <div className="max-w-6xl mx-auto px-6 py-6">
+        <div className="max-w-[1400px] w-full mx-auto px-6 py-6">
           {isLoading ? (
             <div className="text-sm text-muted-foreground">Loading analytics...</div>
           ) : isError || !detail ? (
@@ -386,114 +397,40 @@ const FundAnalytics = () => {
                 </div>
               </motion.div>
 
-              {/* NAV Performance */}
-              <SectionHeader icon={BarChart3} title="NAV Performance" />
-              <div className="bg-surface border border-border rounded-lg p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-2">
-                    {(["absolute", "cagr"] as const).map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => {
-                          setReturnType(type);
-                          setReturnPeriod(type === "cagr" ? "one_year" : "one_month");
-                        }}
-                        className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
-                          returnType === type
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-background text-muted-foreground border-border hover:text-foreground"
-                        }`}
-                        type="button"
-                      >
-                        {type === "absolute" ? "Absolute" : "CAGR"}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {periodOptions.map((key) => (
-                      <button
-                        key={key}
-                        onClick={() => setReturnPeriod(key)}
-                        className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
-                          returnPeriod === key
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-background text-muted-foreground border-border hover:text-foreground"
-                        }`}
-                        type="button"
-                      >
-                        {PERIOD_LABELS[key] || key}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                  <MetricCard
-                    label={`${returnType === "cagr" ? "CAGR" : "Absolute"} ${periodLabel}`}
-                    value={typeof selectedReturn === "number" ? selectedReturn : null}
-                  />
-                </div>
-                <div className="h-60">
-                  {navQuery.isLoading ? (
-                    <div className="text-sm text-muted-foreground">Loading NAV history...</div>
-                  ) : navQuery.isError || filteredNavSeries.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">No NAV history available.</div>
-                  ) : (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={filteredNavSeries}>
-                        <defs>
-                          <linearGradient id="navUpFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="hsl(var(--positive))" stopOpacity={0.25} />
-                            <stop offset="100%" stopColor="hsl(var(--positive))" stopOpacity={0.02} />
-                          </linearGradient>
-                          <linearGradient id="navDownFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="hsl(var(--negative))" stopOpacity={0.25} />
-                            <stop offset="100%" stopColor="hsl(var(--negative))" stopOpacity={0.02} />
-                          </linearGradient>
-                        </defs>
-                        <XAxis
-                          dataKey="date"
-                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                          tickFormatter={(d: string) => d.slice(0, 7)}
-                          ticks={navTicks}
-                          interval={0}
-                          minTickGap={16}
-                        />
-                        <YAxis hide domain={["dataMin", "dataMax"]} />
-                        <Tooltip
-                          cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1 }}
-                          contentStyle={{
-                            background: "hsl(var(--popover))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: 8,
-                            fontSize: 12,
-                          }}
-                          formatter={(value: number) => [`${value.toFixed(2)}`, "NAV"]}
-                        />
-                        <Area type="monotone" dataKey="navUp" stroke="none" fill="url(#navUpFill)" />
-                        <Area type="monotone" dataKey="navDown" stroke="none" fill="url(#navDownFill)" />
-                        <Line type="monotone" dataKey="nav" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  )}
-                </div>
-              </div>
-
-              {/* Returns Overview */}
-              <SectionHeader icon={TrendingUp} title="Return Summary" />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {[{ title: "Absolute Returns", series: absReturnSeries, scale: absScale }, { title: "CAGR Returns", series: cagrReturnSeries, scale: cagrScale }].map(
-                  ({ title, series, scale }) => (
-                    <div key={title} className="bg-surface border border-border/60 rounded-xl p-4 shadow-sm">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="text-[13px] font-semibold text-foreground">{title}</div>
-                        <div className="text-[11px] text-muted-foreground">Return %</div>
+              {/* NAV + Return Summary */}
+              <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch">
+                <div className="flex flex-col h-full">
+                  <SectionHeader icon={TrendingUp} title="Return Summary" />
+                  <div className="bg-surface border border-border/60 rounded-xl p-4 shadow-sm flex-1">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-[13px] font-semibold text-foreground">
+                        {heatmapReturnType === "cagr" ? "CAGR Returns" : "Absolute Returns"}
                       </div>
-                      {series.length === 0 ? (
-                        <div className="text-sm text-muted-foreground">No return data available.</div>
+                      <div className="text-[11px] text-muted-foreground">Return %</div>
+                    </div>
+                    <div className="flex items-center gap-2 mb-4">
+                      {(["absolute", "cagr"] as const).map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => setHeatmapReturnType(type)}
+                          className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                            heatmapReturnType === type
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-background text-muted-foreground border-border hover:text-foreground"
+                          }`}
+                          type="button"
+                        >
+                          {type === "absolute" ? "Absolute" : "CAGR"}
+                        </button>
+                      ))}
+                    </div>
+                    {heatmapReturnType === "cagr" ? (
+                      cagrReturnSeries.length === 0 ? (
+                        <div className="text-sm text-muted-foreground">No CAGR return data available.</div>
                       ) : (
-                        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                          {series.map((entry) => {
-                            const intensity = Math.min(0.22, Math.max(0.08, Math.abs(entry.value) / scale));
+                        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-4 gap-3">
+                          {cagrReturnSeries.map((entry) => {
+                            const intensity = Math.min(0.22, Math.max(0.08, Math.abs(entry.value) / cagrScale));
                             const bg =
                               entry.value >= 0
                                 ? `hsl(var(--positive) / ${intensity})`
@@ -518,17 +455,147 @@ const FundAnalytics = () => {
                                   </div>
                                 </div>
                                 <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-foreground opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-                                  {entry.label} · {entry.value >= 0 ? "+" : ""}
+                                  {entry.label} ? {entry.value >= 0 ? "+" : ""}
                                   {entry.value.toFixed(2)}%
                                 </div>
                               </div>
                             );
                           })}
                         </div>
+                      )
+                    ) : absReturnSeries.length === 0 ? (
+                      <div className="text-sm text-muted-foreground">No absolute return data available.</div>
+                    ) : (
+                      <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-4 gap-3">
+                        {absReturnSeries.map((entry) => {
+                          const intensity = Math.min(0.22, Math.max(0.08, Math.abs(entry.value) / absScale));
+                          const bg =
+                            entry.value >= 0
+                              ? `hsl(var(--positive) / ${intensity})`
+                              : `hsl(var(--negative) / ${intensity})`;
+                          return (
+                            <div
+                              key={entry.key}
+                              className="group relative rounded-xl border border-border/40 shadow-sm hover:shadow-md transition-all bg-card"
+                            >
+                              <div
+                                className="rounded-xl px-3 py-3 min-h-[74px] flex flex-col justify-between"
+                                style={{ backgroundColor: bg }}
+                              >
+                                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{entry.label}</div>
+                                <div
+                                  className={`text-[16px] font-semibold font-mono-data ${
+                                    entry.value >= 0 ? "text-positive" : "text-negative"
+                                  }`}
+                                >
+                                  {entry.value >= 0 ? "+" : ""}
+                                  {entry.value.toFixed(2)}%
+                                </div>
+                              </div>
+                              <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-foreground opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+                                {entry.label} ? {entry.value >= 0 ? "+" : ""}
+                                {entry.value.toFixed(2)}%
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col h-full">
+                  <SectionHeader icon={BarChart3} title="NAV Performance" />
+                  <div className="bg-surface border border-border rounded-lg p-4 flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-2">
+                        {(["absolute", "cagr"] as const).map((type) => (
+                          <button
+                            key={type}
+                            onClick={() => {
+                              setReturnType(type);
+                              setReturnPeriod(type === "cagr" ? "one_year" : "one_month");
+                            }}
+                            className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                              returnType === type
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background text-muted-foreground border-border hover:text-foreground"
+                            }`}
+                            type="button"
+                          >
+                            {type === "absolute" ? "Absolute" : "CAGR"}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {periodOptions.map((key) => (
+                          <button
+                            key={key}
+                            onClick={() => setReturnPeriod(key)}
+                            className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                              returnPeriod === key
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background text-muted-foreground border-border hover:text-foreground"
+                            }`}
+                            type="button"
+                          >
+                            {PERIOD_LABELS[key] || key}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                      <MetricCard
+                        label={`${returnType === "cagr" ? "CAGR" : "Absolute"} ${periodLabel}`}
+                        value={typeof selectedReturn === "number" ? selectedReturn : null}
+                      />
+                    </div>
+                    <div className="h-60">
+                      {navQuery.isLoading ? (
+                        <div className="text-sm text-muted-foreground">Loading NAV history...</div>
+                      ) : navQuery.isError || filteredNavSeries.length === 0 ? (
+                        <div className="text-sm text-muted-foreground">No NAV history available.</div>
+                      ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={filteredNavSeries}>
+                            <defs>
+                              <linearGradient id="navUpFill" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="hsl(var(--positive))" stopOpacity={0.25} />
+                                <stop offset="100%" stopColor="hsl(var(--positive))" stopOpacity={0.02} />
+                              </linearGradient>
+                              <linearGradient id="navDownFill" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="hsl(var(--negative))" stopOpacity={0.25} />
+                                <stop offset="100%" stopColor="hsl(var(--negative))" stopOpacity={0.02} />
+                              </linearGradient>
+                            </defs>
+                            <XAxis
+                              dataKey="date"
+                              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                              tickFormatter={(d: string) => formatNavTick(d, navTickMode)}
+                              ticks={navTicks}
+                              interval={0}
+                              minTickGap={16}
+                              padding={{ left: 12, right: 12 }}
+                            />
+                            <YAxis hide domain={["dataMin", "dataMax"]} />
+                            <Tooltip
+                              cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1 }}
+                              contentStyle={{
+                                background: "hsl(var(--popover))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: 8,
+                                fontSize: 12,
+                              }}
+                              formatter={(value: number) => [`${value.toFixed(2)}`, "NAV"]}
+                            />
+                            <Area type="monotone" dataKey="navUp" stroke="none" fill="url(#navUpFill)" />
+                            <Area type="monotone" dataKey="navDown" stroke="none" fill="url(#navDownFill)" />
+                            <Line type="monotone" dataKey="nav" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                          </LineChart>
+                        </ResponsiveContainer>
                       )}
                     </div>
-                  )
-                )}
+                  </div>
+                </div>
               </div>
 
               {/* Performance Explorer */}
