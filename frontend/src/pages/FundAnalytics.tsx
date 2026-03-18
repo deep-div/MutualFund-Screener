@@ -516,7 +516,7 @@ const FundAnalytics = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                     <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Latest NAV</div>
                       <div className="flex items-center justify-between gap-2 mt-1">
@@ -604,6 +604,24 @@ const FundAnalytics = () => {
                           </div>
                         </div>
                       </div>
+                    </div>
+
+                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Sharpe Ratio (3Y)</div>
+                      <div className="text-[18px] font-semibold mt-1 text-foreground">
+                        {typeof riskAdj?.sharpe_ratio?.three_year === "number" ? riskAdj.sharpe_ratio.three_year.toFixed(2) : "-"}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">Risk-adjusted return</div>
+                    </div>
+
+                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Volatility (3Y)</div>
+                      <div className="text-[18px] font-semibold mt-1 text-foreground">
+                        {typeof riskMetrics?.volatility_annualized_percent?.three_year === "number"
+                          ? `${riskMetrics.volatility_annualized_percent.three_year.toFixed(2)}%`
+                          : "-"}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">Annualized</div>
                     </div>
                   </div>
                 </div>
