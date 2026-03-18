@@ -1423,7 +1423,11 @@ const FundAnalytics = () => {
                       <div className="h-56">
                         {drawdownMddSeries.length > 0 ? (
                           <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={drawdownMddSeries} margin={{ left: 6, right: 10, bottom: 2 }}>
+                            <BarChart
+                              data={drawdownMddSeries}
+                              margin={{ left: 6, right: 10, bottom: 2 }}
+                              barCategoryGap="15%"
+                            >
                               <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                               <YAxis
                                 tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
@@ -1433,7 +1437,7 @@ const FundAnalytics = () => {
                               <Tooltip
                                 content={<PeriodDrawdownTooltip />}
                               />
-                              <Bar dataKey="mdd" radius={[6, 6, 0, 0]}>
+                              <Bar dataKey="mdd" radius={[6, 6, 0, 0]} barSize={30}>
                                 {drawdownMddSeries.map((entry) => (
                                   <Cell key={entry.period} fill="hsl(var(--negative))" opacity={0.9} />
                                 ))}
@@ -1471,7 +1475,7 @@ const FundAnalytics = () => {
                                 }}
                                 formatter={(value: number) => [`${value}`, "Count"]}
                               />
-                              <Bar dataKey="count" radius={[4, 4, 4, 4]}>
+                              <Bar dataKey="count" radius={[4, 4, 4, 4]} barSize={30}>
                                 {drawdownFrequencySeries.map((entry) => (
                                   <Cell key={entry.level} fill="hsl(var(--negative))" opacity={0.9} />
                                 ))}
@@ -1717,7 +1721,7 @@ const FundAnalytics = () => {
                                 name={activeMetric?.label ?? "Metric"}
                                 fill={activeMetric?.color ?? "hsl(var(--primary))"}
                                 radius={[4, 4, 0, 0]}
-                                maxBarSize={28}
+                                maxBarSize={30}
                               />
                             </BarChart>
                           </ResponsiveContainer>
