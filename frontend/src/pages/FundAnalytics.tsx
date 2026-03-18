@@ -1184,8 +1184,8 @@ const FundAnalytics = () => {
                   {yoyData.length === 0 ? (
                     <div className="text-sm text-muted-foreground">No yearly performance data available.</div>
                   ) : (
-                    <div className="flex-1">
-                      <div className="relative h-full min-h-[120px] w-full">
+                    <div className="flex-1 flex items-center">
+                      <div className="relative h-[120px] w-full">
                         <div className="absolute top-0 right-0 rounded-lg border border-border/60 bg-card px-3 py-2 shadow-sm">
                           <div className="text-[9px] uppercase tracking-wider text-muted-foreground">Latest Year</div>
                           <div className="text-[14px] font-semibold text-foreground">
