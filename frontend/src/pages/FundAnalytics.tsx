@@ -1282,58 +1282,123 @@ const FundAnalytics = () => {
                     </div>
                     <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Percentages</div>
                   </div>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                    <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Current Drawdown</div>
-                      <div className="text-[16px] font-semibold text-negative">
+                      <div className="mt-1 text-[18px] font-semibold text-negative">
                         {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
                           ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
                           : "-"}
                       </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">
-                        {typeof drawdown?.current_drawdown?.drawdown_duration_days === "number"
-                          ? `${drawdown.current_drawdown.drawdown_duration_days}d`
-                          : "-"}{" "}
-                        in drawdown
+                      <div className="mt-2 text-[11px] text-muted-foreground space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span>Peak Date</span>
+                          <span className="font-medium text-foreground">
+                            {drawdown?.current_drawdown?.peak_date ? formatLongDate(drawdown.current_drawdown.peak_date) : "-"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Peak NAV</span>
+                          <span className="font-medium text-foreground">
+                            {typeof drawdown?.current_drawdown?.peak_nav === "number"
+                              ? drawdown.current_drawdown.peak_nav.toFixed(2)
+                              : "-"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Duration</span>
+                          <span className="font-medium text-foreground">
+                            {typeof drawdown?.current_drawdown?.drawdown_duration_days === "number"
+                              ? `${drawdown.current_drawdown.drawdown_duration_days}d`
+                              : "-"}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                    <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max Drawdown</div>
-                      <div className="text-[16px] font-semibold text-negative">
+                      <div className="mt-1 text-[18px] font-semibold text-negative">
                         {typeof drawdown?.mdd_duration_details?.max?.max_drawdown_percent === "number"
                           ? `${drawdown.mdd_duration_details.max.max_drawdown_percent.toFixed(2)}%`
                           : "-"}
                       </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">
-                        {drawdown?.mdd_duration_details?.max?.peak_date
-                          ? `Peak ${formatLongDate(drawdown.mdd_duration_details.max.peak_date)}`
-                          : "Peak -"}
+                      <div className="mt-2 text-[11px] text-muted-foreground space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span>Peak Date</span>
+                          <span className="font-medium text-foreground">
+                            {drawdown?.mdd_duration_details?.max?.peak_date
+                              ? formatLongDate(drawdown.mdd_duration_details.max.peak_date)
+                              : "-"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Peak NAV</span>
+                          <span className="font-medium text-foreground">
+                            {typeof drawdown?.mdd_duration_details?.max?.peak_nav === "number"
+                              ? drawdown.mdd_duration_details.max.peak_nav.toFixed(2)
+                              : "-"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Duration</span>
+                          <span className="font-medium text-foreground">
+                            {typeof drawdown?.mdd_duration_details?.max?.drawdown_duration_days === "number"
+                              ? `${drawdown.mdd_duration_details.max.drawdown_duration_days}d`
+                              : "-"}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Trough</div>
-                      <div className="text-[16px] font-semibold text-foreground">
+                    <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Trough NAV</div>
+                      <div className="mt-1 text-[18px] font-semibold text-foreground">
                         {typeof drawdown?.mdd_duration_details?.max?.trough_nav === "number"
                           ? drawdown.mdd_duration_details.max.trough_nav.toFixed(2)
                           : "-"}
                       </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">
-                        {drawdown?.mdd_duration_details?.max?.trough_date
-                          ? formatLongDate(drawdown.mdd_duration_details.max.trough_date)
-                          : "-"}
+                      <div className="mt-2 text-[11px] text-muted-foreground space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span>Trough Date</span>
+                          <span className="font-medium text-foreground">
+                            {drawdown?.mdd_duration_details?.max?.trough_date
+                              ? formatLongDate(drawdown.mdd_duration_details.max.trough_date)
+                              : "-"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Drawdown Days</span>
+                          <span className="font-medium text-foreground">
+                            {typeof drawdown?.mdd_duration_details?.max?.drawdown_duration_days === "number"
+                              ? `${drawdown.mdd_duration_details.max.drawdown_duration_days}d`
+                              : "-"}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Recovery</div>
-                      <div className="text-[16px] font-semibold text-foreground">
+                    <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Recovery NAV</div>
+                      <div className="mt-1 text-[18px] font-semibold text-foreground">
                         {typeof drawdown?.mdd_duration_details?.max?.recovery_nav === "number"
                           ? drawdown.mdd_duration_details.max.recovery_nav.toFixed(2)
                           : "-"}
                       </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">
-                        {typeof drawdown?.mdd_duration_details?.max?.recovery_duration_days === "number"
-                          ? `${drawdown.mdd_duration_details.max.recovery_duration_days}d recovery`
-                          : "Recovery -"}
+                      <div className="mt-2 text-[11px] text-muted-foreground space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span>Recovery Date</span>
+                          <span className="font-medium text-foreground">
+                            {drawdown?.mdd_duration_details?.max?.recovery_date
+                              ? formatLongDate(drawdown.mdd_duration_details.max.recovery_date)
+                              : "-"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Recovery Days</span>
+                          <span className="font-medium text-foreground">
+                            {typeof drawdown?.mdd_duration_details?.max?.recovery_duration_days === "number"
+                              ? `${drawdown.mdd_duration_details.max.recovery_duration_days}d`
+                              : "-"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1393,7 +1458,7 @@ const FundAnalytics = () => {
                               />
                               <Bar dataKey="count" radius={[4, 4, 4, 4]}>
                                 {drawdownFrequencySeries.map((entry) => (
-                                  <Cell key={entry.level} fill="hsl(var(--negative))" opacity={0.65} />
+                                  <Cell key={entry.level} fill="hsl(var(--negative))" opacity={0.9} />
                                 ))}
                               </Bar>
                             </BarChart>
