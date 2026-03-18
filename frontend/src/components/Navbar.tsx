@@ -32,12 +32,14 @@ const Navbar = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       if (!searchRef.current?.contains(event.target as Node)) {
         setSearchOpen(false);
+        setSearchFocused(false);
       }
     };
     document.addEventListener("mousedown", handleOutsideClick);
@@ -86,14 +88,17 @@ const Navbar = () => {
 
   return (
     <>
-      {searchOpen && (
+      {(searchOpen || searchFocused) && (
         <div
-          className="fixed inset-0 bg-slate-900/15 z-40"
-          onClick={() => setSearchOpen(false)}
+          className="fixed inset-0 bg-slate-900/15 z-45"
+          onClick={() => {
+            setSearchOpen(false);
+            setSearchFocused(false);
+          }}
         />
       )}
 
-      <nav className="h-14 bg-nav border-b border-nav-hover flex items-center px-6 relative z-50">
+      <nav className="h-14 bg-nav border-b border-nav-hover flex items-center px-6 relative z-40">
 
         {/* LEFT: Logo */}
         <div
@@ -120,11 +125,11 @@ const Navbar = () => {
           </div>
 
           {/* SEARCH */}
-          <div ref={searchRef} className="relative w-full max-w-md z-50">
+          <div ref={searchRef} className="relative w-full max-w-md z-60">
             <div
               className={`flex items-center gap-2 px-3 py-1.5 w-full border transition-all ${
-                searchOpen
-                  ? "bg-white border-slate-200 -translate-y-1 shadow-lg rounded-t-xl rounded-b-none"
+                searchOpen || searchFocused
+                  ? "bg-white border-slate-200 border-b-0 -translate-y-1 shadow-lg rounded-t-xl rounded-b-none"
                   : "bg-nav-hover border-nav-foreground/10 rounded-md"
               }`}
             >
@@ -134,11 +139,12 @@ const Navbar = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => {
+                  setSearchFocused(true);
                   if (searchQuery.trim()) setSearchOpen(true);
                 }}
                 placeholder="Search for Mutual Funds"
                 className={`bg-transparent text-[13px] outline-none w-full ${
-                  searchOpen
+                  searchOpen || searchFocused
                     ? "text-slate-900 placeholder:text-slate-400"
                     : "text-nav-foreground placeholder:text-nav-foreground/40"
                 }`}
@@ -146,7 +152,7 @@ const Navbar = () => {
             </div>
 
             {searchOpen && (
-              <div className="absolute left-0 right-0 top-full -mt-px bg-white border border-slate-200 rounded-b-xl shadow-2xl overflow-hidden z-50">
+              <div className="absolute left-0 right-0 top-full -mt-px bg-white border border-slate-200 border-t-0 rounded-b-xl shadow-2xl overflow-hidden z-50 antialiased">
                 {searchLoading ? (
                   <div className="px-4 py-3 text-[13px] text-slate-500">Searching...</div>
                 ) : searchError ? (
@@ -166,11 +172,11 @@ const Navbar = () => {
                         <button
                           key={item.scheme_code}
                           type="button"
-                          className="w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors"
+                          className="w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors font-normal"
                         >
                           <div className="flex items-center justify-between gap-4">
                             <div className="min-w-0">
-                              <div className="text-[14px] font-semibold text-slate-900 truncate">
+                              <div className="text-[14px] font-medium text-slate-900 truncate">
                                 {item.scheme_sub_name}
                               </div>
                               <div className="flex items-center gap-2 text-[12px] text-slate-500">
