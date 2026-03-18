@@ -344,11 +344,10 @@ const FundAnalytics = () => {
       .map(([year, ret]) => ({ year, return: ret as number }))
       .sort((a, b) => Number(a.year) - Number(b.year));
   }, [yoyReturns]);
-  const yearlyChartWidth = useMemo(() => {
-    const minWidth = 520;
-    const perBar = 32;
-    return Math.max(minWidth, yoyData.length * perBar);
-  }, [yoyData.length]);
+  const latestYoy = yoyData.length > 0 ? yoyData[yoyData.length - 1] : null;
+  const previousYoy = yoyData.length > 1 ? yoyData[yoyData.length - 2] : null;
+  const yoyDelta =
+    latestYoy && previousYoy ? latestYoy.return - previousYoy.return : null;
   const heatmapYears = useMemo(() => Object.keys(heatmap).sort((a, b) => Number(a) - Number(b)), [heatmap]);
   const latestHeatmapYear = heatmapYears[heatmapYears.length - 1] ?? null;
 
@@ -1182,31 +1181,47 @@ const FundAnalytics = () => {
                     <div className="text-[13px] font-semibold text-foreground">Yearly Performance</div>
                     <div className="text-[11px] text-muted-foreground mt-1">Returns by calendar year.</div>
                   </div>
-                  <div className="h-72 overflow-x-auto">
-                    <div style={{ width: yearlyChartWidth, minWidth: "100%", height: "100%" }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={yoyData} margin={{ left: 4, right: 8, bottom: 4 }}>
-                          <XAxis dataKey="year" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                          <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
-                          <Tooltip
-                          contentStyle={{
-                            background: "hsl(var(--popover))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: 8,
-                            fontSize: 12,
-                          }}
-                          formatter={(value: number) => [`${value.toFixed(2)}%`, "Return"]}
-                        />
-                          <Bar dataKey="return" radius={[4, 4, 0, 0]}>
-                            {yoyData.map((entry) => {
-                              const fill = entry.return >= 0 ? "hsl(var(--positive))" : "hsl(var(--negative))";
-                              return <Cell key={entry.year} fill={fill} opacity={0.9} />;
-                            })}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
+                  {yoyData.length === 0 ? (
+                    <div className="text-sm text-muted-foreground">No yearly performance data available.</div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-[0.6fr_1.4fr] gap-4 items-center">
+                      <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Latest Year</div>
+                        <div className="mt-1 text-[22px] font-semibold text-foreground">
+                          {yoyData[yoyData.length - 1]?.year ?? "-"}
+                        </div>
+                        <div
+                          className={`text-[18px] font-semibold ${
+                            (yoyData[yoyData.length - 1]?.return ?? 0) >= 0 ? "text-positive" : "text-negative"
+                          }`}
+                        >
+                          {typeof yoyData[yoyData.length - 1]?.return === "number"
+                            ? `${yoyData[yoyData.length - 1].return >= 0 ? "+" : ""}${yoyData[yoyData.length - 1].return.toFixed(2)}%`
+                            : "-"}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground mt-1">Latest calendar year return</div>
+                      </div>
+                      <div className="h-24">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={yoyData}>
+                            <XAxis dataKey="year" hide />
+                            <YAxis hide domain={["dataMin", "dataMax"]} />
+                            <Tooltip
+                              contentStyle={{
+                                background: "hsl(var(--popover))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: 8,
+                                fontSize: 12,
+                              }}
+                              formatter={(value: number) => [`${value.toFixed(2)}%`, "Return"]}
+                              labelFormatter={(label) => `Year ${label}`}
+                            />
+                            <Line type="monotone" dataKey="return" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 2 }} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
