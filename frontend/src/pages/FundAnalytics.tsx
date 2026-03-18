@@ -14,6 +14,7 @@ import {
   Bar,
   Cell,
   Area,
+  ComposedChart,
 } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
@@ -400,6 +401,19 @@ const FundAnalytics = () => {
       }))
       .sort((a, b) => a.threshold - b.threshold);
   }, [drawdown?.drawdown_frequency]);
+  const yearlyMddSeries = useMemo(() => {
+    return Object.entries(drawdown?.yearly_mdd_last_10_years || {})
+      .map(([year, value]) => ({
+        year,
+        mdd: (value as { max_drawdown_percent: number | null }).max_drawdown_percent ?? null,
+        drawdownDays: (value as { drawdown_duration_days: number | null }).drawdown_duration_days ?? null,
+        recoveryDays: (value as { recovery_duration_days: number | null }).recovery_duration_days ?? null,
+        peakDate: (value as { peak_date?: string | null }).peak_date ?? null,
+        troughDate: (value as { trough_date?: string | null }).trough_date ?? null,
+        recoveryDate: (value as { recovery_date?: string | null }).recovery_date ?? null,
+      }))
+      .sort((a, b) => Number(a.year) - Number(b.year));
+  }, [drawdown?.yearly_mdd_last_10_years]);
 
   const monthlyScale = useMemo(() => {
     if (!selectedYear || !heatmap[selectedYear]) return 1;
@@ -948,7 +962,95 @@ const FundAnalytics = () => {
               {/* Drawdown */}
               <SectionHeader icon={TrendingDown} title="Drawdown Analysis" />
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-4">
-                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm min-h-[420px]" />
+                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm min-h-[420px]">
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div>
+                      <div className="text-[13px] font-semibold text-foreground">Yearly Max Drawdown</div>
+                      <div className="text-[11px] text-muted-foreground mt-1">
+                        Worst peak-to-trough drawdown for each year.
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Last 10Y</div>
+                  </div>
+                  <div className="h-72">
+                    {yearlyMddSeries.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={yearlyMddSeries} margin={{ left: 6, right: 12, bottom: 4 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                          <XAxis dataKey="year" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                          <YAxis
+                            yAxisId="left"
+                            tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                            tickFormatter={(v) => `${v}%`}
+                            domain={[(dataMin: number) => Math.min(dataMin, -1), 0]}
+                          />
+                          <YAxis
+                            yAxisId="right"
+                            orientation="right"
+                            tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                            tickFormatter={(v) => `${v}d`}
+                            domain={[0, (dataMax: number) => Math.max(30, dataMax)]}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              background: "hsl(var(--popover))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: 8,
+                              fontSize: 12,
+                            }}
+                            labelFormatter={(label) => `Year ${label}`}
+                            formatter={(value: number | null, name: string) => {
+                              if (value === null || typeof value !== "number") return ["-", name];
+                              if (name === "mdd") return [`${value.toFixed(2)}%`, "Max DD"];
+                              if (name === "drawdownDays") return [`${value}d`, "Drawdown Duration"];
+                              if (name === "recoveryDays") return [`${value}d`, "Recovery Duration"];
+                              return [value, name];
+                            }}
+                          />
+                          <Bar yAxisId="left" dataKey="mdd" radius={[6, 6, 0, 0]}>
+                            {yearlyMddSeries.map((entry) => (
+                              <Cell key={entry.year} fill="hsl(var(--negative))" opacity={0.85} />
+                            ))}
+                          </Bar>
+                          <Line
+                            yAxisId="right"
+                            type="monotone"
+                            dataKey="drawdownDays"
+                            stroke="hsl(var(--primary))"
+                            strokeWidth={2}
+                            dot={{ r: 2 }}
+                          />
+                          <Line
+                            yAxisId="right"
+                            type="monotone"
+                            dataKey="recoveryDays"
+                            stroke="hsl(var(--positive))"
+                            strokeWidth={2}
+                            strokeDasharray="4 3"
+                            dot={false}
+                            connectNulls={false}
+                          />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">No yearly drawdown history available.</div>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-4 text-[10px] text-muted-foreground mt-3">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-negative" />
+                      Max Drawdown %
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-[2px] w-5 rounded-full bg-primary" />
+                      Drawdown Duration
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-[2px] w-5 rounded-full bg-positive" />
+                      Recovery Duration
+                    </div>
+                  </div>
+                </div>
                 <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div>
