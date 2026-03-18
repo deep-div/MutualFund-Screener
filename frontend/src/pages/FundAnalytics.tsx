@@ -1242,7 +1242,11 @@ const FundAnalytics = () => {
                   <div className="h-72">
                     {yearlyMddSeries.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={yearlyMddSeries} margin={{ left: 6, right: 12, bottom: 4 }}>
+                        <ComposedChart
+                          data={yearlyMddSeries}
+                          margin={{ left: 6, right: 10, bottom: 2 }}
+                          barCategoryGap="15%"
+                        >
                           <XAxis
                             dataKey="year"
                             ticks={yearlyMddSeries.map((entry) => entry.year)}
@@ -1265,7 +1269,7 @@ const FundAnalytics = () => {
                           <Tooltip
                             content={<YearlyDrawdownTooltip />}
                           />
-                          <Bar yAxisId="left" dataKey="mdd" radius={[6, 6, 0, 0]}>
+                          <Bar yAxisId="left" dataKey="mdd" radius={[6, 6, 0, 0]} barSize={30}>
                             {yearlyMddSeries.map((entry) => (
                               <Cell key={entry.year} fill="hsl(var(--negative))" opacity={entry.hasData ? 0.85 : 0} />
                             ))}
