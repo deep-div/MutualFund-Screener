@@ -1489,8 +1489,70 @@ const FundAnalytics = () => {
               {/* Consistency */}
 
               <SectionHeader icon={Zap} title="Consistency" />
-              <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6 mb-6">
-                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+              <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-6">
+                <div className="flex flex-col h-full">
+                  <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm flex-1">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <div className="text-[13px] font-semibold text-foreground">Best vs Worst Returns</div>
+                      <div className="text-[11px] text-muted-foreground mt-1">Extremes across day, month, and year.</div>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Extremes</div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      {
+                        label: "Best Day",
+                        value: consistency?.best_day?.return,
+                        date: consistency?.best_day?.date ? formatLongDate(consistency.best_day.date) : null,
+                      },
+                      {
+                        label: "Worst Day",
+                        value: consistency?.worst_day?.return,
+                        date: consistency?.worst_day?.date ? formatLongDate(consistency.worst_day.date) : null,
+                      },
+                      {
+                        label: "Best Month",
+                        value: consistency?.best_month?.return,
+                        date: consistency?.best_month?.month ? formatMonthYear(consistency.best_month.month) : null,
+                      },
+                      {
+                        label: "Worst Month",
+                        value: consistency?.worst_month?.return,
+                        date: consistency?.worst_month?.month ? formatMonthYear(consistency.worst_month.month) : null,
+                      },
+                      {
+                        label: "Best Year",
+                        value: consistency?.best_year?.return,
+                        date: consistency?.best_year?.year ? String(consistency.best_year.year) : null,
+                      },
+                      {
+                        label: "Worst Year",
+                        value: consistency?.worst_year?.return,
+                        date: consistency?.worst_year?.year ? String(consistency.worst_year.year) : null,
+                      },
+                    ].map((item) => {
+                      const isPositive = typeof item.value === "number" ? item.value >= 0 : null;
+                      return (
+                        <div key={item.label} className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{item.label}</div>
+                          <div
+                            className={`text-[16px] font-semibold ${
+                              isPositive === null ? "text-foreground" : isPositive ? "text-positive" : "text-negative"
+                            }`}
+                          >
+                            {typeof item.value === "number" ? `${item.value >= 0 ? "+" : ""}${item.value.toFixed(2)}%` : "-"}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground mt-1">{item.date || "-"}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                </div>
+
+                <div className="flex flex-col h-full">
+                  <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm flex-1">
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div>
                       <div className="text-[13px] font-semibold text-foreground">Win Rate Snapshot</div>
@@ -1557,64 +1619,6 @@ const FundAnalytics = () => {
                     </div>
                   </div>
                 </div>
-
-                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
-                  <div className="flex items-start justify-between gap-4 mb-4">
-                    <div>
-                      <div className="text-[13px] font-semibold text-foreground">Best vs Worst Returns</div>
-                      <div className="text-[11px] text-muted-foreground mt-1">Extremes across day, month, and year.</div>
-                    </div>
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Extremes</div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      {
-                        label: "Best Day",
-                        value: consistency?.best_day?.return,
-                        date: consistency?.best_day?.date ? formatLongDate(consistency.best_day.date) : null,
-                      },
-                      {
-                        label: "Worst Day",
-                        value: consistency?.worst_day?.return,
-                        date: consistency?.worst_day?.date ? formatLongDate(consistency.worst_day.date) : null,
-                      },
-                      {
-                        label: "Best Month",
-                        value: consistency?.best_month?.return,
-                        date: consistency?.best_month?.month ? formatMonthYear(consistency.best_month.month) : null,
-                      },
-                      {
-                        label: "Worst Month",
-                        value: consistency?.worst_month?.return,
-                        date: consistency?.worst_month?.month ? formatMonthYear(consistency.worst_month.month) : null,
-                      },
-                      {
-                        label: "Best Year",
-                        value: consistency?.best_year?.return,
-                        date: consistency?.best_year?.year ? String(consistency.best_year.year) : null,
-                      },
-                      {
-                        label: "Worst Year",
-                        value: consistency?.worst_year?.return,
-                        date: consistency?.worst_year?.year ? String(consistency.worst_year.year) : null,
-                      },
-                    ].map((item) => {
-                      const isPositive = typeof item.value === "number" ? item.value >= 0 : null;
-                      return (
-                        <div key={item.label} className="rounded-xl border border-border/60 bg-card px-3 py-3">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{item.label}</div>
-                          <div
-                            className={`text-[16px] font-semibold ${
-                              isPositive === null ? "text-foreground" : isPositive ? "text-positive" : "text-negative"
-                            }`}
-                          >
-                            {typeof item.value === "number" ? `${item.value >= 0 ? "+" : ""}${item.value.toFixed(2)}%` : "-"}
-                          </div>
-                          <div className="text-[11px] text-muted-foreground mt-1">{item.date || "-"}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
                 </div>
               </div>
 
