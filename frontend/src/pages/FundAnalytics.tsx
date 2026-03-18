@@ -708,44 +708,6 @@ const FundAnalytics = () => {
                 </div>
               </div>
 
-              {/* SIP Returns */}
-              <SectionHeader icon={TrendingUp} title="SIP Returns (INR 1,000/month)" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                {Object.entries(sipReturns)
-                  .filter(([, v]) => v !== null)
-                  .map(([period, dataPoint]) => {
-                    const d = dataPoint as {
-                      current_value: number;
-                      total_invested: number;
-                      xirr_percent: number;
-                      absolute_return_percent: number;
-                    } | null;
-                    if (!d) return null;
-                    return (
-                      <div key={period} className="bg-surface border border-border rounded-lg p-4">
-                        <div className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">
-                          {PERIOD_LABELS[period] || period}
-                        </div>
-                        <div className="text-[16px] font-bold text-foreground">
-                          INR {d.current_value.toLocaleString("en-IN")}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground mt-1">
-                          Invested: INR {d.total_invested.toLocaleString("en-IN")}
-                        </div>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <span className="text-[12px] text-positive">
-                            {d.xirr_percent.toFixed(1)}% XIRR
-                          </span>
-                          <span className="text-[11px] text-muted-foreground">·</span>
-                          <span className="text-[12px] text-positive">
-                            {d.absolute_return_percent.toFixed(1)}% abs
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-
               {/* Rolling CAGR */}
               <SectionHeader icon={Activity} title="Rolling CAGR" />
               <Tabs defaultValue={defaultRolling}>
