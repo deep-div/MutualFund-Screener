@@ -86,7 +86,14 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="h-14 bg-nav border-b border-nav-hover flex items-center px-6">
+      {searchOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/15 z-40"
+          onClick={() => setSearchOpen(false)}
+        />
+      )}
+
+      <nav className="h-14 bg-nav border-b border-nav-hover flex items-center px-6 relative z-50">
 
         {/* LEFT: Logo */}
         <div
@@ -113,8 +120,14 @@ const Navbar = () => {
           </div>
 
           {/* SEARCH */}
-          <div ref={searchRef} className="relative w-full max-w-md">
-            <div className="flex items-center gap-2 bg-nav-hover rounded-md px-3 py-1.5 w-full border border-nav-foreground/10">
+          <div ref={searchRef} className="relative w-full max-w-md z-50">
+            <div
+              className={`flex items-center gap-2 px-3 py-1.5 w-full border transition-all ${
+                searchOpen
+                  ? "bg-white border-slate-200 -translate-y-1 shadow-lg rounded-t-xl rounded-b-none"
+                  : "bg-nav-hover border-nav-foreground/10 rounded-md"
+              }`}
+            >
               <Search className="w-3.5 h-3.5 text-nav-foreground/50" />
               <input
                 type="text"
@@ -124,55 +137,59 @@ const Navbar = () => {
                   if (searchQuery.trim()) setSearchOpen(true);
                 }}
                 placeholder="Search for Mutual Funds"
-                className="bg-transparent text-[13px] text-nav-foreground placeholder:text-nav-foreground/40 outline-none w-full"
+                className={`bg-transparent text-[13px] outline-none w-full ${
+                  searchOpen
+                    ? "text-slate-900 placeholder:text-slate-400"
+                    : "text-nav-foreground placeholder:text-nav-foreground/40"
+                }`}
               />
             </div>
 
             {searchOpen && (
-              <div className="absolute left-0 right-0 mt-2 bg-nav border border-nav-hover rounded-md shadow-lg overflow-hidden z-50">
+              <div className="absolute left-0 right-0 top-full -mt-px bg-white border border-slate-200 rounded-b-xl shadow-2xl overflow-hidden z-50">
                 {searchLoading ? (
-                  <div className="px-3 py-2 text-[12px] text-nav-foreground/60">Searching...</div>
+                  <div className="px-4 py-3 text-[13px] text-slate-500">Searching...</div>
                 ) : searchError ? (
-                  <div className="px-3 py-2 text-[12px] text-destructive">{searchError}</div>
+                  <div className="px-4 py-3 text-[13px] text-red-500">{searchError}</div>
                 ) : searchResults.length === 0 ? (
-                  <div className="px-3 py-2 text-[12px] text-nav-foreground/60">No results found.</div>
+                  <div className="px-4 py-3 text-[13px] text-slate-500">No results found.</div>
                 ) : (
-                  <div className="max-h-80 overflow-y-auto">
+                  <div className="max-h-96 overflow-y-auto">
                     {searchResults.map((item) => {
                       const hasChange = typeof item.nav_change_1d === "number";
                       const changeValue = item.nav_change_1d ?? 0;
                       const changeColor =
-                        hasChange && changeValue < 0 ? "text-rose-400" : "text-emerald-400";
+                        hasChange && changeValue < 0 ? "text-rose-500" : "text-emerald-600";
                       const changePrefix = changeValue < 0 ? "-" : "+";
 
                       return (
                         <button
                           key={item.scheme_code}
                           type="button"
-                          className="w-full text-left px-3 py-2 border-b border-nav-hover/70 last:border-b-0 hover:bg-nav-hover/60 transition-colors"
+                          className="w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors"
                         >
                           <div className="flex items-center justify-between gap-4">
                             <div className="min-w-0">
-                              <div className="text-[13px] font-medium text-nav-foreground truncate">
+                              <div className="text-[14px] font-semibold text-slate-900 truncate">
                                 {item.scheme_sub_name}
                               </div>
-                              <div className="flex items-center gap-2 text-[11px] text-nav-foreground/60">
+                              <div className="flex items-center gap-2 text-[12px] text-slate-500">
                                 <span className="uppercase tracking-wide">{item.option_type}</span>
-                                <span className="h-1 w-1 rounded-full bg-nav-foreground/30" />
+                                <span className="h-1 w-1 rounded-full bg-slate-300" />
                                 <span>{item.scheme_sub_category}</span>
                               </div>
                             </div>
                             <div className="flex flex-col items-end">
-                              <span className="text-[13px] font-semibold text-nav-foreground">
+                              <span className="text-[14px] font-semibold text-slate-900">
                                 {formatNav(item.current_nav)}
                               </span>
                               {hasChange ? (
-                                <span className={`text-[11px] font-medium ${changeColor}`}>
+                                <span className={`text-[12px] font-medium ${changeColor}`}>
                                   {changePrefix}
                                   {formatChange(changeValue)}
                                 </span>
                               ) : (
-                                <span className="text-[11px] text-nav-foreground/50">—</span>
+                                <span className="text-[12px] text-slate-400">—</span>
                               )}
                             </div>
                           </div>
