@@ -1283,94 +1283,82 @@ const FundAnalytics = () => {
                     <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Percentages</div>
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
-                    <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Current Drawdown</div>
-                      <div className="mt-1 text-[18px] font-semibold text-negative">
-                        {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
-                          ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
-                          : "-"}
-                      </div>
-                      <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-                        <div className="text-muted-foreground">Peak Date</div>
-                        <div className="text-foreground font-medium">
-                          {drawdown?.current_drawdown?.peak_date ? formatLongDate(drawdown.current_drawdown.peak_date) : "-"}
+                    <div className="group relative rounded-xl border border-border/60 bg-card px-4 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Current Drawdown</div>
+                        <div className="text-[22px] font-semibold text-negative">
+                          {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
+                            ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
+                            : "-"}
                         </div>
-                        <div className="text-muted-foreground">Peak NAV</div>
-                        <div className="text-foreground font-medium">
+                      </div>
+                      <div className="mt-2 text-[11px] text-muted-foreground">Hover to see peak, trough, recovery.</div>
+                      <div className="pointer-events-none absolute left-4 top-full z-20 mt-2 w-[320px] rounded-md border border-border bg-popover px-3 py-2 text-[11px] text-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100">
+                        <div className="font-semibold">Current Drawdown Details</div>
+                        <div className="mt-1 text-muted-foreground">
+                          Peak: {drawdown?.current_drawdown?.peak_date ? formatLongDate(drawdown.current_drawdown.peak_date) : "-"} ·{" "}
                           {typeof drawdown?.current_drawdown?.peak_nav === "number"
                             ? drawdown.current_drawdown.peak_nav.toFixed(2)
                             : "-"}
                         </div>
-                        <div className="text-muted-foreground">Current NAV</div>
-                        <div className="text-foreground font-medium">
-                          {typeof meta?.current_nav === "number" ? meta.current_nav.toFixed(2) : "-"}
-                        </div>
-                        <div className="text-muted-foreground">Duration</div>
-                        <div className="text-foreground font-medium">
-                          {typeof drawdown?.current_drawdown?.drawdown_duration_days === "number"
-                            ? `${drawdown.current_drawdown.drawdown_duration_days}d`
+                        <div className="text-muted-foreground">
+                          Trough: {drawdown?.current_drawdown?.trough_date ? formatLongDate(drawdown.current_drawdown.trough_date) : "-"} ·{" "}
+                          {typeof drawdown?.current_drawdown?.trough_nav === "number"
+                            ? drawdown.current_drawdown.trough_nav.toFixed(2)
                             : "-"}
                         </div>
-                        <div className="text-muted-foreground">Recovery Days</div>
-                        <div className="text-foreground font-medium">
+                        <div className="text-muted-foreground">
+                          Recovery: {drawdown?.current_drawdown?.recovery_date ? formatLongDate(drawdown.current_drawdown.recovery_date) : "-"} ·{" "}
+                          {typeof drawdown?.current_drawdown?.recovery_nav === "number"
+                            ? drawdown.current_drawdown.recovery_nav.toFixed(2)
+                            : "-"}
+                        </div>
+                        <div className="text-muted-foreground">
+                          Duration: {typeof drawdown?.current_drawdown?.drawdown_duration_days === "number"
+                            ? `${drawdown.current_drawdown.drawdown_duration_days}d`
+                            : "-"}
+                          {" · "}Recovery:{" "}
                           {typeof drawdown?.current_drawdown?.recovery_duration_days === "number"
                             ? `${drawdown.current_drawdown.recovery_duration_days}d`
                             : "-"}
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max Drawdown</div>
-                      <div className="mt-1 text-[18px] font-semibold text-negative">
-                        {typeof drawdown?.mdd_duration_details?.max?.max_drawdown_percent === "number"
-                          ? `${drawdown.mdd_duration_details.max.max_drawdown_percent.toFixed(2)}%`
-                          : "-"}
-                      </div>
-                      <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-                        <div className="text-muted-foreground">Peak Date</div>
-                        <div className="text-foreground font-medium">
-                          {drawdown?.mdd_duration_details?.max?.peak_date
-                            ? formatLongDate(drawdown.mdd_duration_details.max.peak_date)
+                    <div className="group relative rounded-xl border border-border/60 bg-card px-4 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max Drawdown</div>
+                        <div className="text-[22px] font-semibold text-negative">
+                          {typeof drawdown?.mdd_duration_details?.max?.max_drawdown_percent === "number"
+                            ? `${drawdown.mdd_duration_details.max.max_drawdown_percent.toFixed(2)}%`
                             : "-"}
                         </div>
-                        <div className="text-muted-foreground">Peak NAV</div>
-                        <div className="text-foreground font-medium">
+                      </div>
+                      <div className="mt-2 text-[11px] text-muted-foreground">Hover to see peak, trough, recovery.</div>
+                      <div className="pointer-events-none absolute left-4 top-full z-20 mt-2 w-[320px] rounded-md border border-border bg-popover px-3 py-2 text-[11px] text-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100">
+                        <div className="font-semibold">Max Drawdown Details</div>
+                        <div className="mt-1 text-muted-foreground">
+                          Peak: {drawdown?.mdd_duration_details?.max?.peak_date ? formatLongDate(drawdown.mdd_duration_details.max.peak_date) : "-"} ·{" "}
                           {typeof drawdown?.mdd_duration_details?.max?.peak_nav === "number"
                             ? drawdown.mdd_duration_details.max.peak_nav.toFixed(2)
                             : "-"}
                         </div>
-                        <div className="text-muted-foreground">Trough Date</div>
-                        <div className="text-foreground font-medium">
-                          {drawdown?.mdd_duration_details?.max?.trough_date
-                            ? formatLongDate(drawdown.mdd_duration_details.max.trough_date)
-                            : "-"}
-                        </div>
-                        <div className="text-muted-foreground">Trough NAV</div>
-                        <div className="text-foreground font-medium">
+                        <div className="text-muted-foreground">
+                          Trough: {drawdown?.mdd_duration_details?.max?.trough_date ? formatLongDate(drawdown.mdd_duration_details.max.trough_date) : "-"} ·{" "}
                           {typeof drawdown?.mdd_duration_details?.max?.trough_nav === "number"
                             ? drawdown.mdd_duration_details.max.trough_nav.toFixed(2)
                             : "-"}
                         </div>
-                        <div className="text-muted-foreground">Drawdown Days</div>
-                        <div className="text-foreground font-medium">
-                          {typeof drawdown?.mdd_duration_details?.max?.drawdown_duration_days === "number"
-                            ? `${drawdown.mdd_duration_details.max.drawdown_duration_days}d`
-                            : "-"}
-                        </div>
-                        <div className="text-muted-foreground">Recovery Date</div>
-                        <div className="text-foreground font-medium">
-                          {drawdown?.mdd_duration_details?.max?.recovery_date
-                            ? formatLongDate(drawdown.mdd_duration_details.max.recovery_date)
-                            : "-"}
-                        </div>
-                        <div className="text-muted-foreground">Recovery NAV</div>
-                        <div className="text-foreground font-medium">
+                        <div className="text-muted-foreground">
+                          Recovery: {drawdown?.mdd_duration_details?.max?.recovery_date ? formatLongDate(drawdown.mdd_duration_details.max.recovery_date) : "-"} ·{" "}
                           {typeof drawdown?.mdd_duration_details?.max?.recovery_nav === "number"
                             ? drawdown.mdd_duration_details.max.recovery_nav.toFixed(2)
                             : "-"}
                         </div>
-                        <div className="text-muted-foreground">Recovery Days</div>
-                        <div className="text-foreground font-medium">
+                        <div className="text-muted-foreground">
+                          Duration: {typeof drawdown?.mdd_duration_details?.max?.drawdown_duration_days === "number"
+                            ? `${drawdown.mdd_duration_details.max.drawdown_duration_days}d`
+                            : "-"}
+                          {" · "}Recovery:{" "}
                           {typeof drawdown?.mdd_duration_details?.max?.recovery_duration_days === "number"
                             ? `${drawdown.mdd_duration_details.max.recovery_duration_days}d`
                             : "-"}
