@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, ChevronDown, LogOut, User } from "lucide-react";
+import { Search, ChevronDown, LogOut, User, Bookmark } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
@@ -185,18 +185,23 @@ const Navbar = () => {
                                 <span>{item.scheme_sub_category}</span>
                               </div>
                             </div>
-                            <div className="flex flex-col items-end">
-                              <span className="text-[14px] font-semibold text-slate-900">
-                                {formatNav(item.current_nav)}
-                              </span>
-                              {hasChange ? (
-                                <span className={`text-[12px] font-medium ${changeColor}`}>
-                                  {changePrefix}
-                                  {formatChange(changeValue)}
+                            <div className="flex items-center gap-3">
+                              <div className="flex flex-col items-end">
+                                <span className="text-[14px] font-semibold text-slate-900">
+                                  {formatNav(item.current_nav)}
                                 </span>
-                              ) : (
-                                <span className="text-[12px] text-slate-400">—</span>
-                              )}
+                                {hasChange ? (
+                                  <span className={`text-[12px] font-medium ${changeColor}`}>
+                                    {changePrefix}
+                                    {formatChange(changeValue)}
+                                  </span>
+                                ) : (
+                                  <span className="text-[12px] text-slate-400">—</span>
+                                )}
+                              </div>
+                              <span className="text-slate-400">
+                                <Bookmark className="w-4 h-4" />
+                              </span>
                             </div>
                           </div>
                         </button>
