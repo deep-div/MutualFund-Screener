@@ -1128,43 +1128,50 @@ const FundAnalytics = () => {
                     </select>
                   </div>
                   {selectedYear && heatmap[selectedYear] ? (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                      {MONTHS.map((month, index) => {
+                    (() => {
+                      const monthlyEntries = MONTHS.map((month, index) => {
                         const key = String(index + 1).padStart(2, "0");
                         const val = (heatmap[selectedYear] as Record<string, number>)[key];
-                        const intensity = val !== undefined ? Math.min(0.22, Math.max(0.08, Math.abs(val) / monthlyScale)) : 0;
-                        const bg =
-                          val !== undefined
-                            ? val >= 0
-                              ? `hsl(var(--positive) / ${intensity})`
-                              : `hsl(var(--negative) / ${intensity})`
-                            : undefined;
-                        return (
-                          <div
-                            key={month}
-                            className="group relative rounded-xl border border-border/40 shadow-sm hover:shadow-md transition-all bg-card"
-                          >
-                            <div
-                              className="rounded-xl px-3 py-3 min-h-[72px] flex flex-col justify-between"
-                              style={{ backgroundColor: bg }}
-                            >
-                              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{month}</div>
+                        return { month, key, val };
+                      }).filter((entry) => typeof entry.val === "number");
+
+                      if (monthlyEntries.length === 0) {
+                        return <div className="text-sm text-muted-foreground">No monthly data available.</div>;
+                      }
+
+                      return (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                          {monthlyEntries.map(({ month, val }) => {
+                            const intensity = Math.min(0.22, Math.max(0.08, Math.abs(val as number) / monthlyScale));
+                            const bg =
+                              (val as number) >= 0
+                                ? `hsl(var(--positive) / ${intensity})`
+                                : `hsl(var(--negative) / ${intensity})`;
+                            return (
                               <div
-                                className={`text-[14px] font-semibold ${val !== undefined && val >= 0 ? "text-positive" : "text-negative"}`}
+                                key={month}
+                                className="group relative rounded-xl border border-border/40 shadow-sm hover:shadow-md transition-all bg-card"
                               >
-                                {val !== undefined ? `${val >= 0 ? "+" : ""}${val.toFixed(2)}%` : "-"}
+                                <div
+                                  className="rounded-xl px-3 py-3 min-h-[72px] flex flex-col justify-between"
+                                  style={{ backgroundColor: bg }}
+                                >
+                                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{month}</div>
+                                  <div className={`text-[14px] font-semibold ${(val as number) >= 0 ? "text-positive" : "text-negative"}`}>
+                                    {(val as number) >= 0 ? "+" : ""}
+                                    {(val as number).toFixed(2)}%
+                                  </div>
+                                </div>
+                                <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-foreground opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+                                  {month} {selectedYear} · {(val as number) >= 0 ? "+" : ""}
+                                  {(val as number).toFixed(2)}%
+                                </div>
                               </div>
-                            </div>
-                            {val !== undefined && (
-                              <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-foreground opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-                                {month} {selectedYear} · {val >= 0 ? "+" : ""}
-                                {val.toFixed(2)}%
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()
                   ) : (
                     <div className="text-sm text-muted-foreground">No monthly data available.</div>
                   )}
