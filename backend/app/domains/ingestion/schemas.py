@@ -99,7 +99,6 @@ class SchemeMeta(BaseModel):
     scheme_category: str
     scheme_class: SchemeClass
     scheme_sub_category: SchemeSubCategory | str
-    start_date: date
     launch_date: date
     current_date: date
     current_nav: float

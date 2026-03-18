@@ -28,7 +28,6 @@ class SchemeMetaORM(Base):
     scheme_class = Column(String)
     scheme_sub_category = Column(String)
     scheme_type = Column(String)
-    start_date = Column(Date)
     launch_date = Column(Date)
     current_date = Column(Date)
     current_nav = Column(Float)
