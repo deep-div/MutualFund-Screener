@@ -90,14 +90,16 @@
     font-variant-numeric: tabular-nums;
   }
   .page-dimmable {
-    transition: filter 150ms ease, opacity 150ms ease;
+    position: relative;
+    transition: opacity 150ms ease;
   }
 }
 
 .search-dim .page-dimmable {
-  filter: brightness(0.68) saturate(0.5);
-  opacity: 0.82;
+  filter: grayscale(1) brightness(0.6);
+  opacity: 1;
 }
+
 
 @keyframes ticker-scroll {
   0% { transform: translateX(0); }
