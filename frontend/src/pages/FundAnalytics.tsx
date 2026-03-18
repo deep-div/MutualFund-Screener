@@ -310,6 +310,7 @@ const FundAnalytics = () => {
     }));
   }, [navQuery.data]);
 
+
   const selectedCagr = metrics?.returns?.cagr_percent?.[returnPeriod] ?? null;
   const selectedAbs = metrics?.returns?.absolute_returns_percent?.[returnPeriod] ?? null;
   const selectedReturn = returnType === "cagr" ? selectedCagr : selectedAbs;
@@ -362,6 +363,11 @@ const FundAnalytics = () => {
     const startDate = getPeriodStart(endDate, returnPeriod, launchDate);
     return navSeries.filter((point) => point.date >= startDate && point.date <= endDate);
   }, [navSeries, endDate, returnPeriod, launchDate]);
+
+  const navSparkline = useMemo(() => {
+    if (filteredNavSeries.length === 0) return [];
+    return filteredNavSeries.slice(-40).map((point) => ({ date: point.date, nav: point.nav }));
+  }, [filteredNavSeries]);
 
   const baseNav = filteredNavSeries.length > 0 ? filteredNavSeries[0].nav : null;
   const baseDate = filteredNavSeries.length > 0 ? filteredNavSeries[0].date : null;
@@ -460,6 +466,15 @@ const FundAnalytics = () => {
     return indices.map((i) => points[Math.min(i, points.length - 1)].date);
   }, [activeRolling?.points]);
 
+  const navDateYmd = toYmd(meta?.current_date);
+  const navDateLabel = navDateYmd ? formatLongDate(navDateYmd) : meta?.current_date ?? "-";
+  const inceptionYears =
+    typeof meta?.time_since_inception_years === "number"
+      ? `${meta.time_since_inception_years.toFixed(1)}Y`
+      : meta?.time_since_inception_years
+        ? `${meta.time_since_inception_years}Y`
+        : "-";
+
   if (!Number.isFinite(code)) {
     return (
       <div className="min-h-screen bg-background">
@@ -484,63 +499,115 @@ const FundAnalytics = () => {
             <>
               {/* Header */}
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-                <div className="flex items-start justify-between gap-6">
+                <div className="flex flex-col gap-4">
                   <div>
                     <h1 className="text-[20px] font-bold text-foreground tracking-tight">{meta?.scheme_sub_name}</h1>
-                    <div className="flex items-center gap-3 mt-1.5">
+                    <div className="flex flex-wrap items-center gap-3 mt-1.5">
                       <span className="text-[12px] px-2 py-0.5 rounded bg-primary/10 text-primary font-medium">
                         {meta?.scheme_sub_category}
                       </span>
                       <span className="text-[12px] text-muted-foreground">{meta?.fund_house}</span>
                       <span className="text-[12px] text-muted-foreground">
-                        {meta?.plan_type} · {meta?.option_type}
+                        {meta?.plan_type} - {meta?.option_type}
                       </span>
+                      <span className="text-[12px] text-muted-foreground">Since inception {inceptionYears}</span>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2 text-right">
-                    <div>
-                      <div className="text-[22px] font-bold text-foreground">
-                        INR {typeof meta?.current_nav === "number" ? meta.current_nav.toFixed(4) : "-"}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Latest NAV</div>
+                      <div className="flex items-center justify-between gap-2 mt-1">
+                        <div className="text-[20px] font-semibold text-foreground">
+                          INR {typeof meta?.current_nav === "number" ? meta.current_nav.toFixed(4) : "-"}
+                        </div>
+                        <div className="h-10 w-20">
+                          {navSparkline.length > 1 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={navSparkline}>
+                                <Line type="monotone" dataKey="nav" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          ) : (
+                            <div className="text-[10px] text-muted-foreground">No trend</div>
+                          )}
+                        </div>
                       </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">NAV date {navDateLabel}</div>
+                    </div>
+
+                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">1D Change</div>
                       <div
-                        className={`text-[13px] ${
+                        className={`text-[18px] font-semibold mt-1 ${
                           typeof meta?.nav_change_1d === "number" && meta?.nav_change_1d >= 0 ? "text-positive" : "text-negative"
                         }`}
                       >
-                        {typeof meta?.nav_change_1d === "number" && typeof meta?.current_nav === "number" ? (
-                          <>
-                            {meta.nav_change_1d >= 0 ? "▲" : "▼"} {Math.abs(meta.nav_change_1d).toFixed(4)} (
-                            {((meta.nav_change_1d / meta.current_nav) * 100).toFixed(2)}%)
-                          </>
-                        ) : (
-                          "-"
-                        )}
+                        {typeof meta?.nav_change_1d === "number" && typeof meta?.current_nav === "number"
+                          ? `${meta.nav_change_1d >= 0 ? "+" : ""}${meta.nav_change_1d.toFixed(4)}%`
+                          : "-"}
                       </div>
-                      <div className="text-[11px] text-muted-foreground mt-0.5">
-                        NAV as of {meta?.current_date} · {meta?.time_since_inception_years}Y since inception
+                      <div className="text-[11px] text-muted-foreground mt-1">Change vs previous close</div>
+                    </div>
+
+                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Current Drawdown</div>
+                      <div className="text-[18px] font-semibold mt-1 text-negative">
+                        {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
+                          ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
+                          : "-"}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mt-2 text-[11px] text-muted-foreground">
+                        <div>
+                          <div className="uppercase tracking-wider text-[9px]">Drawdown Days</div>
+                          <div className="text-foreground text-[12px] font-semibold">
+                            {typeof drawdown?.current_drawdown?.drawdown_duration_days === "number"
+                              ? `${drawdown.current_drawdown.drawdown_duration_days}d`
+                              : "-"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="uppercase tracking-wider text-[9px]">Recovery Days</div>
+                          <div className="text-foreground text-[12px] font-semibold">
+                            {typeof drawdown?.current_drawdown?.recovery_duration_days === "number"
+                              ? `${drawdown.current_drawdown.recovery_duration_days}d`
+                              : "-"}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    {drawdown?.current_drawdown && (
-                      <div className="text-[12px] text-muted-foreground">
-                        <span className="uppercase tracking-wider">Current Drawdown</span>{" "}
-                        <span className="text-negative font-semibold">
-                          {typeof drawdown.current_drawdown.max_drawdown_percent === "number"
-                            ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
-                            : "-"}
-                        </span>
-                        <span className="mx-1">·</span>
-                        <span>
-                          {typeof drawdown.current_drawdown.drawdown_duration_days === "number"
-                            ? `${drawdown.current_drawdown.drawdown_duration_days} days`
-                            : "-"}
-                        </span>
+
+                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max Drawdown</div>
+                      <div className="text-[18px] font-semibold mt-1 text-negative">
+                        {typeof drawdown?.mdd_duration_details?.max?.max_drawdown_percent === "number"
+                          ? `${drawdown.mdd_duration_details.max.max_drawdown_percent.toFixed(2)}%`
+                          : "-"}
                       </div>
-                    )}
+                      <div className="grid grid-cols-2 gap-2 mt-2 text-[11px] text-muted-foreground">
+                        <div>
+                          <div className="uppercase tracking-wider text-[9px]">Drawdown Days</div>
+                          <div className="text-foreground text-[12px] font-semibold">
+                            {typeof drawdown?.mdd_duration_details?.max?.drawdown_duration_days === "number"
+                              ? `${drawdown.mdd_duration_details.max.drawdown_duration_days}d`
+                              : "-"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="uppercase tracking-wider text-[9px]">Recovery Days</div>
+                          <div className="text-foreground text-[12px] font-semibold">
+                            {typeof drawdown?.mdd_duration_details?.max?.recovery_duration_days === "number"
+                              ? `${drawdown.mdd_duration_details.max.recovery_duration_days}d`
+                              : "-"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </motion.div>
 
-              {/* Return Metrics */}
+{/* Return Metrics */}
               <SectionHeader icon={TrendingUp} title="Return Metrics" />
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch">
                 <div className="flex flex-col h-full">
