@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, TrendingUp, TrendingDown, Activity, BarChart3, Shield, Zap } from "lucide-react";
+import { useParams } from "react-router-dom";
+import { TrendingUp, TrendingDown, Activity, BarChart3, Shield, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   LineChart,
@@ -141,9 +141,19 @@ const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: 
   </div>
 );
 
+const DISPLAY_RETURN_PERIODS = [
+  "one_month",
+  "three_month",
+  "six_month",
+  "one_year",
+  "three_year",
+  "five_year",
+  "ten_year",
+  "max",
+];
+
 const FundAnalytics = () => {
   const { schemeCode } = useParams();
-  const navigate = useNavigate();
   const code = schemeCode ? Number(schemeCode) : NaN;
   const [returnType, setReturnType] = useState<"absolute" | "cagr">("absolute");
   const [returnPeriod, setReturnPeriod] = useState<
@@ -184,6 +194,30 @@ const FundAnalytics = () => {
     if (val >= 0) return "bg-positive/10 text-positive";
     if (val >= -5) return "bg-negative/10 text-negative";
     return "bg-negative/25 text-negative";
+  };
+
+  const buildReturnSeries = (source: Record<string, number | null>, order: string[]) => {
+    const entries = order
+      .map((key) => {
+        const value = source?.[key];
+        if (typeof value !== "number") return null;
+        return { key, label: PERIOD_LABELS[key] || key, value };
+      })
+      .filter((item): item is { key: string; label: string; value: number } => !!item);
+    const extras = Object.entries(source || {})
+      .filter(([key, value]) => typeof value === "number" && !order.includes(key))
+      .map(([key, value]) => ({
+        key,
+        label: PERIOD_LABELS[key] || key,
+        value: value as number,
+      }));
+    return [...entries, ...extras];
+  };
+
+  const getReturnScale = (series: { value: number }[]) => {
+    if (series.length === 0) return 1;
+    const maxAbs = Math.max(...series.map((item) => Math.abs(item.value)));
+    return maxAbs === 0 ? 1 : maxAbs;
   };
 
   const launchDate = toYmd(meta?.launch_date);
@@ -263,6 +297,11 @@ const FundAnalytics = () => {
   const baseNav = filteredNavSeries.length > 0 ? filteredNavSeries[0].nav : null;
   const baseDate = filteredNavSeries.length > 0 ? filteredNavSeries[0].date : null;
 
+  const absReturnSeries = useMemo(() => buildReturnSeries(absReturns, DISPLAY_RETURN_PERIODS), [absReturns]);
+  const cagrReturnSeries = useMemo(() => buildReturnSeries(cagrReturns, DISPLAY_RETURN_PERIODS), [cagrReturns]);
+  const absScale = useMemo(() => getReturnScale(absReturnSeries), [absReturnSeries]);
+  const cagrScale = useMemo(() => getReturnScale(cagrReturnSeries), [cagrReturnSeries]);
+
   const navTicks = useMemo(() => {
     if (filteredNavSeries.length === 0) return [];
     const months: string[] = [];
@@ -306,12 +345,6 @@ const FundAnalytics = () => {
             <>
               {/* Header */}
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground mb-3 transition-colors"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" /> Back to Screener
-                </button>
                 <div className="flex items-start justify-between">
                   <div>
                     <h1 className="text-[20px] font-bold text-foreground tracking-tight">{meta?.scheme_sub_name}</h1>
@@ -442,24 +475,57 @@ const FundAnalytics = () => {
                 </div>
               </div>
 
-              {/* Absolute Returns */}
-              <SectionHeader icon={TrendingUp} title="Absolute Returns" />
-              <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
-                {Object.entries(absReturns)
-                  .filter(([, v]) => v !== null)
-                  .map(([k, v]) => (
-                    <MetricCard key={k} label={PERIOD_LABELS[k] || k} value={v as number} />
-                  ))}
-              </div>
-
-              {/* CAGR */}
-              <SectionHeader icon={BarChart3} title="CAGR Returns" />
-              <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
-                {Object.entries(cagrReturns)
-                  .filter(([, v]) => v !== null)
-                  .map(([k, v]) => (
-                    <MetricCard key={k} label={PERIOD_LABELS[k] || k} value={v as number} />
-                  ))}
+              {/* Returns Overview */}
+              <SectionHeader icon={TrendingUp} title="Return Summary" />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {[{ title: "Absolute Returns", series: absReturnSeries, scale: absScale }, { title: "CAGR Returns", series: cagrReturnSeries, scale: cagrScale }].map(
+                  ({ title, series, scale }) => (
+                    <div key={title} className="bg-surface border border-border/60 rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="text-[13px] font-semibold text-foreground">{title}</div>
+                        <div className="text-[11px] text-muted-foreground">Return %</div>
+                      </div>
+                      {series.length === 0 ? (
+                        <div className="text-sm text-muted-foreground">No return data available.</div>
+                      ) : (
+                        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                          {series.map((entry) => {
+                            const intensity = Math.min(0.22, Math.max(0.08, Math.abs(entry.value) / scale));
+                            const bg =
+                              entry.value >= 0
+                                ? `hsl(var(--positive) / ${intensity})`
+                                : `hsl(var(--negative) / ${intensity})`;
+                            return (
+                              <div
+                                key={entry.key}
+                                className="group relative rounded-xl border border-border/40 shadow-sm hover:shadow-md transition-all bg-card"
+                              >
+                                <div
+                                  className="rounded-xl px-3 py-3 min-h-[74px] flex flex-col justify-between"
+                                  style={{ backgroundColor: bg }}
+                                >
+                                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{entry.label}</div>
+                                  <div
+                                    className={`text-[16px] font-semibold font-mono-data ${
+                                      entry.value >= 0 ? "text-positive" : "text-negative"
+                                    }`}
+                                  >
+                                    {entry.value >= 0 ? "+" : ""}
+                                    {entry.value.toFixed(2)}%
+                                  </div>
+                                </div>
+                                <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-foreground opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+                                  {entry.label} · {entry.value >= 0 ? "+" : ""}
+                                  {entry.value.toFixed(2)}%
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                )}
               </div>
 
               {/* Year on Year Returns Bar Chart */}
