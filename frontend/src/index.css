@@ -96,7 +96,7 @@
 }
 
 .search-dim .page-dimmable {
-  filter: grayscale(1) brightness(0.6);
+  filter: brightness(0.6) saturate(0.7);
   opacity: 1;
 }
 
