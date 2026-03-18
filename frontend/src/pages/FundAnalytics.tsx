@@ -191,6 +191,43 @@ const YearlyDrawdownTooltip = ({
   );
 };
 
+const PeriodDrawdownTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload?: Record<string, unknown> }>;
+}) => {
+  if (!active || !payload?.length) return null;
+  const row = payload[0]?.payload as {
+    label?: string;
+    mdd?: number | null;
+    peakNav?: number | null;
+    troughNav?: number | null;
+    recoveryNav?: number | null;
+    peakDate?: string | null;
+    troughDate?: string | null;
+    recoveryDate?: string | null;
+  };
+  return (
+    <div className="rounded-md border border-border bg-popover px-3 py-2 text-[12px] shadow-sm">
+      <div className="font-semibold text-foreground">{row?.label ?? "Period"}</div>
+      <div className="text-foreground mt-1">
+        Max DD: {typeof row?.mdd === "number" ? `${row.mdd.toFixed(2)}%` : "-"}
+      </div>
+      <div className="text-muted-foreground">
+        Peak: {row?.peakDate ? formatLongDate(row.peakDate) : "-"} · {typeof row?.peakNav === "number" ? row.peakNav.toFixed(2) : "-"}
+      </div>
+      <div className="text-muted-foreground">
+        Trough: {row?.troughDate ? formatLongDate(row.troughDate) : "-"} · {typeof row?.troughNav === "number" ? row.troughNav.toFixed(2) : "-"}
+      </div>
+      <div className="text-muted-foreground">
+        Recovery: {row?.recoveryDate ? formatLongDate(row.recoveryDate) : "-"} · {typeof row?.recoveryNav === "number" ? row.recoveryNav.toFixed(2) : "-"}
+      </div>
+    </div>
+  );
+};
+
 const FundAnalyticsSkeleton = () => (
   <div className="space-y-6">
     <div className="space-y-3">
@@ -479,6 +516,9 @@ const FundAnalytics = () => {
         mdd: (value as { max_drawdown_percent: number }).max_drawdown_percent,
         drawdownDays: (value as { drawdown_duration_days: number | null }).drawdown_duration_days,
         recoveryDays: (value as { recovery_duration_days: number | null }).recovery_duration_days,
+        peakNav: (value as { peak_nav?: number | null }).peak_nav ?? null,
+        troughNav: (value as { trough_nav?: number | null }).trough_nav ?? null,
+        recoveryNav: (value as { recovery_nav?: number | null }).recovery_nav ?? null,
         peakDate: (value as { peak_date?: string | null }).peak_date ?? null,
         troughDate: (value as { trough_date?: string | null }).trough_date ?? null,
         recoveryDate: (value as { recovery_date?: string | null }).recovery_date ?? null,
@@ -1311,13 +1351,7 @@ const FundAnalytics = () => {
                                 domain={[(dataMin: number) => Math.min(dataMin, -1), 0]}
                               />
                               <Tooltip
-                                contentStyle={{
-                                  background: "hsl(var(--popover))",
-                                  border: "1px solid hsl(var(--border))",
-                                  borderRadius: 8,
-                                  fontSize: 12,
-                                }}
-                                formatter={(value: number) => [`${value.toFixed(2)}%`, "Max DD"]}
+                                content={<PeriodDrawdownTooltip />}
                               />
                               <Bar dataKey="mdd" radius={[6, 6, 0, 0]}>
                                 {drawdownMddSeries.map((entry) => (
