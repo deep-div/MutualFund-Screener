@@ -125,7 +125,7 @@ const MetricCard = ({
   <div className="flex flex-col gap-1 px-4 py-3 rounded-lg bg-surface border border-border">
     <span className="text-[11px] text-muted-foreground uppercase tracking-wider">{label}</span>
     <span
-      className={`text-[15px] font-semibold font-mono-data ${
+      className={`text-[15px] font-semibold ${
         color || (value !== null && value !== undefined && value >= 0 ? "text-positive" : "text-negative")
       }`}
     >
@@ -373,11 +373,11 @@ const FundAnalytics = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[22px] font-bold font-mono-data text-foreground">
+                    <div className="text-[22px] font-bold text-foreground">
                       INR {typeof meta?.current_nav === "number" ? meta.current_nav.toFixed(4) : "-"}
                     </div>
                     <div
-                      className={`text-[13px] font-mono-data ${
+                      className={`text-[13px] ${
                         typeof meta?.nav_change_1d === "number" && meta.nav_change_1d >= 0 ? "text-positive" : "text-negative"
                       }`}
                     >
@@ -446,7 +446,7 @@ const FundAnalytics = () => {
                                 >
                                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{entry.label}</div>
                                   <div
-                                    className={`text-[16px] font-semibold font-mono-data ${
+                                    className={`text-[16px] font-semibold ${
                                       entry.value >= 0 ? "text-positive" : "text-negative"
                                     }`}
                                   >
@@ -484,7 +484,7 @@ const FundAnalytics = () => {
                               >
                                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{entry.label}</div>
                                 <div
-                                  className={`text-[16px] font-semibold font-mono-data ${
+                                  className={`text-[16px] font-semibold ${
                                     entry.value >= 0 ? "text-positive" : "text-negative"
                                   }`}
                                 >
@@ -693,7 +693,7 @@ const FundAnalytics = () => {
                                   {val !== undefined ? (
                                     <span
                                       title={`${year} ${MONTHS[i]}: ${val.toFixed(2)}%`}
-                                      className={`inline-block w-full px-1 py-0.5 rounded text-[10px] font-mono-data font-medium ${getHeatmapColor(
+                                      className={`inline-block w-full px-1 py-0.5 rounded text-[10px] font-medium ${getHeatmapColor(
                                         val
                                       )}`}
                                     >
@@ -731,18 +731,18 @@ const FundAnalytics = () => {
                         <div className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">
                           {PERIOD_LABELS[period] || period}
                         </div>
-                        <div className="text-[16px] font-bold font-mono-data text-foreground">
+                        <div className="text-[16px] font-bold text-foreground">
                           INR {d.current_value.toLocaleString("en-IN")}
                         </div>
                         <div className="text-[11px] text-muted-foreground mt-1">
                           Invested: INR {d.total_invested.toLocaleString("en-IN")}
                         </div>
                         <div className="flex items-center gap-2 mt-1.5">
-                          <span className="text-[12px] font-mono-data text-positive">
+                          <span className="text-[12px] text-positive">
                             {d.xirr_percent.toFixed(1)}% XIRR
                           </span>
                           <span className="text-[11px] text-muted-foreground">·</span>
-                          <span className="text-[12px] font-mono-data text-positive">
+                          <span className="text-[12px] text-positive">
                             {d.absolute_return_percent.toFixed(1)}% abs
                           </span>
                         </div>
@@ -807,7 +807,7 @@ const FundAnalytics = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                 <div className="bg-surface border border-border rounded-lg p-4">
                   <div className="text-[11px] text-muted-foreground uppercase mb-1">Current Drawdown</div>
-                  <div className="text-[18px] font-bold font-mono-data text-negative">
+                  <div className="text-[18px] font-bold text-negative">
                     {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
                       ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
                       : "-"}
@@ -825,7 +825,7 @@ const FundAnalytics = () => {
                       <div className="text-[11px] text-muted-foreground uppercase mb-1">
                         MDD {PERIOD_LABELS[period] || period}
                       </div>
-                      <div className="text-[16px] font-bold font-mono-data text-negative">
+                      <div className="text-[16px] font-bold text-negative">
                         {(d as { max_drawdown_percent: number }).max_drawdown_percent.toFixed(2)}%
                       </div>
                       <div className="text-[11px] text-muted-foreground mt-1">
@@ -842,7 +842,7 @@ const FundAnalytics = () => {
                 <div className="flex gap-4 flex-wrap">
                   {Object.entries(drawdown?.drawdown_frequency || {}).map(([level, dataPoint]) => (
                     <div key={level} className="text-center">
-                      <div className="text-[18px] font-bold font-mono-data text-negative">
+                      <div className="text-[18px] font-bold text-negative">
                         {(dataPoint as { count: number }).count}
                       </div>
                       <div className="text-[10px] text-muted-foreground">
@@ -897,7 +897,7 @@ const FundAnalytics = () => {
                         .filter(([, v]) => v !== null)
                         .map(([period, val]) => (
                           <div key={period} className="text-center min-w-[50px]">
-                            <div className="text-[14px] font-semibold font-mono-data text-foreground">
+                            <div className="text-[14px] font-semibold text-foreground">
                               {(val as number).toFixed(2)}
                             </div>
                             <div className="text-[10px] text-muted-foreground">{PERIOD_LABELS[period] || period}</div>
@@ -925,7 +925,7 @@ const FundAnalytics = () => {
                         .filter(([, v]) => v !== null)
                         .map(([period, val]) => (
                           <div key={period} className="text-center min-w-[50px]">
-                            <div className="text-[14px] font-semibold font-mono-data text-foreground">
+                            <div className="text-[14px] font-semibold text-foreground">
                               {(val as number).toFixed(2)}
                             </div>
                             <div className="text-[10px] text-muted-foreground">{PERIOD_LABELS[period] || period}</div>
