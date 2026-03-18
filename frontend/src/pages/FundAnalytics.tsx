@@ -183,6 +183,7 @@ const FundAnalytics = () => {
     | "one_year"
     | "two_year"
     | "three_year"
+    | "four_year"
     | "five_year"
     | "seven_year"
     | "ten_year"
@@ -320,7 +321,7 @@ const FundAnalytics = () => {
     returnType === "rolling"
       ? ([] as const)
       : returnType === "cagr"
-        ? (["one_year", "two_year", "three_year", "five_year", "seven_year", "ten_year", "max"] as const)
+        ? (["one_year", "two_year", "three_year", "four_year", "five_year", "seven_year", "ten_year", "max"] as const)
         : ([
             "one_month",
             "three_month",
@@ -328,6 +329,7 @@ const FundAnalytics = () => {
             "one_year",
             "two_year",
             "three_year",
+            "four_year",
             "five_year",
             "seven_year",
             "ten_year",
