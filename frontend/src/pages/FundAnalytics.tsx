@@ -367,6 +367,39 @@ const FundAnalytics = () => {
   const cagrReturnSeries = useMemo(() => buildReturnSeries(cagrReturns, CAGR_RETURN_ORDER), [cagrReturns]);
   const absScale = useMemo(() => getReturnScale(absReturnSeries), [absReturnSeries]);
   const cagrScale = useMemo(() => getReturnScale(cagrReturnSeries), [cagrReturnSeries]);
+  const drawdownMddSeries = useMemo(() => {
+    const order = ["one_year", "two_year", "three_year", "four_year", "five_year", "seven_year", "ten_year", "max"];
+    const orderIndex = new Map(order.map((key, index) => [key, index]));
+    return Object.entries(drawdown?.mdd_duration_details || {})
+      .filter(([, value]) => value && typeof value.max_drawdown_percent === "number")
+      .map(([period, value]) => ({
+        period,
+        label: PERIOD_LABELS[period] || period,
+        mdd: (value as { max_drawdown_percent: number }).max_drawdown_percent,
+        drawdownDays: (value as { drawdown_duration_days: number | null }).drawdown_duration_days,
+        recoveryDays: (value as { recovery_duration_days: number | null }).recovery_duration_days,
+        peakDate: (value as { peak_date?: string | null }).peak_date ?? null,
+        troughDate: (value as { trough_date?: string | null }).trough_date ?? null,
+        recoveryDate: (value as { recovery_date?: string | null }).recovery_date ?? null,
+      }))
+      .sort((a, b) => {
+        const aIndex = orderIndex.has(a.period) ? (orderIndex.get(a.period) as number) : 99;
+        const bIndex = orderIndex.has(b.period) ? (orderIndex.get(b.period) as number) : 99;
+        return aIndex - bIndex;
+      });
+  }, [drawdown?.mdd_duration_details]);
+  const drawdownFrequencySeries = useMemo(() => {
+    const parseLevel = (value: string) => Number(value.replace("beyond_", "").replace("_percent", ""));
+    return Object.entries(drawdown?.drawdown_frequency || {})
+      .map(([level, value]) => ({
+        level,
+        label: level.replace("beyond_", "> ").replace("_percent", "%"),
+        count: (value as { count: number }).count ?? 0,
+        years: (value as { years?: string[] }).years ?? [],
+        threshold: parseLevel(level),
+      }))
+      .sort((a, b) => a.threshold - b.threshold);
+  }, [drawdown?.drawdown_frequency]);
 
   const monthlyScale = useMemo(() => {
     if (!selectedYear || !heatmap[selectedYear]) return 1;
@@ -914,56 +947,153 @@ const FundAnalytics = () => {
 
               {/* Drawdown */}
               <SectionHeader icon={TrendingDown} title="Drawdown Analysis" />
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                <div className="bg-surface border border-border rounded-lg p-4">
-                  <div className="text-[11px] text-muted-foreground uppercase mb-1">Current Drawdown</div>
-                  <div className="text-[18px] font-bold text-negative">
-                    {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
-                      ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
-                      : "-"}
-                  </div>
-                  <div className="text-[11px] text-muted-foreground mt-1">
-                    {typeof drawdown?.current_drawdown?.drawdown_duration_days === "number"
-                      ? `${drawdown.current_drawdown.drawdown_duration_days} days`
-                      : "-"}
-                  </div>
-                </div>
-                {Object.entries(drawdown?.mdd_duration_details || {})
-                  .filter(([, v]) => v !== null && (v as { max_drawdown_percent: number | null }).max_drawdown_percent !== null)
-                  .map(([period, d]) => (
-                    <div key={period} className="bg-surface border border-border rounded-lg p-4">
-                      <div className="text-[11px] text-muted-foreground uppercase mb-1">
-                        MDD {PERIOD_LABELS[period] || period}
+              <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-4">
+                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm min-h-[420px]" />
+                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <div className="text-[13px] font-semibold text-foreground">Drawdown Overview</div>
+                      <div className="text-[11px] text-muted-foreground mt-1">
+                        Depth, duration, and frequency of drawdowns across periods.
                       </div>
-                      <div className="text-[16px] font-bold text-negative">
-                        {(d as { max_drawdown_percent: number }).max_drawdown_percent.toFixed(2)}%
+                    </div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Percentages</div>
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Current Drawdown</div>
+                      <div className="text-[16px] font-semibold text-negative">
+                        {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
+                          ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
+                          : "-"}
                       </div>
                       <div className="text-[11px] text-muted-foreground mt-1">
-                        DD: {(d as { drawdown_duration_days: number }).drawdown_duration_days}d · Rec:{" "}
-                        {(d as { recovery_duration_days: number | null }).recovery_duration_days ?? "-"}d
+                        {typeof drawdown?.current_drawdown?.drawdown_duration_days === "number"
+                          ? `${drawdown.current_drawdown.drawdown_duration_days}d`
+                          : "-"}{" "}
+                        in drawdown
                       </div>
                     </div>
-                  ))}
-              </div>
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max Drawdown</div>
+                      <div className="text-[16px] font-semibold text-negative">
+                        {typeof drawdown?.mdd_duration_details?.max?.max_drawdown_percent === "number"
+                          ? `${drawdown.mdd_duration_details.max.max_drawdown_percent.toFixed(2)}%`
+                          : "-"}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">
+                        {drawdown?.mdd_duration_details?.max?.peak_date
+                          ? `Peak ${formatLongDate(drawdown.mdd_duration_details.max.peak_date)}`
+                          : "Peak -"}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Trough</div>
+                      <div className="text-[16px] font-semibold text-foreground">
+                        {typeof drawdown?.mdd_duration_details?.max?.trough_nav === "number"
+                          ? drawdown.mdd_duration_details.max.trough_nav.toFixed(2)
+                          : "-"}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">
+                        {drawdown?.mdd_duration_details?.max?.trough_date
+                          ? formatLongDate(drawdown.mdd_duration_details.max.trough_date)
+                          : "-"}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Recovery</div>
+                      <div className="text-[16px] font-semibold text-foreground">
+                        {typeof drawdown?.mdd_duration_details?.max?.recovery_nav === "number"
+                          ? drawdown.mdd_duration_details.max.recovery_nav.toFixed(2)
+                          : "-"}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">
+                        {typeof drawdown?.mdd_duration_details?.max?.recovery_duration_days === "number"
+                          ? `${drawdown.mdd_duration_details.max.recovery_duration_days}d recovery`
+                          : "Recovery -"}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="rounded-xl border border-border/50 bg-background/40 p-3">
+                      <div className="text-[12px] font-medium text-foreground mb-2">Max Drawdown by Period</div>
+                      <div className="h-56">
+                        {drawdownMddSeries.length > 0 ? (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={drawdownMddSeries} margin={{ left: 6, right: 10, bottom: 2 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                              <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                              <YAxis
+                                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                                tickFormatter={(v) => `${v}%`}
+                                domain={[(dataMin: number) => Math.min(dataMin, -1), 0]}
+                              />
+                              <Tooltip
+                                contentStyle={{
+                                  background: "hsl(var(--popover))",
+                                  border: "1px solid hsl(var(--border))",
+                                  borderRadius: 8,
+                                  fontSize: 12,
+                                }}
+                                formatter={(value: number) => [`${value.toFixed(2)}%`, "Max DD"]}
+                              />
+                              <Bar dataKey="mdd" radius={[6, 6, 0, 0]}>
+                                {drawdownMddSeries.map((entry) => (
+                                  <Cell key={entry.period} fill="hsl(var(--negative))" opacity={0.9} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="text-sm text-muted-foreground">No drawdown history available.</div>
+                        )}
+                      </div>
+                    </div>
 
-              {/* Drawdown Frequency */}
-              <div className="bg-surface border border-border rounded-lg p-4 mb-4">
-                <div className="text-[12px] font-medium text-foreground mb-3">Drawdown Frequency</div>
-                <div className="flex gap-4 flex-wrap">
-                  {Object.entries(drawdown?.drawdown_frequency || {}).map(([level, dataPoint]) => (
-                    <div key={level} className="text-center">
-                      <div className="text-[18px] font-bold text-negative">
-                        {(dataPoint as { count: number }).count}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground">
-                        {level.replace("beyond_", "> ").replace("_percent", "%")}
+                    <div className="rounded-xl border border-border/50 bg-background/40 p-3">
+                      <div className="text-[12px] font-medium text-foreground mb-2">Drawdown Frequency</div>
+                      <div className="h-56">
+                        {drawdownFrequencySeries.length > 0 ? (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={drawdownFrequencySeries} layout="vertical" margin={{ left: 12, right: 10 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                              <XAxis
+                                type="number"
+                                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                                allowDecimals={false}
+                              />
+                              <YAxis
+                                type="category"
+                                dataKey="label"
+                                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                              />
+                              <Tooltip
+                                contentStyle={{
+                                  background: "hsl(var(--popover))",
+                                  border: "1px solid hsl(var(--border))",
+                                  borderRadius: 8,
+                                  fontSize: 12,
+                                }}
+                                formatter={(value: number) => [`${value}`, "Count"]}
+                              />
+                              <Bar dataKey="count" radius={[4, 4, 4, 4]}>
+                                {drawdownFrequencySeries.map((entry) => (
+                                  <Cell key={entry.level} fill="hsl(var(--negative))" opacity={0.65} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="text-sm text-muted-foreground">No frequency data available.</div>
+                        )}
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
 
               {/* Consistency */}
+
               <SectionHeader icon={Zap} title="Consistency" />
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
                 <MetricCard label="Positive Days" value={consistency?.positive_days_percent} />
