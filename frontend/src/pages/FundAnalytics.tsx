@@ -1759,14 +1759,16 @@ const FundAnalytics = () => {
                         series: buildMetricSeries(row.data as Record<string, number | null>),
                       }));
                       const hasAny = seriesByMetric.some((row) => row.series.length > 0);
-                      const chartData = periods.map((period) => {
-                        const entry: Record<string, string | number> = { period: period.label };
-                        seriesByMetric.forEach((row) => {
-                          const match = row.series.find((item) => item.key === period.key);
-                          entry[row.key] = typeof match?.value === "number" ? match.value : null;
-                        });
-                        return entry;
-                      });
+                      const chartData = periods
+                        .map((period) => {
+                          const entry: Record<string, string | number> = { period: period.label };
+                          seriesByMetric.forEach((row) => {
+                            const match = row.series.find((item) => item.key === period.key);
+                            entry[row.key] = typeof match?.value === "number" ? match.value : null;
+                          });
+                          return entry;
+                        })
+                        .filter((entry) => seriesByMetric.some((row) => typeof entry[row.key] === "number"));
                       return hasAny ? (
                         <div className="h-72">
                           <ResponsiveContainer width="100%" height="100%">
