@@ -72,7 +72,7 @@ def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str
 
         remove_fields = { 
             "id", "instrument_type", "scheme_name", "scheme_category", 
-            "scheme_type", "launch_date", "current_date", "total_active_days", "nav_record_count", 
+            "scheme_type", "start_date", "launch_date", "current_date", "total_active_days", "nav_record_count", 
             "isin_growth", "isin_div_reinvestment", "created_at", "updated_at",
         }
 
@@ -136,6 +136,8 @@ def get_scheme_basic_details(scheme_code: int):
                 SchemeMetaORM.plan_type,
                 SchemeMetaORM.current_nav,
                 SchemeMetaORM.current_date,
+                SchemeMetaORM.start_date,
+                SchemeMetaORM.launch_date,
             )
             .filter(SchemeMetaORM.scheme_code == scheme_code)
             .first()
@@ -155,7 +157,9 @@ def get_scheme_basic_details(scheme_code: int):
             "scheme_sub_category": row.scheme_sub_category,
             "fund_house": row.fund_house,
             "current_nav": row.current_nav,
-            "launch_date": row.current_date,
+            "current_date": row.current_date,
+            "start_date": row.start_date,
+            "launch_date": row.launch_date,
         }
 
 

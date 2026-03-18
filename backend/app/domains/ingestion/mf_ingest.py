@@ -101,7 +101,7 @@ class MFAPIFetcher:
         name_lower = (scheme_name or "").lower()
         scheme_sub_name = self._extract_scheme_sub_name(scheme_name)
 
-        # Compute launch_date/current_date and age fields from NAV history
+        # Compute start_date/launch_date/current_date and age fields from NAV history
         nav_data = raw.get("data", [])
 
         if not nav_data:
@@ -112,7 +112,8 @@ class MFAPIFetcher:
             key=lambda x: datetime.strptime(x["date"], "%d-%m-%Y")
         )
 
-        launch_date = datetime.strptime(sorted_nav[0]["date"], "%d-%m-%Y")
+        start_date = datetime.strptime(sorted_nav[0]["date"], "%d-%m-%Y")
+        launch_date = start_date
         current_date = datetime.strptime(sorted_nav[-1]["date"], "%d-%m-%Y")
         current_nav = float(sorted_nav[-1]["nav"])
         prev_nav = float(sorted_nav[-2]["nav"]) if len(sorted_nav) >= 2 else None
@@ -198,6 +199,7 @@ class MFAPIFetcher:
             scheme_sub_category=scheme_sub_category,
             scheme_name=scheme_name,
             scheme_sub_name=scheme_sub_name,
+            start_date=start_date,
             launch_date=launch_date,
             current_date=current_date,
             current_nav=current_nav,
