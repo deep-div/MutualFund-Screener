@@ -477,6 +477,7 @@ const FundAnalytics = () => {
     else if (period === "one_year") start.setFullYear(start.getFullYear() - 1);
     else if (period === "two_year") start.setFullYear(start.getFullYear() - 2);
     else if (period === "three_year") start.setFullYear(start.getFullYear() - 3);
+    else if (period === "four_year") start.setFullYear(start.getFullYear() - 4);
     else if (period === "five_year") start.setFullYear(start.getFullYear() - 5);
     else if (period === "seven_year") start.setFullYear(start.getFullYear() - 7);
     else if (period === "ten_year") start.setFullYear(start.getFullYear() - 10);
