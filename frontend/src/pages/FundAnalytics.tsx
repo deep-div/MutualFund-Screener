@@ -1,30 +1,75 @@
-import { useMemo } from "react";
-import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+﻿import { useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, TrendingUp, TrendingDown, Activity, BarChart3, Shield, Zap } from "lucide-react";
+import { motion } from "framer-motion";
 import {
-  BarChart,
-  Bar,
   LineChart,
   Line,
-  ResponsiveContainer,
   XAxis,
   YAxis,
-  Tooltip,
   CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Cell,
 } from "recharts";
+import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import TickerTape from "@/components/TickerTape";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { getSchemeAnalytics } from "@/services/mutualFundService";
 
-const formatPercent = (value?: number | null) =>
-  typeof value === "number" ? `${value.toFixed(2)}%` : "—";
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const PERIOD_LABELS: Record<string, string> = {
+  one_day: "1D",
+  one_week: "1W",
+  one_month: "1M",
+  three_month: "3M",
+  six_month: "6M",
+  one_year: "1Y",
+  two_year: "2Y",
+  three_year: "3Y",
+  four_year: "4Y",
+  five_year: "5Y",
+  seven_year: "7Y",
+  ten_year: "10Y",
+  max: "Max",
+};
 
-const formatNumber = (value?: number | null) =>
-  typeof value === "number" ? value.toLocaleString("en-IN") : "—";
+const MetricCard = ({
+  label,
+  value,
+  suffix = "%",
+  color,
+}: {
+  label: string;
+  value: number | null | undefined;
+  suffix?: string;
+  color?: string;
+}) => (
+  <div className="flex flex-col gap-1 px-4 py-3 rounded-lg bg-surface border border-border">
+    <span className="text-[11px] text-muted-foreground uppercase tracking-wider">{label}</span>
+    <span
+      className={`text-[15px] font-semibold font-mono-data ${
+        color || (value !== null && value !== undefined && value >= 0 ? "text-positive" : "text-negative")
+      }`}
+    >
+      {typeof value === "number" ? `${value.toFixed(2)}${suffix}` : "-"}
+    </span>
+  </div>
+);
+
+const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
+  <div className="flex items-center gap-2 mb-4 mt-8 first:mt-0">
+    <Icon className="w-4 h-4 text-primary" />
+    <h2 className="text-[14px] font-semibold text-foreground tracking-tight">{title}</h2>
+  </div>
+);
 
 const FundAnalytics = () => {
   const { schemeCode } = useParams();
+  const navigate = useNavigate();
   const code = schemeCode ? Number(schemeCode) : NaN;
 
   const { data, isLoading, isError } = useQuery({
@@ -33,46 +78,35 @@ const FundAnalytics = () => {
     enabled: Number.isFinite(code),
   });
 
+  const detail = data;
+  const meta = detail?.meta;
+  const metrics = detail?.metrics;
+
+  const absReturns = metrics?.returns?.absolute_returns_percent || {};
+  const cagrReturns = metrics?.returns?.cagr_percent || {};
+  const yoyReturns = metrics?.returns?.year_on_year_percent || {};
+  const heatmap = metrics?.returns?.monthly_return_heatmap || {};
+  const sipReturns = metrics?.returns?.sip_returns || {};
+  const consistency = metrics?.consistency?.consistency;
+  const riskMetrics = metrics?.risk_metrics;
+  const riskAdj = metrics?.risk_adjusted_returns;
+  const drawdown = metrics?.drawdown;
+
   const yoyData = useMemo(() => {
-    const entries = data?.metrics?.returns?.year_on_year_percent || {};
-    return Object.entries(entries)
-      .map(([year, value]) => ({ year, value }))
+    return Object.entries(yoyReturns)
+      .map(([year, ret]) => ({ year, return: ret as number }))
       .sort((a, b) => Number(a.year) - Number(b.year));
-  }, [data]);
+  }, [yoyReturns]);
 
-  const rolling1Y = data?.metrics?.returns?.rolling_cagr_percent?.["1_year"]?.points ?? [];
+  const rollingKeys = Object.keys(metrics?.returns?.rolling_cagr_percent || {});
+  const defaultRolling = rollingKeys[0] || "1_year";
 
-  const absoluteReturns = useMemo(() => {
-    const source = data?.metrics?.returns?.absolute_returns_percent || {};
-    const keys = [
-      ["one_day", "1D"],
-      ["one_week", "1W"],
-      ["one_month", "1M"],
-      ["three_month", "3M"],
-      ["six_month", "6M"],
-      ["one_year", "1Y"],
-      ["two_year", "2Y"],
-      ["three_year", "3Y"],
-      ["four_year", "4Y"],
-    ] as const;
-    return keys
-      .filter(([key]) => typeof source[key] === "number")
-      .map(([key, label]) => ({ label, value: source[key] as number }));
-  }, [data]);
-
-  const sipRows = useMemo(() => {
-    const sip = data?.metrics?.returns?.sip_returns || {};
-    const picks = [
-      ["one_year", "1 Year"],
-      ["two_year", "2 Year"],
-      ["three_year", "3 Year"],
-      ["four_year", "4 Year"],
-      ["five_year", "5 Year"],
-    ] as const;
-    return picks
-      .map(([key, label]) => ({ label, value: sip[key] }))
-      .filter((row) => row.value);
-  }, [data]);
+  const getHeatmapColor = (val: number) => {
+    if (val >= 10) return "bg-positive/30 text-positive";
+    if (val >= 0) return "bg-positive/10 text-positive";
+    if (val >= -5) return "bg-negative/10 text-negative";
+    return "bg-negative/25 text-negative";
+  };
 
   if (!Number.isFinite(code)) {
     return (
@@ -85,154 +119,378 @@ const FundAnalytics = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
       <TickerTape />
       <Navbar />
-      <main className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-        {isLoading ? (
-          <div className="text-sm text-muted-foreground">Loading analytics...</div>
-        ) : isError || !data ? (
-          <div className="text-sm text-destructive">Failed to load analytics.</div>
-        ) : (
-          <>
-            <Card className="border border-border/60">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xl">{data.meta.scheme_sub_name}</CardTitle>
-                <div className="text-sm text-muted-foreground">
-                  {data.meta.fund_house} • {data.meta.scheme_sub_category} • {data.meta.plan_type} {data.meta.option_type}
-                </div>
-              </CardHeader>
-              <CardContent className="pt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <div className="text-xs text-muted-foreground">Current NAV</div>
-                  <div className="text-lg font-semibold">₹{formatNumber(data.meta.current_nav)}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">1D Change</div>
-                  <div className={`text-lg font-semibold ${data.meta.nav_change_1d && data.meta.nav_change_1d < 0 ? "text-rose-500" : "text-emerald-600"}`}>
-                    {formatPercent(data.meta.nav_change_1d)}
+      <div className="flex-1 overflow-auto scrollbar-thin">
+        <div className="max-w-6xl mx-auto px-6 py-6">
+          {isLoading ? (
+            <div className="text-sm text-muted-foreground">Loading analytics...</div>
+          ) : isError || !detail ? (
+            <div className="text-sm text-destructive">Failed to load analytics.</div>
+          ) : (
+            <>
+              {/* Header */}
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground mb-3 transition-colors"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> Back to Screener
+                </button>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h1 className="text-[20px] font-bold text-foreground tracking-tight">{meta?.scheme_sub_name}</h1>
+                    <div className="flex items-center gap-3 mt-1.5">
+                      <span className="text-[12px] px-2 py-0.5 rounded bg-primary/10 text-primary font-medium">
+                        {meta?.scheme_sub_category}
+                      </span>
+                      <span className="text-[12px] text-muted-foreground">{meta?.fund_house}</span>
+                      <span className="text-[12px] text-muted-foreground">
+                        {meta?.plan_type} · {meta?.option_type}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[22px] font-bold font-mono-data text-foreground">
+                      INR {typeof meta?.current_nav === "number" ? meta.current_nav.toFixed(4) : "-"}
+                    </div>
+                    <div
+                      className={`text-[13px] font-mono-data ${
+                        typeof meta?.nav_change_1d === "number" && meta.nav_change_1d >= 0 ? "text-positive" : "text-negative"
+                      }`}
+                    >
+                      {typeof meta?.nav_change_1d === "number" && typeof meta?.current_nav === "number" ? (
+                        <>
+                          {meta.nav_change_1d >= 0 ? "▲" : "▼"} {Math.abs(meta.nav_change_1d).toFixed(4)} (
+                          {((meta.nav_change_1d / meta.current_nav) * 100).toFixed(2)}%)
+                        </>
+                      ) : (
+                        "-"
+                      )}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
+                      NAV as of {meta?.current_date} · {meta?.time_since_inception_years}Y since inception
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Scheme Class</div>
-                  <div className="text-lg font-semibold">{data.meta.scheme_class}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Inception (Years)</div>
-                  <div className="text-lg font-semibold">{formatNumber(data.meta.time_since_inception_years)}</div>
-                </div>
-              </CardContent>
-            </Card>
+              </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Year-on-Year Returns</CardTitle>
-                </CardHeader>
-                <CardContent className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={yoyData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="year" tick={{ fontSize: 12 }} />
-                      <YAxis tick={{ fontSize: 12 }} />
-                      <Tooltip formatter={(value: number) => `${value.toFixed(2)}%`} />
-                      <Bar dataKey="value" fill="#2563eb" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+              {/* Absolute Returns */}
+              <SectionHeader icon={TrendingUp} title="Absolute Returns" />
+              <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+                {Object.entries(absReturns)
+                  .filter(([, v]) => v !== null)
+                  .map(([k, v]) => (
+                    <MetricCard key={k} label={PERIOD_LABELS[k] || k} value={v as number} />
+                  ))}
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Rolling CAGR (1Y)</CardTitle>
-                </CardHeader>
-                <CardContent className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={rolling1Y}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="date" tick={{ fontSize: 10 }} hide />
-                      <YAxis tick={{ fontSize: 12 }} />
-                      <Tooltip formatter={(value: number) => `${value.toFixed(2)}%`} />
-                      <Line type="monotone" dataKey="cagr_percent" stroke="#16a34a" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
+              {/* CAGR */}
+              <SectionHeader icon={BarChart3} title="CAGR Returns" />
+              <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+                {Object.entries(cagrReturns)
+                  .filter(([, v]) => v !== null)
+                  .map(([k, v]) => (
+                    <MetricCard key={k} label={PERIOD_LABELS[k] || k} value={v as number} />
+                  ))}
+              </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Absolute Returns</CardTitle>
-              </CardHeader>
-              <CardContent className="h-64">
+              {/* Year on Year Returns Bar Chart */}
+              <SectionHeader icon={BarChart3} title="Year-on-Year Returns" />
+              <div className="h-56 bg-surface border border-border rounded-lg p-4">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={absoluteReturns}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip formatter={(value: number) => `${value.toFixed(2)}%`} />
-                    <Bar dataKey="value" fill="#0f172a" radius={[6, 6, 0, 0]} />
+                  <BarChart data={yoyData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="year" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
+                    <Tooltip
+                      contentStyle={{
+                        background: "hsl(var(--popover))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                      formatter={(value: number) => [`${value.toFixed(2)}%`, "Return"]}
+                    />
+                    <Bar dataKey="return" radius={[4, 4, 0, 0]}>
+                      {yoyData.map((entry, i) => (
+                        <Cell key={i} fill={entry.return >= 0 ? "hsl(var(--positive))" : "hsl(var(--negative))"} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-              </CardContent>
-            </Card>
+              </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">SIP Returns Snapshot</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {sipRows.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">No SIP data available.</div>
-                  ) : (
-                    sipRows.map((row) => (
-                      <div key={row.label} className="flex items-center justify-between text-sm border-b border-border/60 pb-2 last:border-b-0">
-                        <span className="text-muted-foreground">{row.label}</span>
-                        <span className="font-medium">
-                          {formatPercent(row.value?.xirr_percent)} XIRR • ₹{formatNumber(row.value?.current_value)}
-                        </span>
+              {/* Monthly Return Heatmap */}
+              <SectionHeader icon={Activity} title="Monthly Return Heatmap" />
+              <div className="overflow-x-auto bg-surface border border-border rounded-lg">
+                <table className="w-full text-[11px]">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="px-3 py-2 text-left text-muted-foreground font-medium">Year</th>
+                      {MONTHS.map((m) => (
+                        <th key={m} className="px-2 py-2 text-center text-muted-foreground font-medium">
+                          {m}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(heatmap).map(([year, months]) => (
+                      <tr key={year} className="border-b border-border last:border-0">
+                        <td className="px-3 py-2 font-medium text-foreground">{year}</td>
+                        {Array.from({ length: 12 }, (_, i) => {
+                          const key = String(i + 1).padStart(2, "0");
+                          const val = (months as Record<string, number>)[key];
+                          return (
+                            <td key={i} className="px-1 py-1.5 text-center">
+                              {val !== undefined ? (
+                                <span
+                                  className={`inline-block w-full px-1 py-0.5 rounded text-[10px] font-mono-data font-medium ${getHeatmapColor(
+                                    val
+                                  )}`}
+                                >
+                                  {val.toFixed(1)}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground/30">-</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* SIP Returns */}
+              <SectionHeader icon={TrendingUp} title="SIP Returns (INR 1,000/month)" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {Object.entries(sipReturns)
+                  .filter(([, v]) => v !== null)
+                  .map(([period, dataPoint]) => {
+                    const d = dataPoint as {
+                      current_value: number;
+                      total_invested: number;
+                      xirr_percent: number;
+                      absolute_return_percent: number;
+                    } | null;
+                    if (!d) return null;
+                    return (
+                      <div key={period} className="bg-surface border border-border rounded-lg p-4">
+                        <div className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">
+                          {PERIOD_LABELS[period] || period}
+                        </div>
+                        <div className="text-[16px] font-bold font-mono-data text-foreground">
+                          INR {d.current_value.toLocaleString("en-IN")}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground mt-1">
+                          Invested: INR {d.total_invested.toLocaleString("en-IN")}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <span className="text-[12px] font-mono-data text-positive">
+                            {d.xirr_percent.toFixed(1)}% XIRR
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">·</span>
+                          <span className="text-[12px] font-mono-data text-positive">
+                            {d.absolute_return_percent.toFixed(1)}% abs
+                          </span>
+                        </div>
                       </div>
-                    ))
-                  )}
-                </CardContent>
-              </Card>
+                    );
+                  })}
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Risk Overview</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="text-muted-foreground">Volatility (1Y)</div>
-                    <div className="font-semibold">
-                      {formatPercent(data.metrics.risk_metrics?.volatility_annualized_percent?.one_year)}
+              {/* Rolling CAGR */}
+              <SectionHeader icon={Activity} title="Rolling CAGR" />
+              <Tabs defaultValue={defaultRolling}>
+                <TabsList className="mb-3">
+                  {rollingKeys.map((k) => (
+                    <TabsTrigger key={k} value={k} className="text-[12px]">
+                      {k.replace("_", " ")}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                {rollingKeys.map((k) => {
+                  const rolling = metrics?.returns?.rolling_cagr_percent?.[k];
+                  if (!rolling) return null;
+                  return (
+                    <TabsContent key={k} value={k}>
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
+                        <MetricCard label="Avg" value={rolling.summary.average} />
+                        <MetricCard label="Median" value={rolling.summary.median} />
+                        <MetricCard label="Max" value={rolling.summary.maximum} />
+                        <MetricCard label="Min" value={rolling.summary.minimum} />
+                        <MetricCard label="Positive %" value={rolling.summary.positive_percent} />
+                        <MetricCard label="Obs" value={rolling.summary.observations} suffix="" color="text-foreground" />
+                      </div>
+                      <div className="h-56 bg-surface border border-border rounded-lg p-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={rolling.points}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis
+                              dataKey="date"
+                              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                              tickFormatter={(d: string) => d.slice(0, 7)}
+                            />
+                            <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
+                            <Tooltip
+                              contentStyle={{
+                                background: "hsl(var(--popover))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: 8,
+                                fontSize: 12,
+                              }}
+                              formatter={(value: number) => [`${value.toFixed(2)}%`, "CAGR"]}
+                            />
+                            <Line type="monotone" dataKey="cagr_percent" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </TabsContent>
+                  );
+                })}
+              </Tabs>
+
+              {/* Drawdown */}
+              <SectionHeader icon={TrendingDown} title="Drawdown Analysis" />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                <div className="bg-surface border border-border rounded-lg p-4">
+                  <div className="text-[11px] text-muted-foreground uppercase mb-1">Current Drawdown</div>
+                  <div className="text-[18px] font-bold font-mono-data text-negative">
+                    {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
+                      ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
+                      : "-"}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground mt-1">
+                    {typeof drawdown?.current_drawdown?.drawdown_duration_days === "number"
+                      ? `${drawdown.current_drawdown.drawdown_duration_days} days`
+                      : "-"}
+                  </div>
+                </div>
+                {Object.entries(drawdown?.mdd_duration_details || {})
+                  .filter(([, v]) => v !== null && (v as { max_drawdown_percent: number | null }).max_drawdown_percent !== null)
+                  .map(([period, d]) => (
+                    <div key={period} className="bg-surface border border-border rounded-lg p-4">
+                      <div className="text-[11px] text-muted-foreground uppercase mb-1">
+                        MDD {PERIOD_LABELS[period] || period}
+                      </div>
+                      <div className="text-[16px] font-bold font-mono-data text-negative">
+                        {(d as { max_drawdown_percent: number }).max_drawdown_percent.toFixed(2)}%
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">
+                        DD: {(d as { drawdown_duration_days: number }).drawdown_duration_days}d · Rec:{" "}
+                        {(d as { recovery_duration_days: number | null }).recovery_duration_days ?? "-"}d
+                      </div>
+                    </div>
+                  ))}
+              </div>
+
+              {/* Drawdown Frequency */}
+              <div className="bg-surface border border-border rounded-lg p-4 mb-4">
+                <div className="text-[12px] font-medium text-foreground mb-3">Drawdown Frequency</div>
+                <div className="flex gap-4 flex-wrap">
+                  {Object.entries(drawdown?.drawdown_frequency || {}).map(([level, dataPoint]) => (
+                    <div key={level} className="text-center">
+                      <div className="text-[18px] font-bold font-mono-data text-negative">
+                        {(dataPoint as { count: number }).count}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {level.replace("beyond_", "> ").replace("_percent", "%")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Consistency */}
+              <SectionHeader icon={Zap} title="Consistency" />
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+                <MetricCard label="Positive Days" value={consistency?.positive_days_percent} />
+                <MetricCard label="Positive Months" value={consistency?.positive_months_percent} />
+                <MetricCard label="Positive Years" value={consistency?.positive_years_percent} />
+                <MetricCard
+                  label="Max +ve Streak"
+                  value={consistency?.max_consecutive_positive_months}
+                  suffix=" mo"
+                  color="text-positive"
+                />
+                <MetricCard
+                  label="Max -ve Streak"
+                  value={consistency?.max_consecutive_negative_months}
+                  suffix=" mo"
+                  color="text-negative"
+                />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-3">
+                <MetricCard label="Best Day" value={consistency?.best_day?.return} />
+                <MetricCard label="Worst Day" value={consistency?.worst_day?.return} />
+                <MetricCard label="Best Month" value={consistency?.best_month?.return} />
+                <MetricCard label="Worst Month" value={consistency?.worst_month?.return} />
+                <MetricCard label="Best Year" value={consistency?.best_year?.return} />
+                <MetricCard label="Worst Year" value={consistency?.worst_year?.return} />
+              </div>
+
+              {/* Risk Metrics */}
+              <SectionHeader icon={Shield} title="Risk Metrics" />
+              <div className="space-y-3">
+                {[
+                  { label: "Volatility (Ann.)", data: riskMetrics?.volatility_annualized_percent },
+                  { label: "Downside Deviation", data: riskMetrics?.downside_deviation_percent },
+                  { label: "Skewness", data: riskMetrics?.skewness },
+                  { label: "Kurtosis", data: riskMetrics?.kurtosis },
+                ].map(({ label, data }) => (
+                  <div key={label} className="bg-surface border border-border rounded-lg p-3">
+                    <div className="text-[11px] text-muted-foreground uppercase mb-2">{label}</div>
+                    <div className="flex gap-4 flex-wrap">
+                      {Object.entries(data || {})
+                        .filter(([, v]) => v !== null)
+                        .map(([period, val]) => (
+                          <div key={period} className="text-center min-w-[50px]">
+                            <div className="text-[14px] font-semibold font-mono-data text-foreground">
+                              {(val as number).toFixed(2)}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">{PERIOD_LABELS[period] || period}</div>
+                          </div>
+                        ))}
                     </div>
                   </div>
-                  <div>
-                    <div className="text-muted-foreground">Downside Dev (1Y)</div>
-                    <div className="font-semibold">
-                      {formatPercent(data.metrics.risk_metrics?.downside_deviation_percent?.one_year)}
+                ))}
+              </div>
+
+              {/* Risk Adjusted Returns */}
+              <SectionHeader icon={Shield} title="Risk-Adjusted Returns" />
+              <div className="space-y-3 mb-12">
+                {[
+                  { label: "Sharpe Ratio", data: riskAdj?.sharpe_ratio },
+                  { label: "Sortino Ratio", data: riskAdj?.sortino_ratio },
+                  { label: "Calmar Ratio", data: riskAdj?.calmar_ratio },
+                  { label: "Ulcer Index", data: riskAdj?.ulcer_index },
+                  { label: "Pain Index", data: riskAdj?.pain_index },
+                ].map(({ label, data }) => (
+                  <div key={label} className="bg-surface border border-border rounded-lg p-3">
+                    <div className="text-[11px] text-muted-foreground uppercase mb-2">{label}</div>
+                    <div className="flex gap-4 flex-wrap">
+                      {Object.entries(data || {})
+                        .filter(([, v]) => v !== null)
+                        .map(([period, val]) => (
+                          <div key={period} className="text-center min-w-[50px]">
+                            <div className="text-[14px] font-semibold font-mono-data text-foreground">
+                              {(val as number).toFixed(2)}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">{PERIOD_LABELS[period] || period}</div>
+                          </div>
+                        ))}
                     </div>
                   </div>
-                  <div>
-                    <div className="text-muted-foreground">Sharpe (1Y)</div>
-                    <div className="font-semibold">
-                      {formatNumber(data.metrics.risk_adjusted_returns?.sharpe_ratio?.one_year)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Sortino (1Y)</div>
-                    <div className="font-semibold">
-                      {formatNumber(data.metrics.risk_adjusted_returns?.sortino_ratio?.one_year)}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </>
-        )}
-      </main>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
