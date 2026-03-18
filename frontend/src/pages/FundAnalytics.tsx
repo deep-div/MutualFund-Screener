@@ -13,6 +13,7 @@ import {
   BarChart,
   Bar,
   Cell,
+  Area,
 } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
@@ -65,6 +66,50 @@ const toYmd = (value?: string | Date | null) => {
 
 type MfApiNavPoint = { date: string; nav: string };
 type MfApiResponse = { meta?: Record<string, string>; data?: MfApiNavPoint[] };
+
+const formatMonthYear = (value: string) => {
+  const [y, m] = value.split("-").map(Number);
+  if (!y || !m) return value;
+  const date = new Date(y, m - 1, 1);
+  return date.toLocaleString("en-US", { month: "short", year: "2-digit" });
+};
+
+const formatLongDate = (value: string) => {
+  const [y, m, d] = value.split("-").map(Number);
+  if (!y || !m || !d) return value;
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+};
+
+const NavTooltip = ({
+  active,
+  payload,
+  label,
+  baseNav,
+  baseDate,
+}: {
+  active?: boolean;
+  payload?: Array<{ value?: number }>;
+  label?: string;
+  baseNav: number | null;
+  baseDate: string | null;
+}) => {
+  if (!active || !payload?.length || typeof payload[0]?.value !== "number") return null;
+  const nav = payload[0].value;
+  const delta = baseNav !== null ? nav - baseNav : null;
+  const deltaPct = baseNav ? (delta! / baseNav) * 100 : null;
+  return (
+    <div className="rounded-md border border-border bg-popover px-3 py-2 text-[12px] shadow-sm">
+      <div className="font-semibold text-foreground">
+        {delta !== null ? `${delta >= 0 ? "▲" : "▼"} ${Math.abs(delta).toFixed(2)}` : nav.toFixed(2)}
+        {deltaPct !== null ? ` (${deltaPct >= 0 ? "+" : ""}${deltaPct.toFixed(2)}%)` : ""}
+      </div>
+      <div className="text-muted-foreground">
+        {baseDate ? `${formatLongDate(baseDate)} - ` : ""}{label ? formatLongDate(label) : ""}
+      </div>
+    </div>
+  );
+};
 
 const MetricCard = ({
   label,
@@ -160,7 +205,7 @@ const FundAnalytics = () => {
 
   const navSeries = useMemo(() => {
     const raw = navQuery.data?.data ?? [];
-    return raw
+    const points = raw
       .map((point) => {
         const date = toYmd(point.date);
         const nav = Number(point.nav);
@@ -168,12 +213,24 @@ const FundAnalytics = () => {
       })
       .filter((point): point is { date: string; nav: number } => !!point)
       .sort((a, b) => a.date.localeCompare(b.date));
+    if (points.length === 0) return points;
+    const base = points[0].nav;
+    return points.map((point) => ({
+      ...point,
+      navUp: point.nav >= base ? point.nav : null,
+      navDown: point.nav < base ? point.nav : null,
+    }));
   }, [navQuery.data]);
 
   const selectedCagr = metrics?.returns?.cagr_percent?.[returnPeriod] ?? null;
   const selectedAbs = metrics?.returns?.absolute_returns_percent?.[returnPeriod] ?? null;
   const selectedReturn = returnType === "cagr" ? selectedCagr : selectedAbs;
   const periodLabel = PERIOD_LABELS[returnPeriod] || returnPeriod;
+
+  const periodOptions =
+    returnType === "cagr"
+      ? (["one_year", "two_year", "three_year", "five_year", "max"] as const)
+      : (["one_month", "three_month", "six_month", "one_year", "two_year", "three_year", "five_year", "max"] as const);
 
   const getPeriodStart = (end: string, period: typeof returnPeriod, fallback?: string | null) => {
     if (period === "max") {
@@ -202,6 +259,28 @@ const FundAnalytics = () => {
     const startDate = getPeriodStart(endDate, returnPeriod, launchDate);
     return navSeries.filter((point) => point.date >= startDate && point.date <= endDate);
   }, [navSeries, endDate, returnPeriod, launchDate]);
+
+  const baseNav = filteredNavSeries.length > 0 ? filteredNavSeries[0].nav : null;
+  const baseDate = filteredNavSeries.length > 0 ? filteredNavSeries[0].date : null;
+
+  const navTicks = useMemo(() => {
+    if (filteredNavSeries.length === 0) return [];
+    const months: string[] = [];
+    const seen = new Set<string>();
+    for (const point of filteredNavSeries) {
+      const monthKey = point.date.slice(0, 7);
+      if (!seen.has(monthKey)) {
+        seen.add(monthKey);
+        months.push(point.date);
+      }
+    }
+    if (months.length <= 12) {
+      return months;
+    }
+    const useQuarterly = months.length > 18;
+    const step = useQuarterly ? 3 : 2;
+    return months.filter((_, index) => index % step === 0);
+  }, [filteredNavSeries]);
 
   if (!Number.isFinite(code)) {
     return (
@@ -279,7 +358,10 @@ const FundAnalytics = () => {
                     {(["absolute", "cagr"] as const).map((type) => (
                       <button
                         key={type}
-                        onClick={() => setReturnType(type)}
+                        onClick={() => {
+                          setReturnType(type);
+                          setReturnPeriod(type === "cagr" ? "one_year" : "one_month");
+                        }}
                         className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
                           returnType === type
                             ? "bg-primary text-primary-foreground border-primary"
@@ -292,20 +374,7 @@ const FundAnalytics = () => {
                     ))}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    {(
-                      [
-                        "one_day",
-                        "one_week",
-                        "one_month",
-                        "three_month",
-                        "six_month",
-                        "one_year",
-                        "two_year",
-                        "three_year",
-                        "five_year",
-                        "max",
-                      ] as const
-                    ).map((key) => (
+                    {periodOptions.map((key) => (
                       <button
                         key={key}
                         onClick={() => setReturnPeriod(key)}
@@ -335,17 +404,27 @@ const FundAnalytics = () => {
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={filteredNavSeries}>
+                        <defs>
+                          <linearGradient id="navUpFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="hsl(var(--positive))" stopOpacity={0.25} />
+                            <stop offset="100%" stopColor="hsl(var(--positive))" stopOpacity={0.02} />
+                          </linearGradient>
+                          <linearGradient id="navDownFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="hsl(var(--negative))" stopOpacity={0.25} />
+                            <stop offset="100%" stopColor="hsl(var(--negative))" stopOpacity={0.02} />
+                          </linearGradient>
+                        </defs>
                         <XAxis
                           dataKey="date"
                           tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                           tickFormatter={(d: string) => d.slice(0, 7)}
+                          ticks={navTicks}
+                          interval={0}
+                          minTickGap={16}
                         />
-                        <YAxis
-                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                          tickCount={5}
-                          domain={["dataMin", "dataMax"]}
-                        />
+                        <YAxis hide domain={["dataMin", "dataMax"]} />
                         <Tooltip
+                          cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1 }}
                           contentStyle={{
                             background: "hsl(var(--popover))",
                             border: "1px solid hsl(var(--border))",
@@ -354,14 +433,9 @@ const FundAnalytics = () => {
                           }}
                           formatter={(value: number) => [`${value.toFixed(2)}`, "NAV"]}
                         />
-                        <Line
-                          type="monotone"
-                          dataKey="nav"
-                          stroke="hsl(var(--primary))"
-                          strokeWidth={2}
-                          dot={{ r: 2 }}
-                          activeDot={{ r: 4 }}
-                        />
+                        <Area type="monotone" dataKey="navUp" stroke="none" fill="url(#navUpFill)" />
+                        <Area type="monotone" dataKey="navDown" stroke="none" fill="url(#navDownFill)" />
+                        <Line type="monotone" dataKey="nav" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   )}
