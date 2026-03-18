@@ -29,13 +29,16 @@ export interface SchemeAnalyticsResponse {
     option_type: string;
     current_nav: number | null;
     nav_change_1d: number | null;
+    launch_date?: string;
     current_date: string;
     time_since_inception_years: number | null;
   };
   metrics: {
     returns: {
       absolute_returns_percent: Record<string, number | null>;
+      cagr_percent?: Record<string, number | null>;
       year_on_year_percent: Record<string, number>;
+      monthly_return_heatmap?: Record<string, Record<string, number>>;
       rolling_cagr_percent?: Record<
         string,
         {

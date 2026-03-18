@@ -1,4 +1,4 @@
-﻿import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, TrendingUp, TrendingDown, Activity, BarChart3, Shield, Zap } from "lucide-react";
 import { motion } from "framer-motion";
@@ -37,6 +37,35 @@ const PERIOD_LABELS: Record<string, string> = {
   max: "Max",
 };
 
+const toYmd = (value?: string | Date | null) => {
+  if (!value) return null;
+  if (value instanceof Date) {
+    const y = value.getFullYear();
+    const m = String(value.getMonth() + 1).padStart(2, "0");
+    const d = String(value.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  const trimmed = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed;
+  }
+  if (/^\d{2}-\d{2}-\d{4}$/.test(trimmed)) {
+    const [dd, mm, yyyy] = trimmed.split("-");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  const parsed = new Date(trimmed);
+  if (!Number.isNaN(parsed.getTime())) {
+    const y = parsed.getFullYear();
+    const m = String(parsed.getMonth() + 1).padStart(2, "0");
+    const d = String(parsed.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  return null;
+};
+
+type MfApiNavPoint = { date: string; nav: string };
+type MfApiResponse = { meta?: Record<string, string>; data?: MfApiNavPoint[] };
+
 const MetricCard = ({
   label,
   value,
@@ -71,6 +100,10 @@ const FundAnalytics = () => {
   const { schemeCode } = useParams();
   const navigate = useNavigate();
   const code = schemeCode ? Number(schemeCode) : NaN;
+  const [returnType, setReturnType] = useState<"absolute" | "cagr">("absolute");
+  const [returnPeriod, setReturnPeriod] = useState<
+    "one_day" | "one_week" | "one_month" | "three_month" | "six_month" | "one_year" | "two_year" | "three_year" | "five_year" | "max"
+  >("one_year");
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["scheme-analytics", code],
@@ -107,6 +140,68 @@ const FundAnalytics = () => {
     if (val >= -5) return "bg-negative/10 text-negative";
     return "bg-negative/25 text-negative";
   };
+
+  const launchDate = toYmd(meta?.launch_date);
+  const endDate = toYmd(meta?.current_date);
+
+  const navQuery = useQuery({
+    queryKey: ["mfapi-nav", code, launchDate, endDate],
+    queryFn: async () => {
+      const response = await fetch(
+        `https://api.mfapi.in/mf/${code}?startDate=${launchDate}&endDate=${endDate}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to load NAV history");
+      }
+      return (await response.json()) as MfApiResponse;
+    },
+    enabled: Number.isFinite(code) && !!launchDate && !!endDate,
+  });
+
+  const navSeries = useMemo(() => {
+    const raw = navQuery.data?.data ?? [];
+    return raw
+      .map((point) => {
+        const date = toYmd(point.date);
+        const nav = Number(point.nav);
+        return date && Number.isFinite(nav) ? { date, nav } : null;
+      })
+      .filter((point): point is { date: string; nav: number } => !!point)
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [navQuery.data]);
+
+  const selectedCagr = metrics?.returns?.cagr_percent?.[returnPeriod] ?? null;
+  const selectedAbs = metrics?.returns?.absolute_returns_percent?.[returnPeriod] ?? null;
+  const selectedReturn = returnType === "cagr" ? selectedCagr : selectedAbs;
+  const periodLabel = PERIOD_LABELS[returnPeriod] || returnPeriod;
+
+  const getPeriodStart = (end: string, period: typeof returnPeriod, fallback?: string | null) => {
+    if (period === "max") {
+      return fallback ?? end;
+    }
+    const endDateObj = new Date(end);
+    if (Number.isNaN(endDateObj.getTime())) return end;
+    const start = new Date(endDateObj);
+    if (period === "one_day") start.setDate(start.getDate() - 1);
+    else if (period === "one_week") start.setDate(start.getDate() - 7);
+    else if (period === "one_month") start.setMonth(start.getMonth() - 1);
+    else if (period === "three_month") start.setMonth(start.getMonth() - 3);
+    else if (period === "six_month") start.setMonth(start.getMonth() - 6);
+    else if (period === "one_year") start.setFullYear(start.getFullYear() - 1);
+    else if (period === "two_year") start.setFullYear(start.getFullYear() - 2);
+    else if (period === "three_year") start.setFullYear(start.getFullYear() - 3);
+    else if (period === "five_year") start.setFullYear(start.getFullYear() - 5);
+    const y = start.getFullYear();
+    const m = String(start.getMonth() + 1).padStart(2, "0");
+    const d = String(start.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
+  const filteredNavSeries = useMemo(() => {
+    if (!endDate) return navSeries;
+    const startDate = getPeriodStart(endDate, returnPeriod, launchDate);
+    return navSeries.filter((point) => point.date >= startDate && point.date <= endDate);
+  }, [navSeries, endDate, returnPeriod, launchDate]);
 
   if (!Number.isFinite(code)) {
     return (
@@ -175,6 +270,103 @@ const FundAnalytics = () => {
                   </div>
                 </div>
               </motion.div>
+
+              {/* NAV Performance */}
+              <SectionHeader icon={BarChart3} title="NAV Performance" />
+              <div className="bg-surface border border-border rounded-lg p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    {(["absolute", "cagr"] as const).map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setReturnType(type)}
+                        className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                          returnType === type
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background text-muted-foreground border-border hover:text-foreground"
+                        }`}
+                        type="button"
+                      >
+                        {type === "absolute" ? "Absolute" : "CAGR"}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {(
+                      [
+                        "one_day",
+                        "one_week",
+                        "one_month",
+                        "three_month",
+                        "six_month",
+                        "one_year",
+                        "two_year",
+                        "three_year",
+                        "five_year",
+                        "max",
+                      ] as const
+                    ).map((key) => (
+                      <button
+                        key={key}
+                        onClick={() => setReturnPeriod(key)}
+                        className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                          returnPeriod === key
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background text-muted-foreground border-border hover:text-foreground"
+                        }`}
+                        type="button"
+                      >
+                        {PERIOD_LABELS[key] || key}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                  <MetricCard
+                    label={`${returnType === "cagr" ? "CAGR" : "Absolute"} ${periodLabel}`}
+                    value={typeof selectedReturn === "number" ? selectedReturn : null}
+                  />
+                </div>
+                <div className="h-60">
+                  {navQuery.isLoading ? (
+                    <div className="text-sm text-muted-foreground">Loading NAV history...</div>
+                  ) : navQuery.isError || filteredNavSeries.length === 0 ? (
+                    <div className="text-sm text-muted-foreground">No NAV history available.</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={filteredNavSeries}>
+                        <XAxis
+                          dataKey="date"
+                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                          tickFormatter={(d: string) => d.slice(0, 7)}
+                        />
+                        <YAxis
+                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                          tickCount={5}
+                          domain={["dataMin", "dataMax"]}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            background: "hsl(var(--popover))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: 8,
+                            fontSize: 12,
+                          }}
+                          formatter={(value: number) => [`${value.toFixed(2)}`, "NAV"]}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="nav"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          dot={{ r: 2 }}
+                          activeDot={{ r: 4 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
 
               {/* Absolute Returns */}
               <SectionHeader icon={TrendingUp} title="Absolute Returns" />
