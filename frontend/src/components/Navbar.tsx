@@ -90,7 +90,7 @@ const Navbar = () => {
     <>
       {(searchOpen || searchFocused) && (
         <div
-          className="fixed inset-0 bg-slate-900/15 z-45"
+          className="fixed inset-0 bg-black/45 z-45"
           onClick={() => {
             setSearchOpen(false);
             setSearchFocused(false);
@@ -160,7 +160,7 @@ const Navbar = () => {
                 ) : searchResults.length === 0 ? (
                   <div className="px-4 py-3 text-[13px] text-slate-500">No results found.</div>
                 ) : (
-                  <div className="max-h-96 overflow-y-auto">
+                  <div className="max-h-[450px] overflow-y-auto">
                     {searchResults.map((item) => {
                       const hasChange = typeof item.nav_change_1d === "number";
                       const changeValue = item.nav_change_1d ?? 0;
