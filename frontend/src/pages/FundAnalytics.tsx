@@ -1176,7 +1176,7 @@ const FundAnalytics = () => {
                   )}
                 </div>
 
-                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm flex flex-col h-full min-h-[360px]">
                   <div className="mb-3">
                     <div className="text-[13px] font-semibold text-foreground">Yearly Performance</div>
                     <div className="text-[11px] text-muted-foreground mt-1">Returns by calendar year.</div>
@@ -1184,24 +1184,23 @@ const FundAnalytics = () => {
                   {yoyData.length === 0 ? (
                     <div className="text-sm text-muted-foreground">No yearly performance data available.</div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-[0.6fr_1.4fr] gap-4 items-center">
-                      <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Latest Year</div>
-                        <div className="mt-1 text-[22px] font-semibold text-foreground">
-                          {yoyData[yoyData.length - 1]?.year ?? "-"}
+                    <div className="flex-1">
+                      <div className="relative h-full min-h-[120px] w-full">
+                        <div className="absolute top-0 right-0 rounded-lg border border-border/60 bg-card px-3 py-2 shadow-sm">
+                          <div className="text-[9px] uppercase tracking-wider text-muted-foreground">Latest Year</div>
+                          <div className="text-[14px] font-semibold text-foreground">
+                            {yoyData[yoyData.length - 1]?.year ?? "-"}
+                          </div>
+                          <div
+                            className={`text-[13px] font-semibold ${
+                              (yoyData[yoyData.length - 1]?.return ?? 0) >= 0 ? "text-positive" : "text-negative"
+                            }`}
+                          >
+                            {typeof yoyData[yoyData.length - 1]?.return === "number"
+                              ? `${yoyData[yoyData.length - 1].return >= 0 ? "+" : ""}${yoyData[yoyData.length - 1].return.toFixed(2)}%`
+                              : "-"}
+                          </div>
                         </div>
-                        <div
-                          className={`text-[18px] font-semibold ${
-                            (yoyData[yoyData.length - 1]?.return ?? 0) >= 0 ? "text-positive" : "text-negative"
-                          }`}
-                        >
-                          {typeof yoyData[yoyData.length - 1]?.return === "number"
-                            ? `${yoyData[yoyData.length - 1].return >= 0 ? "+" : ""}${yoyData[yoyData.length - 1].return.toFixed(2)}%`
-                            : "-"}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground mt-1">Latest calendar year return</div>
-                      </div>
-                      <div className="h-24">
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart data={yoyData}>
                             <XAxis dataKey="year" hide />
