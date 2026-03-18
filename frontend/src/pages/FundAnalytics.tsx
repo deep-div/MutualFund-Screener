@@ -19,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import TickerTape from "@/components/TickerTape";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getSchemeAnalytics } from "@/services/mutualFundService";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -147,6 +148,55 @@ const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: 
   <div className="flex items-center gap-2 mb-4 mt-8 first:mt-0">
     <Icon className="w-4 h-4 text-primary" />
     <h2 className="text-[14px] font-semibold text-foreground tracking-tight">{title}</h2>
+  </div>
+);
+
+const FundAnalyticsSkeleton = () => (
+  <div className="space-y-6">
+    <div className="space-y-3">
+      <Skeleton className="h-6 w-[420px]" />
+      <div className="flex flex-wrap gap-2">
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-5 w-28" />
+        <Skeleton className="h-5 w-36" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        {Array.from({ length: 5 }).map((_, idx) => (
+          <div key={idx} className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm space-y-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-3 w-28" />
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch">
+      <div className="bg-surface border border-border/60 rounded-xl p-4 shadow-sm space-y-3">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-3 w-40" />
+        <div className="flex gap-2">
+          <Skeleton className="h-7 w-20" />
+          <Skeleton className="h-7 w-20" />
+          <Skeleton className="h-7 w-20" />
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <Skeleton key={idx} className="h-20 rounded-xl" />
+          ))}
+        </div>
+      </div>
+      <div className="bg-surface border border-border rounded-lg p-4 space-y-3">
+        <Skeleton className="h-4 w-40" />
+        <div className="flex gap-2">
+          <Skeleton className="h-7 w-20" />
+          <Skeleton className="h-7 w-20" />
+          <Skeleton className="h-7 w-20" />
+        </div>
+        <Skeleton className="h-60 rounded-xl" />
+      </div>
+    </div>
   </div>
 );
 
@@ -494,7 +544,7 @@ const FundAnalytics = () => {
       <div className="flex-1 overflow-auto scrollbar-thin page-dimmable">
         <div className="max-w-[1400px] w-full mx-auto px-6 py-6">
           {isLoading ? (
-            <div className="text-sm text-muted-foreground">Loading analytics...</div>
+            <FundAnalyticsSkeleton />
           ) : isError || !detail ? (
             <div className="text-sm text-destructive">Failed to load analytics.</div>
           ) : (
