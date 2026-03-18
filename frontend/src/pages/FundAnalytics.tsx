@@ -194,6 +194,11 @@ const FundAnalytics = () => {
       .map(([year, ret]) => ({ year, return: ret as number }))
       .sort((a, b) => Number(a.year) - Number(b.year));
   }, [yoyReturns]);
+  const yearlyChartWidth = useMemo(() => {
+    const minWidth = 520;
+    const perBar = 32;
+    return Math.max(minWidth, yoyData.length * perBar);
+  }, [yoyData.length]);
   const heatmapYears = useMemo(() => Object.keys(heatmap).sort((a, b) => Number(a) - Number(b)), [heatmap]);
   const latestHeatmapYear = heatmapYears[heatmapYears.length - 1] ?? null;
 
@@ -681,13 +686,14 @@ const FundAnalytics = () => {
                     <div className="text-[13px] font-semibold text-foreground">Yearly Performance</div>
                     <div className="text-[11px] text-muted-foreground mt-1">Returns by calendar year.</div>
                   </div>
-                  <div className="h-72">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={yoyData} margin={{ left: 4, right: 8, bottom: 4 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="year" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                        <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
-                        <Tooltip
+                  <div className="h-72 overflow-x-auto">
+                    <div style={{ width: yearlyChartWidth, minWidth: "100%", height: "100%" }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={yoyData} margin={{ left: 4, right: 8, bottom: 4 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} vertical={false} />
+                          <XAxis dataKey="year" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                          <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
+                          <Tooltip
                           contentStyle={{
                             background: "hsl(var(--popover))",
                             border: "1px solid hsl(var(--border))",
@@ -696,14 +702,15 @@ const FundAnalytics = () => {
                           }}
                           formatter={(value: number) => [`${value.toFixed(2)}%`, "Return"]}
                         />
-                        <Bar dataKey="return" radius={[4, 4, 0, 0]}>
-                          {yoyData.map((entry) => {
-                            const fill = entry.return >= 0 ? "hsl(var(--positive))" : "hsl(var(--negative))";
-                            return <Cell key={entry.year} fill={fill} opacity={0.9} />;
-                          })}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
+                          <Bar dataKey="return" radius={[4, 4, 0, 0]}>
+                            {yoyData.map((entry) => {
+                              const fill = entry.return >= 0 ? "hsl(var(--positive))" : "hsl(var(--negative))";
+                              return <Cell key={entry.year} fill={fill} opacity={0.9} />;
+                            })}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
               </div>
