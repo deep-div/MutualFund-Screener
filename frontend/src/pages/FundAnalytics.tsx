@@ -81,6 +81,15 @@ const formatLongDate = (value: string) => {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 };
 
+const formatRollingLabel = (key: string) => {
+  const normalized = key.replace(/\s+/g, "_").toLowerCase();
+  const match = normalized.match(/(\d+)_?year/);
+  if (match?.[1]) return `${match[1]}Y`;
+  const yMatch = normalized.match(/(\d+)y/);
+  if (yMatch?.[1]) return `${yMatch[1]}Y`;
+  return key.replace("_", " ");
+};
+
 const NavTooltip = ({
   active,
   payload,
@@ -162,12 +171,24 @@ const CAGR_RETURN_ORDER = ["one_year", "two_year", "three_year", "four_year", "f
 const FundAnalytics = () => {
   const { schemeCode } = useParams();
   const code = schemeCode ? Number(schemeCode) : NaN;
-  const [returnType, setReturnType] = useState<"absolute" | "cagr">("absolute");
-  const [heatmapReturnType, setHeatmapReturnType] = useState<"absolute" | "cagr">("absolute");
+  const [returnType, setReturnType] = useState<"absolute" | "cagr" | "rolling">("absolute");
+  const [heatmapReturnType, setHeatmapReturnType] = useState<"absolute" | "cagr" | "rolling">("absolute");
   const [returnPeriod, setReturnPeriod] = useState<
-    "one_day" | "one_week" | "one_month" | "three_month" | "six_month" | "one_year" | "two_year" | "three_year" | "five_year" | "max"
+    | "one_day"
+    | "one_week"
+    | "one_month"
+    | "three_month"
+    | "six_month"
+    | "one_year"
+    | "two_year"
+    | "three_year"
+    | "five_year"
+    | "seven_year"
+    | "ten_year"
+    | "max"
   >("one_year");
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const [rollingKey, setRollingKey] = useState<string>("");
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["scheme-analytics", code],
@@ -210,6 +231,14 @@ const FundAnalytics = () => {
 
   const rollingKeys = Object.keys(metrics?.returns?.rolling_cagr_percent || {});
   const defaultRolling = rollingKeys[0] || "1_year";
+  const activeRollingKey = rollingKey || defaultRolling;
+  const activeRolling = metrics?.returns?.rolling_cagr_percent?.[activeRollingKey];
+
+  useEffect(() => {
+    if (!rollingKey && defaultRolling) {
+      setRollingKey(defaultRolling);
+    }
+  }, [rollingKey, defaultRolling]);
 
   const getHeatmapColor = (val: number) => {
     if (val >= 10) return "bg-positive/30 text-positive";
@@ -284,9 +313,22 @@ const FundAnalytics = () => {
   const periodLabel = PERIOD_LABELS[returnPeriod] || returnPeriod;
 
   const periodOptions =
-    returnType === "cagr"
-      ? (["one_year", "two_year", "three_year", "five_year", "max"] as const)
-      : (["one_month", "three_month", "six_month", "one_year", "two_year", "three_year", "five_year", "max"] as const);
+    returnType === "rolling"
+      ? ([] as const)
+      : returnType === "cagr"
+        ? (["one_year", "two_year", "three_year", "five_year", "seven_year", "ten_year", "max"] as const)
+        : ([
+            "one_month",
+            "three_month",
+            "six_month",
+            "one_year",
+            "two_year",
+            "three_year",
+            "five_year",
+            "seven_year",
+            "ten_year",
+            "max",
+          ] as const);
 
   const getPeriodStart = (end: string, period: typeof returnPeriod, fallback?: string | null) => {
     if (period === "max") {
@@ -304,6 +346,8 @@ const FundAnalytics = () => {
     else if (period === "two_year") start.setFullYear(start.getFullYear() - 2);
     else if (period === "three_year") start.setFullYear(start.getFullYear() - 3);
     else if (period === "five_year") start.setFullYear(start.getFullYear() - 5);
+    else if (period === "seven_year") start.setFullYear(start.getFullYear() - 7);
+    else if (period === "ten_year") start.setFullYear(start.getFullYear() - 10);
     const y = start.getFullYear();
     const m = String(start.getMonth() + 1).padStart(2, "0");
     const d = String(start.getDate()).padStart(2, "0");
@@ -354,6 +398,18 @@ const FundAnalytics = () => {
     const indices = Array.from({ length: targetTicks }, (_, i) => Math.round(i * step));
     return indices.map((i) => filteredNavSeries[Math.min(i, filteredNavSeries.length - 1)].date);
   }, [filteredNavSeries, navTickMode]);
+
+  const rollingTicks = useMemo(() => {
+    const points = activeRolling?.points || [];
+    if (points.length === 0) return [];
+    const targetTicks = 6;
+    if (points.length <= targetTicks) {
+      return points.map((p) => p.date);
+    }
+    const step = (points.length - 1) / (targetTicks - 1);
+    const indices = Array.from({ length: targetTicks }, (_, i) => Math.round(i * step));
+    return indices.map((i) => points[Math.min(i, points.length - 1)].date);
+  }, [activeRolling?.points]);
 
   if (!Number.isFinite(code)) {
     return (
@@ -427,10 +483,14 @@ const FundAnalytics = () => {
                       <div className="text-[11px] text-muted-foreground">Return %</div>
                     </div>
                     <div className="text-[11px] text-muted-foreground mb-3">
-                      {heatmapReturnType === "cagr" ? "CAGR Returns" : "Absolute Returns"}
+                      {heatmapReturnType === "rolling"
+                        ? "Rolling CAGR Summary"
+                        : heatmapReturnType === "cagr"
+                          ? "CAGR Returns"
+                          : "Absolute Returns"}
                     </div>
                     <div className="flex items-center gap-2 mb-4">
-                      {(["absolute", "cagr"] as const).map((type) => (
+                      {(["absolute", "cagr", "rolling"] as const).map((type) => (
                         <button
                           key={type}
                           onClick={() => setHeatmapReturnType(type)}
@@ -441,11 +501,72 @@ const FundAnalytics = () => {
                           }`}
                           type="button"
                         >
-                          {type === "absolute" ? "Absolute" : "CAGR"}
+                          {type === "absolute" ? "Absolute" : type === "cagr" ? "CAGR" : "Rolling"}
                         </button>
                       ))}
                     </div>
-                    {heatmapReturnType === "cagr" ? (
+                    {heatmapReturnType === "rolling" ? (
+                      !activeRolling?.summary ? (
+                        <div className="text-sm text-muted-foreground">No rolling data available.</div>
+                      ) : (
+                        <div>
+                          {rollingKeys.length > 1 && (
+                            <div className="flex flex-wrap items-center gap-2 mb-3">
+                              {rollingKeys.map((key) => (
+                                <button
+                                  key={key}
+                                  type="button"
+                                  onClick={() => setRollingKey(key)}
+                                  className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                                    activeRollingKey === key
+                                      ? "bg-primary text-primary-foreground border-primary"
+                                      : "bg-background text-muted-foreground border-border hover:text-foreground"
+                                  }`}
+                                >
+                                  {formatRollingLabel(key)}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 gap-3">
+                            {[
+                              { label: "Avg", value: activeRolling.summary?.average },
+                              { label: "Median", value: activeRolling.summary?.median },
+                              { label: "Max", value: activeRolling.summary?.maximum },
+                              { label: "Min", value: activeRolling.summary?.minimum },
+                              { label: "Positive %", value: activeRolling.summary?.positive_percent },
+                            ].map((entry) => {
+                              const isNumber = typeof entry.value === "number";
+                              const intensity = isNumber
+                                ? Math.min(0.22, Math.max(0.08, Math.abs(entry.value as number) / 100))
+                                : 0.08;
+                              const bg = isNumber
+                                ? (entry.value as number) >= 0
+                                  ? `hsl(var(--positive) / ${intensity})`
+                                  : `hsl(var(--negative) / ${intensity})`
+                                : "hsl(var(--muted) / 0.08)";
+                              return (
+                                <div
+                                  key={entry.label}
+                                  className="group relative rounded-xl border border-border/40 shadow-sm hover:shadow-md transition-all bg-card"
+                                >
+                                  <div className="rounded-xl px-3 py-3 min-h-[74px] flex flex-col justify-between" style={{ backgroundColor: bg }}>
+                                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{entry.label}</div>
+                                    <div
+                                      className={`text-[16px] font-semibold ${
+                                        isNumber && (entry.value as number) >= 0 ? "text-positive" : "text-negative"
+                                      }`}
+                                    >
+                                      {isNumber ? `${(entry.value as number).toFixed(2)}%` : "-"}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )
+                    ) : heatmapReturnType === "cagr" ? (
                       cagrReturnSeries.length === 0 ? (
                         <div className="text-sm text-muted-foreground">No CAGR return data available.</div>
                       ) : (
@@ -529,12 +650,13 @@ const FundAnalytics = () => {
                     <div className="text-[13px] font-semibold text-foreground mb-3">NAV Performance</div>
                     <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                       <div className="flex items-center gap-2">
-                        {(["absolute", "cagr"] as const).map((type) => (
+                        {(["absolute", "cagr", "rolling"] as const).map((type) => (
                           <button
                             key={type}
                             onClick={() => {
                               setReturnType(type);
-                              setReturnPeriod(type === "cagr" ? "one_year" : "one_month");
+                              if (type === "cagr") setReturnPeriod("one_year");
+                              if (type === "absolute") setReturnPeriod("one_month");
                             }}
                             className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
                               returnType === type
@@ -543,35 +665,92 @@ const FundAnalytics = () => {
                             }`}
                             type="button"
                           >
-                            {type === "absolute" ? "Absolute" : "CAGR"}
+                            {type === "absolute" ? "Absolute" : type === "cagr" ? "CAGR" : "Rolling"}
                           </button>
                         ))}
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {periodOptions.map((key) => (
-                          <button
-                            key={key}
-                            onClick={() => setReturnPeriod(key)}
-                            className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
-                              returnPeriod === key
-                                ? "bg-primary text-primary-foreground border-primary"
-                                : "bg-background text-muted-foreground border-border hover:text-foreground"
-                            }`}
-                            type="button"
-                          >
-                            {PERIOD_LABELS[key] || key}
-                          </button>
-                        ))}
+                      {returnType !== "rolling" ? (
+                        <div className="flex flex-wrap items-center gap-2">
+                          {periodOptions.map((key) => (
+                            <button
+                              key={key}
+                              onClick={() => setReturnPeriod(key)}
+                              className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                                returnPeriod === key
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-background text-muted-foreground border-border hover:text-foreground"
+                              }`}
+                              type="button"
+                            >
+                              {PERIOD_LABELS[key] || key}
+                            </button>
+                          ))}
+                        </div>
+                      ) : rollingKeys.length > 0 ? (
+                        <div className="flex flex-wrap items-center gap-2">
+                          {rollingKeys.map((key) => (
+                            <button
+                              key={key}
+                              onClick={() => setRollingKey(key)}
+                              className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                                activeRollingKey === key
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-background text-muted-foreground border-border hover:text-foreground"
+                              }`}
+                              type="button"
+                            >
+                              {formatRollingLabel(key)}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                    {returnType !== "rolling" && (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                        <MetricCard
+                          label={`${returnType === "cagr" ? "CAGR" : "Absolute"} ${periodLabel}`}
+                          value={typeof selectedReturn === "number" ? selectedReturn : null}
+                        />
                       </div>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                      <MetricCard
-                        label={`${returnType === "cagr" ? "CAGR" : "Absolute"} ${periodLabel}`}
-                        value={typeof selectedReturn === "number" ? selectedReturn : null}
-                      />
-                    </div>
+                    )}
                     <div className="h-60">
-                      {navQuery.isLoading ? (
+                      {returnType === "rolling" ? (
+                        !activeRolling?.points?.length ? (
+                          <div className="text-sm text-muted-foreground">No rolling data available.</div>
+                        ) : (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={activeRolling.points}>
+                              <defs>
+                                <linearGradient id="rollingFill" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.25} />
+                                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
+                                </linearGradient>
+                              </defs>
+                              <XAxis
+                                dataKey="date"
+                                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                                tickFormatter={(d: string) => formatNavTick(d, navTickMode)}
+                                ticks={rollingTicks}
+                                interval={0}
+                                minTickGap={16}
+                                padding={{ left: 12, right: 12 }}
+                              />
+                              <YAxis hide domain={["dataMin", "dataMax"]} />
+                              <Tooltip
+                                contentStyle={{
+                                  background: "hsl(var(--popover))",
+                                  border: "1px solid hsl(var(--border))",
+                                  borderRadius: 8,
+                                  fontSize: 12,
+                                }}
+                                formatter={(value: number) => [`${value.toFixed(2)}%`, "CAGR"]}
+                              />
+                              <Area type="monotone" dataKey="cagr_percent" stroke="none" fill="url(#rollingFill)" />
+                              <Line type="monotone" dataKey="cagr_percent" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        )
+                      ) : navQuery.isLoading ? (
                         <div className="text-sm text-muted-foreground">Loading NAV history...</div>
                       ) : navQuery.isError || filteredNavSeries.length === 0 ? (
                         <div className="text-sm text-muted-foreground">No NAV history available.</div>
