@@ -435,7 +435,7 @@ const FundAnalytics = () => {
             <>
               {/* Header */}
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-6">
                   <div>
                     <h1 className="text-[20px] font-bold text-foreground tracking-tight">{meta?.scheme_sub_name}</h1>
                     <div className="flex items-center gap-3 mt-1.5">
@@ -448,27 +448,45 @@ const FundAnalytics = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-[22px] font-bold text-foreground">
-                      INR {typeof meta?.current_nav === "number" ? meta.current_nav.toFixed(4) : "-"}
+                  <div className="flex flex-col items-end gap-2 text-right">
+                    <div>
+                      <div className="text-[22px] font-bold text-foreground">
+                        INR {typeof meta?.current_nav === "number" ? meta.current_nav.toFixed(4) : "-"}
+                      </div>
+                      <div
+                        className={`text-[13px] ${
+                          typeof meta?.nav_change_1d === "number" && meta?.nav_change_1d >= 0 ? "text-positive" : "text-negative"
+                        }`}
+                      >
+                        {typeof meta?.nav_change_1d === "number" && typeof meta?.current_nav === "number" ? (
+                          <>
+                            {meta.nav_change_1d >= 0 ? "▲" : "▼"} {Math.abs(meta.nav_change_1d).toFixed(4)} (
+                            {((meta.nav_change_1d / meta.current_nav) * 100).toFixed(2)}%)
+                          </>
+                        ) : (
+                          "-"
+                        )}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        NAV as of {meta?.current_date} · {meta?.time_since_inception_years}Y since inception
+                      </div>
                     </div>
-                    <div
-                      className={`text-[13px] ${
-                        typeof meta?.nav_change_1d === "number" && meta.nav_change_1d >= 0 ? "text-positive" : "text-negative"
-                      }`}
-                    >
-                      {typeof meta?.nav_change_1d === "number" && typeof meta?.current_nav === "number" ? (
-                        <>
-                          {meta.nav_change_1d >= 0 ? "▲" : "▼"} {Math.abs(meta.nav_change_1d).toFixed(4)} (
-                          {((meta.nav_change_1d / meta.current_nav) * 100).toFixed(2)}%)
-                        </>
-                      ) : (
-                        "-"
-                      )}
-                    </div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5">
-                      NAV as of {meta?.current_date} · {meta?.time_since_inception_years}Y since inception
-                    </div>
+                    {drawdown?.current_drawdown && (
+                      <div className="text-[12px] text-muted-foreground">
+                        <span className="uppercase tracking-wider">Current Drawdown</span>{" "}
+                        <span className="text-negative font-semibold">
+                          {typeof drawdown.current_drawdown.max_drawdown_percent === "number"
+                            ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
+                            : "-"}
+                        </span>
+                        <span className="mx-1">·</span>
+                        <span>
+                          {typeof drawdown.current_drawdown.drawdown_duration_days === "number"
+                            ? `${drawdown.current_drawdown.drawdown_duration_days} days`
+                            : "-"}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
