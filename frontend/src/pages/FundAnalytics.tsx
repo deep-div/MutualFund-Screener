@@ -151,6 +151,46 @@ const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: 
   </div>
 );
 
+const YearlyDrawdownTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload?: Record<string, unknown> }>;
+  label?: string;
+}) => {
+  if (!active || !payload?.length) return null;
+  const row = payload[0]?.payload as {
+    mdd?: number | null;
+    drawdownDays?: number | null;
+    peakNav?: number | null;
+    peakDate?: string | null;
+    troughNav?: number | null;
+    troughDate?: string | null;
+    hasData?: boolean;
+  };
+  if (row?.hasData === false) return null;
+  const range =
+    row?.peakDate && row?.troughDate ? `${formatLongDate(row.peakDate)} - ${formatLongDate(row.troughDate)}` : "-";
+  return (
+    <div className="rounded-md border border-border bg-popover px-3 py-2 text-[12px] shadow-sm">
+      <div className="font-semibold text-foreground">Year {label}</div>
+      <div className="text-muted-foreground">Period: {range}</div>
+      <div className="text-muted-foreground">
+        Peak NAV: {typeof row?.peakNav === "number" ? row.peakNav.toFixed(2) : "-"} · Trough NAV:{" "}
+        {typeof row?.troughNav === "number" ? row.troughNav.toFixed(2) : "-"}
+      </div>
+      <div className="text-foreground mt-1">
+        Max DD: {typeof row?.mdd === "number" ? `${row.mdd.toFixed(2)}%` : "-"}
+      </div>
+      <div className="text-muted-foreground">
+        Drawdown Duration: {typeof row?.drawdownDays === "number" ? `${row.drawdownDays}d` : "-"}
+      </div>
+    </div>
+  );
+};
+
 const FundAnalyticsSkeleton = () => (
   <div className="space-y-6">
     <div className="space-y-3">
@@ -462,17 +502,43 @@ const FundAnalytics = () => {
       .sort((a, b) => a.threshold - b.threshold);
   }, [drawdown?.drawdown_frequency]);
   const yearlyMddSeries = useMemo(() => {
-    return Object.entries(drawdown?.yearly_mdd_last_10_years || {})
-      .map(([year, value]) => ({
-        year,
-        mdd: (value as { max_drawdown_percent: number | null }).max_drawdown_percent ?? null,
-        drawdownDays: (value as { drawdown_duration_days: number | null }).drawdown_duration_days ?? null,
-        recoveryDays: (value as { recovery_duration_days: number | null }).recovery_duration_days ?? null,
-        peakDate: (value as { peak_date?: string | null }).peak_date ?? null,
-        troughDate: (value as { trough_date?: string | null }).trough_date ?? null,
-        recoveryDate: (value as { recovery_date?: string | null }).recovery_date ?? null,
-      }))
-      .sort((a, b) => Number(a.year) - Number(b.year));
+  const raw = Object.entries(drawdown?.yearly_mdd_last_10_years || {}).map(([year, value]) => ({
+    year,
+    mdd: (value as { max_drawdown_percent: number | null }).max_drawdown_percent ?? null,
+    peakNav: (value as { peak_nav?: number | null }).peak_nav ?? null,
+    drawdownDays: (value as { drawdown_duration_days: number | null }).drawdown_duration_days ?? null,
+    recoveryDays: (value as { recovery_duration_days: number | null }).recovery_duration_days ?? null,
+    troughNav: (value as { trough_nav?: number | null }).trough_nav ?? null,
+    peakDate: (value as { peak_date?: string | null }).peak_date ?? null,
+    troughDate: (value as { trough_date?: string | null }).trough_date ?? null,
+    recoveryDate: (value as { recovery_date?: string | null }).recovery_date ?? null,
+    hasData: true,
+  }));
+    if (raw.length === 0) return raw;
+    const yearNums = raw.map((entry) => Number(entry.year)).filter((y) => Number.isFinite(y));
+    if (yearNums.length === 0) return raw;
+    const minYear = Math.min(...yearNums);
+    const maxYear = Math.max(...yearNums);
+    const byYear = new Map(raw.map((entry) => [Number(entry.year), entry]));
+    const filled = [];
+    for (let y = minYear; y <= maxYear; y += 1) {
+      const existing = byYear.get(y);
+      filled.push(
+        existing ?? {
+          year: String(y),
+          mdd: null,
+          peakNav: null,
+          drawdownDays: null,
+          recoveryDays: null,
+          troughNav: null,
+          peakDate: null,
+          troughDate: null,
+          recoveryDate: null,
+          hasData: false,
+        }
+      );
+    }
+    return filled;
   }, [drawdown?.yearly_mdd_last_10_years]);
 
   const monthlyScale = useMemo(() => {
@@ -1114,7 +1180,12 @@ const FundAnalytics = () => {
                     {yearlyMddSeries.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart data={yearlyMddSeries} margin={{ left: 6, right: 12, bottom: 4 }}>
-                          <XAxis dataKey="year" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                          <XAxis
+                            dataKey="year"
+                            ticks={yearlyMddSeries.map((entry) => entry.year)}
+                            interval={0}
+                            tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                          />
                           <YAxis
                             yAxisId="left"
                             tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
@@ -1129,24 +1200,11 @@ const FundAnalytics = () => {
                             domain={[0, (dataMax: number) => Math.max(30, dataMax)]}
                           />
                           <Tooltip
-                            contentStyle={{
-                              background: "hsl(var(--popover))",
-                              border: "1px solid hsl(var(--border))",
-                              borderRadius: 8,
-                              fontSize: 12,
-                            }}
-                            labelFormatter={(label) => `Year ${label}`}
-                            formatter={(value: number | null, name: string) => {
-                              if (value === null || typeof value !== "number") return ["-", name];
-                              if (name === "mdd") return [`${value.toFixed(2)}%`, "Max DD"];
-                              if (name === "drawdownDays") return [`${value}d`, "Drawdown Duration"];
-                              if (name === "recoveryDays") return [`${value}d`, "Recovery Duration"];
-                              return [value, name];
-                            }}
+                            content={<YearlyDrawdownTooltip />}
                           />
                           <Bar yAxisId="left" dataKey="mdd" radius={[6, 6, 0, 0]}>
                             {yearlyMddSeries.map((entry) => (
-                              <Cell key={entry.year} fill="hsl(var(--negative))" opacity={0.85} />
+                              <Cell key={entry.year} fill="hsl(var(--negative))" opacity={entry.hasData ? 0.85 : 0} />
                             ))}
                           </Bar>
                           <Line
@@ -1156,16 +1214,6 @@ const FundAnalytics = () => {
                             stroke="hsl(var(--primary))"
                             strokeWidth={2}
                             dot={{ r: 2 }}
-                          />
-                          <Line
-                            yAxisId="right"
-                            type="monotone"
-                            dataKey="recoveryDays"
-                            stroke="hsl(var(--positive))"
-                            strokeWidth={2}
-                            strokeDasharray="4 3"
-                            dot={false}
-                            connectNulls={false}
                           />
                         </ComposedChart>
                       </ResponsiveContainer>
@@ -1181,10 +1229,6 @@ const FundAnalytics = () => {
                     <div className="flex items-center gap-2">
                       <span className="h-[2px] w-5 rounded-full bg-primary" />
                       Drawdown Duration
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="h-[2px] w-5 rounded-full bg-positive" />
-                      Recovery Duration
                     </div>
                   </div>
                 </div>
