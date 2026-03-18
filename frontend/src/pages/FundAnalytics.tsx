@@ -159,6 +159,8 @@ const FundAnalytics = () => {
   const [returnPeriod, setReturnPeriod] = useState<
     "one_day" | "one_week" | "one_month" | "three_month" | "six_month" | "one_year" | "two_year" | "three_year" | "five_year" | "max"
   >("one_year");
+  const [hoveredYear, setHoveredYear] = useState<string | null>(null);
+  const [lockedYear, setLockedYear] = useState<string | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["scheme-analytics", code],
@@ -185,6 +187,7 @@ const FundAnalytics = () => {
       .map(([year, ret]) => ({ year, return: ret as number }))
       .sort((a, b) => Number(a.year) - Number(b.year));
   }, [yoyReturns]);
+  const activeYear = lockedYear ?? hoveredYear;
 
   const rollingKeys = Object.keys(metrics?.returns?.rolling_cagr_percent || {});
   const defaultRolling = rollingKeys[0] || "1_year";
@@ -528,73 +531,119 @@ const FundAnalytics = () => {
                 )}
               </div>
 
-              {/* Year on Year Returns Bar Chart */}
-              <SectionHeader icon={BarChart3} title="Year-on-Year Returns" />
-              <div className="h-56 bg-surface border border-border rounded-lg p-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={yoyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="year" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
-                    <Tooltip
-                      contentStyle={{
-                        background: "hsl(var(--popover))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: 8,
-                        fontSize: 12,
-                      }}
-                      formatter={(value: number) => [`${value.toFixed(2)}%`, "Return"]}
-                    />
-                    <Bar dataKey="return" radius={[4, 4, 0, 0]}>
-                      {yoyData.map((entry, i) => (
-                        <Cell key={i} fill={entry.return >= 0 ? "hsl(var(--positive))" : "hsl(var(--negative))"} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Monthly Return Heatmap */}
-              <SectionHeader icon={Activity} title="Monthly Return Heatmap" />
-              <div className="overflow-x-auto bg-surface border border-border rounded-lg">
-                <table className="w-full text-[11px]">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="px-3 py-2 text-left text-muted-foreground font-medium">Year</th>
-                      {MONTHS.map((m) => (
-                        <th key={m} className="px-2 py-2 text-center text-muted-foreground font-medium">
-                          {m}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(heatmap).map(([year, months]) => (
-                      <tr key={year} className="border-b border-border last:border-0">
-                        <td className="px-3 py-2 font-medium text-foreground">{year}</td>
-                        {Array.from({ length: 12 }, (_, i) => {
-                          const key = String(i + 1).padStart(2, "0");
-                          const val = (months as Record<string, number>)[key];
+              {/* Performance Explorer */}
+              <SectionHeader icon={Activity} title="Performance Explorer" />
+              <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                <div className="mb-4">
+                  <div className="text-[13px] font-semibold text-foreground">Yearly Performance</div>
+                  <div className="text-[11px] text-muted-foreground mt-1">
+                    Hover a bar to preview. Click to lock selection.
+                  </div>
+                </div>
+                <div className="h-56 mb-5">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={yoyData}
+                      onMouseLeave={() => setHoveredYear(null)}
+                      margin={{ left: 4, right: 8, bottom: 4 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="year" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                      <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
+                      <Tooltip
+                        contentStyle={{
+                          background: "hsl(var(--popover))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: 8,
+                          fontSize: 12,
+                        }}
+                        formatter={(value: number) => [`${value.toFixed(2)}%`, "Return"]}
+                      />
+                      <Bar
+                        dataKey="return"
+                        radius={[4, 4, 0, 0]}
+                        onMouseEnter={(data) => setHoveredYear((data as { year?: string })?.year ?? null)}
+                        onClick={(data) => {
+                          const year = (data as { year?: string })?.year ?? null;
+                          setLockedYear((prev) => (prev === year ? null : year));
+                        }}
+                      >
+                        {yoyData.map((entry) => {
+                          const isActive = activeYear === entry.year;
+                          const fill = entry.return >= 0 ? "hsl(var(--positive))" : "hsl(var(--negative))";
                           return (
-                            <td key={i} className="px-1 py-1.5 text-center">
-                              {val !== undefined ? (
-                                <span
-                                  className={`inline-block w-full px-1 py-0.5 rounded text-[10px] font-mono-data font-medium ${getHeatmapColor(
-                                    val
-                                  )}`}
-                                >
-                                  {val.toFixed(1)}
-                                </span>
-                              ) : (
-                                <span className="text-muted-foreground/30">-</span>
-                              )}
-                            </td>
+                            <Cell
+                              key={entry.year}
+                              fill={fill}
+                              opacity={activeYear ? (isActive ? 1 : 0.35) : 0.9}
+                            />
                           );
                         })}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-[13px] font-semibold text-foreground">Monthly Breakdown</div>
+                  {activeYear ? (
+                    <div className="text-[11px] text-muted-foreground">Selected: {activeYear}</div>
+                  ) : (
+                    <div className="text-[11px] text-muted-foreground">All years</div>
+                  )}
+                </div>
+                <div className="overflow-x-auto rounded-xl border border-border/40 bg-card/60">
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="px-3 py-2 text-left text-muted-foreground font-medium">Year</th>
+                        {MONTHS.map((m) => (
+                          <th key={m} className="px-2 py-2 text-center text-muted-foreground font-medium">
+                            {m}
+                          </th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {Object.entries(heatmap).map(([year, months]) => {
+                        const isActive = activeYear === year;
+                        return (
+                          <tr
+                            key={year}
+                            className={`border-b border-border last:border-0 transition-colors ${
+                              isActive ? "bg-primary/10" : "hover:bg-muted/40"
+                            }`}
+                            onMouseEnter={() => setHoveredYear(year)}
+                            onMouseLeave={() => setHoveredYear(null)}
+                            onClick={() => setLockedYear((prev) => (prev === year ? null : year))}
+                          >
+                            <td className="px-3 py-2 font-medium text-foreground">{year}</td>
+                            {Array.from({ length: 12 }, (_, i) => {
+                              const key = String(i + 1).padStart(2, "0");
+                              const val = (months as Record<string, number>)[key];
+                              return (
+                                <td key={i} className="px-1 py-1.5 text-center">
+                                  {val !== undefined ? (
+                                    <span
+                                      title={`${year} ${MONTHS[i]}: ${val.toFixed(2)}%`}
+                                      className={`inline-block w-full px-1 py-0.5 rounded text-[10px] font-mono-data font-medium ${getHeatmapColor(
+                                        val
+                                      )}`}
+                                    >
+                                      {val.toFixed(1)}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground/30">-</span>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* SIP Returns */}
