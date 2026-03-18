@@ -34,6 +34,7 @@ const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement | null>(null);
+  const isSearchActive = searchOpen || searchFocused;
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -86,9 +87,18 @@ const Navbar = () => {
     };
   }, [searchQuery]);
 
+  useEffect(() => {
+    if (isSearchActive) {
+      document.body.classList.add("search-dim");
+    } else {
+      document.body.classList.remove("search-dim");
+    }
+    return () => document.body.classList.remove("search-dim");
+  }, [isSearchActive]);
+
   return (
     <>
-      {(searchOpen || searchFocused) && (
+      {isSearchActive && (
         <div
           className="fixed inset-0 bg-black/45 z-45"
           onClick={() => {

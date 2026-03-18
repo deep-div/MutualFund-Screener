@@ -474,7 +474,7 @@ const FundAnalytics = () => {
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       <TickerTape />
       <Navbar />
-      <div className="flex-1 overflow-auto scrollbar-thin">
+      <div className="flex-1 overflow-auto scrollbar-thin page-dimmable">
         <div className="max-w-[1400px] w-full mx-auto px-6 py-6">
           {isLoading ? (
             <div className="text-sm text-muted-foreground">Loading analytics...</div>

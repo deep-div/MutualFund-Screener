@@ -89,6 +89,14 @@
     font-family: 'JetBrains Mono', monospace;
     font-variant-numeric: tabular-nums;
   }
+  .page-dimmable {
+    transition: filter 150ms ease, opacity 150ms ease;
+  }
+}
+
+.search-dim .page-dimmable {
+  filter: brightness(0.68) saturate(0.5);
+  opacity: 0.82;
 }
 
 @keyframes ticker-scroll {
