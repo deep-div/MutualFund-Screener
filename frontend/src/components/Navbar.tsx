@@ -172,6 +172,11 @@ const Navbar = () => {
                         <button
                           key={item.scheme_code}
                           type="button"
+                          onClick={() => {
+                            navigate(`/funds/${item.scheme_code}`);
+                            setSearchOpen(false);
+                            setSearchFocused(false);
+                          }}
                           className="w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors font-normal"
                         >
                           <div className="flex items-center justify-between gap-4">
