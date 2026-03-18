@@ -7,7 +7,6 @@ import {
   Line,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   BarChart,
@@ -937,7 +936,6 @@ const FundAnalytics = () => {
                     <div style={{ width: yearlyChartWidth, minWidth: "100%", height: "100%" }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={yoyData} margin={{ left: 4, right: 8, bottom: 4 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} vertical={false} />
                           <XAxis dataKey="year" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                           <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
                           <Tooltip
@@ -979,7 +977,6 @@ const FundAnalytics = () => {
                     {yearlyMddSeries.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart data={yearlyMddSeries} margin={{ left: 6, right: 12, bottom: 4 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                           <XAxis dataKey="year" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                           <YAxis
                             yAxisId="left"
@@ -1126,7 +1123,6 @@ const FundAnalytics = () => {
                         {drawdownMddSeries.length > 0 ? (
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={drawdownMddSeries} margin={{ left: 6, right: 10, bottom: 2 }}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                               <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                               <YAxis
                                 tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
@@ -1161,7 +1157,6 @@ const FundAnalytics = () => {
                         {drawdownFrequencySeries.length > 0 ? (
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={drawdownFrequencySeries} layout="vertical" margin={{ left: 12, right: 10 }}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                               <XAxis
                                 type="number"
                                 tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
@@ -1329,101 +1324,171 @@ const FundAnalytics = () => {
                 </div>
               </div>
 
-              {/* Risk Metrics */}
-              <SectionHeader icon={Shield} title="Risk Metrics" />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                {[
-                  {
-                    label: "Volatility (Ann.)",
-                    data: riskMetrics?.volatility_annualized_percent,
-                    format: (v: number) => `${v.toFixed(2)}%`,
-                  },
-                  {
-                    label: "Downside Deviation",
-                    data: riskMetrics?.downside_deviation_percent,
-                    format: (v: number) => `${v.toFixed(2)}%`,
-                  },
-                  { label: "Skewness", data: riskMetrics?.skewness, format: (v: number) => v.toFixed(2) },
-                  { label: "Kurtosis", data: riskMetrics?.kurtosis, format: (v: number) => v.toFixed(2) },
-                ].map(({ label, data, format }) => {
-                  const series = buildMetricSeries(data as Record<string, number | null>);
-                  const maxAbs = series.length ? Math.max(...series.map((item) => Math.abs(item.value))) : 1;
-                  return (
-                    <div key={label} className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="text-[13px] font-semibold text-foreground">{label}</div>
-                        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Period</div>
-                      </div>
-                      {series.length > 0 ? (
-                        <div className="space-y-2">
-                          {series.map((item) => (
-                            <div key={item.key} className="flex items-center gap-2">
-                              <div className="w-8 text-[10px] text-muted-foreground">{item.label}</div>
-                              <div className="flex-1 h-2 rounded-full bg-border/60 overflow-hidden">
-                                <div
-                                  className={`h-full ${item.value >= 0 ? "bg-primary" : "bg-negative"}`}
-                                  style={{ width: `${Math.min(100, (Math.abs(item.value) / maxAbs) * 100)}%` }}
-                                />
-                              </div>
-                              <div
-                                className={`text-[11px] font-medium ${item.value >= 0 ? "text-foreground" : "text-negative"}`}
-                              >
-                                {format(item.value)}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-sm text-muted-foreground">No data available.</div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Risk Adjusted Returns */}
-              <SectionHeader icon={Shield} title="Risk-Adjusted Returns" />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-12">
-                {[
-                  { label: "Sharpe Ratio", data: riskAdj?.sharpe_ratio },
-                  { label: "Sortino Ratio", data: riskAdj?.sortino_ratio },
-                  { label: "Calmar Ratio", data: riskAdj?.calmar_ratio },
-                  { label: "Ulcer Index", data: riskAdj?.ulcer_index },
-                  { label: "Pain Index", data: riskAdj?.pain_index },
-                ].map(({ label, data }) => {
-                  const series = buildMetricSeries(data as Record<string, number | null>);
-                  const maxAbs = series.length ? Math.max(...series.map((item) => Math.abs(item.value))) : 1;
-                  return (
-                    <div key={label} className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="text-[13px] font-semibold text-foreground">{label}</div>
-                        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Period</div>
+                <div>
+                  <SectionHeader icon={Shield} title="Risk Metrics" />
+                  <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div>
+                        <div className="text-[13px] font-semibold text-foreground">Risk Metrics by Period</div>
+                        <div className="text-[11px] text-muted-foreground mt-1">
+                          Single chart to compare all metrics across periods.
+                        </div>
                       </div>
-                      {series.length > 0 ? (
-                        <div className="space-y-2">
-                          {series.map((item) => (
-                            <div key={item.key} className="flex items-center gap-2">
-                              <div className="w-8 text-[10px] text-muted-foreground">{item.label}</div>
-                              <div className="flex-1 h-2 rounded-full bg-border/60 overflow-hidden">
-                                <div
-                                  className={`h-full ${item.value >= 0 ? "bg-primary" : "bg-negative"}`}
-                                  style={{ width: `${Math.min(100, (Math.abs(item.value) / maxAbs) * 100)}%` }}
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Lines</div>
+                    </div>
+                    {(() => {
+                      const metricRows = [
+                        {
+                          key: "volatility",
+                          label: "Volatility (Ann.)",
+                          data: riskMetrics?.volatility_annualized_percent,
+                          color: "hsl(var(--primary))",
+                        },
+                        {
+                          key: "downside",
+                          label: "Downside Deviation",
+                          data: riskMetrics?.downside_deviation_percent,
+                          color: "hsl(var(--accent))",
+                        },
+                        {
+                          key: "skewness",
+                          label: "Skewness",
+                          data: riskMetrics?.skewness,
+                          color: "hsl(var(--positive))",
+                        },
+                        {
+                          key: "kurtosis",
+                          label: "Kurtosis",
+                          data: riskMetrics?.kurtosis,
+                          color: "hsl(var(--negative))",
+                        },
+                      ];
+                      const periods = METRIC_PERIOD_ORDER.map((key) => ({
+                        key,
+                        label: PERIOD_LABELS[key] || key,
+                      }));
+                      const seriesByMetric = metricRows.map((row) => ({
+                        ...row,
+                        series: buildMetricSeries(row.data as Record<string, number | null>),
+                      }));
+                      const hasAny = seriesByMetric.some((row) => row.series.length > 0);
+                      const chartData = periods.map((period) => {
+                        const entry: Record<string, string | number> = { period: period.label };
+                        seriesByMetric.forEach((row) => {
+                          const match = row.series.find((item) => item.key === period.key);
+                          entry[row.key] = typeof match?.value === "number" ? match.value : null;
+                        });
+                        return entry;
+                      });
+                      return hasAny ? (
+                        <div className="h-72">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={chartData} margin={{ left: 6, right: 12, bottom: 4 }}>
+                              <XAxis dataKey="period" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                              <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                              <Tooltip
+                                contentStyle={{
+                                  background: "hsl(var(--popover))",
+                                  border: "1px solid hsl(var(--border))",
+                                  borderRadius: 8,
+                                  fontSize: 12,
+                                }}
+                              />
+                              {seriesByMetric.map((row) => (
+                                <Line
+                                  key={row.key}
+                                  type="monotone"
+                                  dataKey={row.key}
+                                  name={row.label}
+                                  stroke={row.color}
+                                  strokeWidth={2}
+                                  dot={{ r: 3, strokeWidth: 1, fill: "hsl(var(--background))" }}
+                                  connectNulls
                                 />
-                              </div>
-                              <div
-                                className={`text-[11px] font-medium ${item.value >= 0 ? "text-foreground" : "text-negative"}`}
-                              >
-                                {item.value.toFixed(2)}
-                              </div>
-                            </div>
-                          ))}
+                              ))}
+                            </LineChart>
+                          </ResponsiveContainer>
                         </div>
                       ) : (
                         <div className="text-sm text-muted-foreground">No data available.</div>
-                      )}
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                <div>
+                  <SectionHeader icon={Shield} title="Risk-Adjusted Returns" />
+                  <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div>
+                        <div className="text-[13px] font-semibold text-foreground">Risk-Adjusted by Period</div>
+                        <div className="text-[11px] text-muted-foreground mt-1">
+                          All ratios on one chart to compare stability over time.
+                        </div>
+                      </div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Lines</div>
                     </div>
-                  );
-                })}
+                    {(() => {
+                      const metricRows = [
+                        { key: "sharpe", label: "Sharpe Ratio", data: riskAdj?.sharpe_ratio, color: "hsl(var(--primary))" },
+                        { key: "sortino", label: "Sortino Ratio", data: riskAdj?.sortino_ratio, color: "hsl(var(--accent))" },
+                        { key: "calmar", label: "Calmar Ratio", data: riskAdj?.calmar_ratio, color: "hsl(var(--positive))" },
+                        { key: "ulcer", label: "Ulcer Index", data: riskAdj?.ulcer_index, color: "hsl(var(--negative))" },
+                        { key: "pain", label: "Pain Index", data: riskAdj?.pain_index, color: "hsl(var(--muted-foreground))" },
+                      ];
+                      const periods = METRIC_PERIOD_ORDER.map((key) => ({
+                        key,
+                        label: PERIOD_LABELS[key] || key,
+                      }));
+                      const seriesByMetric = metricRows.map((row) => ({
+                        ...row,
+                        series: buildMetricSeries(row.data as Record<string, number | null>),
+                      }));
+                      const hasAny = seriesByMetric.some((row) => row.series.length > 0);
+                      const chartData = periods.map((period) => {
+                        const entry: Record<string, string | number> = { period: period.label };
+                        seriesByMetric.forEach((row) => {
+                          const match = row.series.find((item) => item.key === period.key);
+                          entry[row.key] = typeof match?.value === "number" ? match.value : null;
+                        });
+                        return entry;
+                      });
+                      return hasAny ? (
+                        <div className="h-72">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={chartData} margin={{ left: 6, right: 12, bottom: 4 }}>
+                              <XAxis dataKey="period" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                              <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                              <Tooltip
+                                contentStyle={{
+                                  background: "hsl(var(--popover))",
+                                  border: "1px solid hsl(var(--border))",
+                                  borderRadius: 8,
+                                  fontSize: 12,
+                                }}
+                              />
+                              {seriesByMetric.map((row) => (
+                                <Line
+                                  key={row.key}
+                                  type="monotone"
+                                  dataKey={row.key}
+                                  name={row.label}
+                                  stroke={row.color}
+                                  strokeWidth={2}
+                                  dot={{ r: 3, strokeWidth: 1, fill: "hsl(var(--background))" }}
+                                  connectNulls
+                                />
+                              ))}
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">No data available.</div>
+                      );
+                    })()}
+                  </div>
+                </div>
               </div>
 </>
           )}
