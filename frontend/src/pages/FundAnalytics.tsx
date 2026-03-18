@@ -543,43 +543,21 @@ const FundAnalytics = () => {
       .sort((a, b) => a.threshold - b.threshold);
   }, [drawdown?.drawdown_frequency]);
   const yearlyMddSeries = useMemo(() => {
-  const raw = Object.entries(drawdown?.yearly_mdd_last_10_years || {}).map(([year, value]) => ({
-    year,
-    mdd: (value as { max_drawdown_percent: number | null }).max_drawdown_percent ?? null,
-    peakNav: (value as { peak_nav?: number | null }).peak_nav ?? null,
-    drawdownDays: (value as { drawdown_duration_days: number | null }).drawdown_duration_days ?? null,
-    recoveryDays: (value as { recovery_duration_days: number | null }).recovery_duration_days ?? null,
-    troughNav: (value as { trough_nav?: number | null }).trough_nav ?? null,
-    peakDate: (value as { peak_date?: string | null }).peak_date ?? null,
-    troughDate: (value as { trough_date?: string | null }).trough_date ?? null,
-    recoveryDate: (value as { recovery_date?: string | null }).recovery_date ?? null,
-    hasData: true,
-  }));
-    if (raw.length === 0) return raw;
-    const yearNums = raw.map((entry) => Number(entry.year)).filter((y) => Number.isFinite(y));
-    if (yearNums.length === 0) return raw;
-    const minYear = Math.min(...yearNums);
-    const maxYear = Math.max(...yearNums);
-    const byYear = new Map(raw.map((entry) => [Number(entry.year), entry]));
-    const filled = [];
-    for (let y = minYear; y <= maxYear; y += 1) {
-      const existing = byYear.get(y);
-      filled.push(
-        existing ?? {
-          year: String(y),
-          mdd: null,
-          peakNav: null,
-          drawdownDays: null,
-          recoveryDays: null,
-          troughNav: null,
-          peakDate: null,
-          troughDate: null,
-          recoveryDate: null,
-          hasData: false,
-        }
-      );
-    }
-    return filled;
+    return Object.entries(drawdown?.yearly_mdd_last_10_years || {})
+      .map(([year, value]) => ({
+        year,
+        mdd: (value as { max_drawdown_percent: number | null }).max_drawdown_percent ?? null,
+        peakNav: (value as { peak_nav?: number | null }).peak_nav ?? null,
+        drawdownDays: (value as { drawdown_duration_days: number | null }).drawdown_duration_days ?? null,
+        recoveryDays: (value as { recovery_duration_days: number | null }).recovery_duration_days ?? null,
+        troughNav: (value as { trough_nav?: number | null }).trough_nav ?? null,
+        peakDate: (value as { peak_date?: string | null }).peak_date ?? null,
+        troughDate: (value as { trough_date?: string | null }).trough_date ?? null,
+        recoveryDate: (value as { recovery_date?: string | null }).recovery_date ?? null,
+        hasData: true,
+      }))
+      .filter((entry) => typeof entry.mdd === "number")
+      .sort((a, b) => Number(a.year) - Number(b.year));
   }, [drawdown?.yearly_mdd_last_10_years]);
 
   const monthlyScale = useMemo(() => {
@@ -1697,12 +1675,14 @@ const FundAnalytics = () => {
                         ? buildMetricSeries(activeMetric.data as Record<string, number | null>)
                         : [];
                       const hasAny = activeSeries.length > 0;
-                      const chartData = periods.map((period) => {
-                        const entry: Record<string, string | number> = { period: period.label };
-                        const match = activeSeries.find((item) => item.key === period.key);
-                        entry.value = typeof match?.value === "number" ? match.value : null;
-                        return entry;
-                      });
+                      const chartData = periods
+                        .map((period) => {
+                          const entry: Record<string, string | number> = { period: period.label };
+                          const match = activeSeries.find((item) => item.key === period.key);
+                          entry.value = typeof match?.value === "number" ? match.value : null;
+                          return entry;
+                        })
+                        .filter((entry) => typeof entry.value === "number");
                       return hasAny ? (
                         <div className="h-72">
                           <div className="flex flex-wrap items-center gap-2 mb-3">
