@@ -1622,7 +1622,7 @@ const FundAnalytics = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-12">
+              <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-12">
                 <div>
                   <SectionHeader icon={Shield} title="Risk Metrics" />
                   <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
@@ -1682,7 +1682,7 @@ const FundAnalytics = () => {
                       return hasAny ? (
                         <div className="h-72">
                           <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData} margin={{ left: 6, right: 12, bottom: 4 }}>
+                            <BarChart data={chartData} margin={{ left: 6, right: 12, bottom: 4 }}>
                               <XAxis dataKey="period" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                               <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                               <Tooltip
@@ -1694,18 +1694,16 @@ const FundAnalytics = () => {
                                 }}
                               />
                               {seriesByMetric.map((row) => (
-                                <Line
+                                <Bar
                                   key={row.key}
-                                  type="monotone"
                                   dataKey={row.key}
                                   name={row.label}
-                                  stroke={row.color}
-                                  strokeWidth={2}
-                                  dot={{ r: 3, strokeWidth: 1, fill: "hsl(var(--background))" }}
-                                  connectNulls
+                                  fill={row.color}
+                                  radius={[4, 4, 0, 0]}
+                                  maxBarSize={24}
                                 />
                               ))}
-                            </LineChart>
+                            </BarChart>
                           </ResponsiveContainer>
                         </div>
                       ) : (
