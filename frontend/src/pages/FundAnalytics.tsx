@@ -764,22 +764,35 @@ const FundAnalytics = () => {
                     </div>
 
                     <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Latest Year Return {latestYoy?.year ? `(${latestYoy.year})` : ""}
+                      </div>
+                      <div
+                        className={`text-[18px] font-semibold mt-1 ${
+                          typeof latestYoy?.return === "number" ? (latestYoy.return >= 0 ? "text-positive" : "text-negative") : "text-foreground"
+                        }`}
+                      >
+                        {typeof latestYoy?.return === "number"
+                          ? `${latestYoy.return >= 0 ? "+" : ""}${latestYoy.return.toFixed(2)}%`
+                          : "-"}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">From yearly performance</div>
+                    </div>
+
+                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Sharpe Ratio (3Y)</div>
-                      <div className="text-[18px] font-semibold mt-1 text-foreground">
+                      <div
+                        className={`text-[18px] font-semibold mt-1 ${
+                          typeof riskAdj?.sharpe_ratio?.three_year === "number"
+                            ? (riskAdj.sharpe_ratio.three_year >= 0 ? "text-positive" : "text-negative")
+                            : "text-foreground"
+                        }`}
+                      >
                         {typeof riskAdj?.sharpe_ratio?.three_year === "number" ? riskAdj.sharpe_ratio.three_year.toFixed(2) : "-"}
                       </div>
                       <div className="text-[11px] text-muted-foreground mt-1">Risk-adjusted return</div>
                     </div>
 
-                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Volatility (3Y)</div>
-                      <div className="text-[18px] font-semibold mt-1 text-foreground">
-                        {typeof riskMetrics?.volatility_annualized_percent?.three_year === "number"
-                          ? `${riskMetrics.volatility_annualized_percent.three_year.toFixed(2)}%`
-                          : "-"}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">Annualized</div>
-                    </div>
                   </div>
                 </div>
               </motion.div>
