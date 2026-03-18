@@ -907,7 +907,7 @@ const FundAnalytics = () => {
                                   </div>
                                 </div>
                                 <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-foreground opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-                                  {entry.label} ? {entry.value >= 0 ? "+" : ""}
+                                  {entry.label} {entry.value >= 0 ? "+" : ""}
                                   {entry.value.toFixed(2)}%
                                 </div>
                               </div>
@@ -945,7 +945,7 @@ const FundAnalytics = () => {
                                 </div>
                               </div>
                               <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-foreground opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-                                {entry.label} ? {entry.value >= 0 ? "+" : ""}
+                                {entry.label} {entry.value >= 0 ? "+" : ""}
                                 {entry.value.toFixed(2)}%
                               </div>
                             </div>
