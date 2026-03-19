@@ -109,11 +109,11 @@ class MFAPIFetcher:
 
         sorted_nav = sorted(
             nav_data,
-            key=lambda x: datetime.strptime(x["date"], "%d-%m-%Y")
+            key=lambda x: self._parse_nav_date(x["date"])
         )
 
-        launch_date = datetime.strptime(sorted_nav[0]["date"], "%d-%m-%Y")
-        current_date = datetime.strptime(sorted_nav[-1]["date"], "%d-%m-%Y")
+        launch_date = self._parse_nav_date(sorted_nav[0]["date"])
+        current_date = self._parse_nav_date(sorted_nav[-1]["date"])
         current_nav = float(sorted_nav[-1]["nav"])
         prev_nav = float(sorted_nav[-2]["nav"]) if len(sorted_nav) >= 2 else None
         nav_change_1d = (
@@ -213,6 +213,36 @@ class MFAPIFetcher:
         )
 
     @staticmethod
+    def _parse_nav_date(date_str: str) -> datetime:
+        """Parse NAV date from either DD-MM-YYYY or YYYY-MM-DD."""
+        for fmt in ("%d-%m-%Y", "%Y-%m-%d"):
+            try:
+                return datetime.strptime(date_str, fmt)
+            except ValueError:
+                continue
+        raise ValueError(f"Unsupported date format: {date_str}")
+
+    def _filter_weekend_nav(self, nav_data: List[Dict[str, Any]]):
+        """Remove Saturday/Sunday NAVs and return filtered data + removed dates."""
+        filtered = []
+        removed_dates = []
+
+        for item in nav_data:
+            try:
+                parsed_date = self._parse_nav_date(item.get("date", ""))
+            except Exception:
+                # Keep unknown formats to avoid accidental data loss
+                filtered.append(item)
+                continue
+
+            if parsed_date.weekday() >= 5:
+                removed_dates.append(parsed_date.date())
+            else:
+                filtered.append(item)
+
+        return filtered, removed_dates
+
+    @staticmethod
     def _extract_scheme_sub_name(scheme_name: str) -> str:
         """Return base scheme name in title case by removing brackets, plan words and hyphen."""
         if not scheme_name:
@@ -271,6 +301,11 @@ class MFAPIFetcher:
                         raw = await response.json()
 
                         try:
+                            nav_data = raw.get("data", [])
+                            filtered_nav, removed_dates = self._filter_weekend_nav(nav_data)
+                            raw["data"] = filtered_nav
+                            raw["removed_weekend_dates"] = [d.strftime("%Y-%m-%d") for d in removed_dates]
+
                             # STEP 1: Enrich meta directly from raw
                             enriched_meta = self._build_scheme_meta(raw)
 

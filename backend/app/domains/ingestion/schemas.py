@@ -121,7 +121,12 @@ class NavPoint(BaseModel):
     def parse_date(cls, v):
         """Parse DD-MM-YYYY formatted date string."""
         if isinstance(v, str):
-            return datetime.strptime(v, "%d-%m-%Y").date()
+            for fmt in ("%d-%m-%Y", "%Y-%m-%d"):
+                try:
+                    return datetime.strptime(v, fmt).date()
+                except ValueError:
+                    continue
+            raise ValueError(f"Unsupported date format: {v}")
         return v
 
     @field_validator("nav", mode="before")
@@ -137,3 +142,28 @@ class MutualFundNavResponse(BaseModel):
     """Complete mutual fund NAV ingestion response."""
     meta: SchemeMeta
     data: List[NavPoint]
+    removed_weekend_dates: List[date] = []
+
+    @field_validator("removed_weekend_dates", mode="before")
+    @classmethod
+    def parse_removed_weekend_dates(cls, v):
+        """Parse removed weekend date strings in either DD-MM-YYYY or YYYY-MM-DD."""
+        if not v:
+            return []
+        parsed = []
+        for item in v:
+            if isinstance(item, date):
+                parsed.append(item)
+                continue
+            if isinstance(item, str):
+                for fmt in ("%d-%m-%Y", "%Y-%m-%d"):
+                    try:
+                        parsed.append(datetime.strptime(item, fmt).date())
+                        break
+                    except ValueError:
+                        continue
+                else:
+                    raise ValueError(f"Unsupported date format: {item}")
+            else:
+                parsed.append(item)
+        return parsed
