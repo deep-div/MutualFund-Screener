@@ -132,7 +132,7 @@ const MetricCard = ({
   suffix?: string;
   color?: string;
 }) => (
-  <div className="analytics-card analytics-metric-abs flex flex-col gap-1 px-4 py-3">
+  <div className="analytics-card analytics-metric-abs flex flex-col gap-1 px-4 py-3 items-center text-center justify-center">
     <span className="text-[11px] analytics-muted uppercase tracking-wider">{label}</span>
     <span
       className={`text-[15px] font-semibold ${
@@ -1225,7 +1225,7 @@ const FundAnalytics = () => {
                       <div className="text-[13px] font-semibold text-foreground">Yearly Performance</div>
                       <div className="text-[11px] text-muted-foreground mt-1">Returns by calendar year.</div>
                     </div>
-                    <div className="analytics-card analytics-metric-year flex flex-col gap-1 px-4 py-3">
+                    <div className="analytics-card analytics-metric-year flex flex-col gap-1 px-4 py-3 items-center text-center justify-center">
                       <div className="text-[9px] uppercase tracking-wider analytics-muted">Latest Year</div>
                       <div className="text-[14px] font-semibold text-foreground">
                         {yoyData[yoyData.length - 1]?.year ?? "-"}
