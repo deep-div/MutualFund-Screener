@@ -828,7 +828,6 @@ const FundAnalytics = () => {
                   <div className="bg-surface border border-border/60 rounded-xl p-4 shadow-sm flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <div className="text-[13px] font-semibold text-foreground">Return Summary</div>
-                      <div className="text-[11px] text-muted-foreground">Return %</div>
                     </div>
                     <div className="text-[11px] text-muted-foreground mb-3">
                       {heatmapReturnType === "rolling"
@@ -1303,7 +1302,6 @@ const FundAnalytics = () => {
                         Worst peak-to-trough drawdown for each year.
                       </div>
                     </div>
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Last 10Y</div>
                   </div>
                   <div className="h-72">
                     {yearlyMddSeries.length > 0 ? (
@@ -1373,7 +1371,6 @@ const FundAnalytics = () => {
                         Depth, duration, and frequency of drawdowns across periods.
                       </div>
                     </div>
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Percentages</div>
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
                     <div className="analytics-card group relative px-4 py-3 text-center z-10">
@@ -1572,7 +1569,6 @@ const FundAnalytics = () => {
                       <div className="text-[13px] font-semibold text-foreground">Best vs Worst Returns</div>
                       <div className="text-[11px] text-muted-foreground mt-1">Extremes across day, month, and year.</div>
                     </div>
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Extremes</div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
@@ -1633,7 +1629,6 @@ const FundAnalytics = () => {
                       <div className="text-[13px] font-semibold text-foreground">Win Rate Snapshot</div>
                       <div className="text-[11px] text-muted-foreground mt-1">Percent of positive periods.</div>
                     </div>
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Consistency</div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {[
@@ -1705,10 +1700,9 @@ const FundAnalytics = () => {
                       <div>
                         <div className="text-[13px] font-semibold text-foreground">Risk Metrics by Period</div>
                         <div className="text-[11px] text-muted-foreground mt-1">
-                          Single chart to compare all metrics across periods.
+                          Metrics across periods.
                         </div>
                       </div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Lines</div>
                     </div>
                     {(() => {
                       const metricRows = [
@@ -1812,10 +1806,9 @@ const FundAnalytics = () => {
                       <div>
                         <div className="text-[13px] font-semibold text-foreground">Risk-Adjusted by Period</div>
                         <div className="text-[11px] text-muted-foreground mt-1">
-                          All ratios on one chart to compare stability over time.
+                          Metrics over time.
                         </div>
                       </div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Lines</div>
                     </div>
                     {(() => {
                       const metricRows = [
