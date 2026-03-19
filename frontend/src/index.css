@@ -89,6 +89,57 @@
     font-family: 'JetBrains Mono', monospace;
     font-variant-numeric: tabular-nums;
   }
+  .analytics-shell {
+    background:
+      radial-gradient(1200px 500px at 10% -10%, hsl(var(--primary) / 0.08), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, hsl(var(--accent) / 0.1), transparent 60%),
+      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background)) 35%, hsl(var(--secondary)) 100%);
+  }
+  .analytics-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    border: 1px solid hsl(var(--border) / 0.6);
+    background: hsl(var(--surface) / 0.9);
+    box-shadow: 0 20px 40px -32px hsl(var(--foreground) / 0.35);
+    backdrop-filter: blur(8px);
+  }
+  .analytics-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(520px 220px at 10% 0%, hsl(var(--primary) / 0.16), transparent 60%),
+      radial-gradient(420px 200px at 100% 0%, hsl(var(--positive) / 0.18), transparent 70%);
+    opacity: 0.8;
+    pointer-events: none;
+  }
+  .analytics-card {
+    border-radius: 1rem;
+    border: 1px solid hsl(var(--border) / 0.6);
+    background: hsl(var(--surface) / 0.88);
+    box-shadow: 0 16px 30px -24px hsl(var(--foreground) / 0.35);
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  }
+  .analytics-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 36px -26px hsl(var(--foreground) / 0.4);
+    border-color: hsl(var(--primary) / 0.35);
+  }
+  .analytics-chip {
+    border-radius: 999px;
+    border: 1px solid hsl(var(--border) / 0.7);
+    background: hsl(var(--background));
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: hsl(var(--muted-foreground));
+  }
+  .analytics-muted {
+    color: hsl(var(--muted-foreground));
+  }
   .page-dimmable {
     position: relative;
     transition: opacity 150ms ease;

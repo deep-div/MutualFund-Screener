@@ -111,7 +111,7 @@ const NavTooltip = ({
   return (
     <div className="rounded-md border border-border bg-popover px-3 py-2 text-[12px] shadow-sm">
       <div className="font-semibold text-foreground">
-        {delta !== null ? `${delta >= 0 ? "▲" : "▼"} ${Math.abs(delta).toFixed(2)}` : nav.toFixed(2)}
+        {delta !== null ? `${delta >= 0 ? "+" : "-"}${Math.abs(delta).toFixed(2)}` : nav.toFixed(2)}
         {deltaPct !== null ? ` (${deltaPct >= 0 ? "+" : ""}${deltaPct.toFixed(2)}%)` : ""}
       </div>
       <div className="text-muted-foreground">
@@ -132,8 +132,8 @@ const MetricCard = ({
   suffix?: string;
   color?: string;
 }) => (
-  <div className="flex flex-col gap-1 px-4 py-3 rounded-lg bg-surface border border-border">
-    <span className="text-[11px] text-muted-foreground uppercase tracking-wider">{label}</span>
+  <div className="analytics-card flex flex-col gap-1 px-4 py-3">
+    <span className="text-[11px] analytics-muted uppercase tracking-wider">{label}</span>
     <span
       className={`text-[15px] font-semibold ${
         color || (value !== null && value !== undefined && value >= 0 ? "text-positive" : "text-negative")
@@ -145,9 +145,14 @@ const MetricCard = ({
 );
 
 const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
-  <div className="flex items-center gap-2 mb-4 mt-8 first:mt-0">
-    <Icon className="w-4 h-4 text-primary" />
-    <h2 className="text-[14px] font-semibold text-foreground tracking-tight">{title}</h2>
+  <div className="flex items-center gap-3 mb-4 mt-10 first:mt-0">
+    <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+      <Icon className="w-4 h-4" />
+    </div>
+    <div className="flex items-center gap-3 flex-1">
+      <h2 className="text-[14px] font-semibold text-foreground tracking-tight">{title}</h2>
+      <div className="h-px flex-1 bg-border/70" />
+    </div>
   </div>
 );
 
@@ -178,7 +183,7 @@ const YearlyDrawdownTooltip = ({
       <div className="font-semibold text-foreground">Year {label}</div>
       <div className="text-muted-foreground">Period: {range}</div>
       <div className="text-muted-foreground">
-        Peak NAV: {typeof row?.peakNav === "number" ? row.peakNav.toFixed(2) : "-"} · Trough NAV:{" "}
+        Peak NAV: {typeof row?.peakNav === "number" ? row.peakNav.toFixed(2) : "-"} | Trough NAV:{" "}
         {typeof row?.troughNav === "number" ? row.troughNav.toFixed(2) : "-"}
       </div>
       <div className="text-foreground mt-1">
@@ -216,13 +221,13 @@ const PeriodDrawdownTooltip = ({
         Max DD: {typeof row?.mdd === "number" ? `${row.mdd.toFixed(2)}%` : "-"}
       </div>
       <div className="text-muted-foreground">
-        Peak: {row?.peakDate ? formatLongDate(row.peakDate) : "-"} · {typeof row?.peakNav === "number" ? row.peakNav.toFixed(2) : "-"}
+        Peak: {row?.peakDate ? formatLongDate(row.peakDate) : "-"} | {typeof row?.peakNav === "number" ? row.peakNav.toFixed(2) : "-"}
       </div>
       <div className="text-muted-foreground">
-        Trough: {row?.troughDate ? formatLongDate(row.troughDate) : "-"} · {typeof row?.troughNav === "number" ? row.troughNav.toFixed(2) : "-"}
+        Trough: {row?.troughDate ? formatLongDate(row.troughDate) : "-"} | {typeof row?.troughNav === "number" ? row.troughNav.toFixed(2) : "-"}
       </div>
       <div className="text-muted-foreground">
-        Recovery: {row?.recoveryDate ? formatLongDate(row.recoveryDate) : "-"} · {typeof row?.recoveryNav === "number" ? row.recoveryNav.toFixed(2) : "-"}
+        Recovery: {row?.recoveryDate ? formatLongDate(row.recoveryDate) : "-"} | {typeof row?.recoveryNav === "number" ? row.recoveryNav.toFixed(2) : "-"}
       </div>
     </div>
   );
@@ -628,8 +633,8 @@ const FundAnalytics = () => {
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       <TickerTape />
       <Navbar />
-      <div className="flex-1 overflow-auto scrollbar-thin page-dimmable">
-        <div className="max-w-[1400px] w-full mx-auto px-6 py-6">
+      <div className="flex-1 overflow-auto scrollbar-thin page-dimmable analytics-shell">
+        <div className="max-w-[1400px] w-full mx-auto px-6 py-8">
           {isLoading ? (
             <FundAnalyticsSkeleton />
           ) : isError || !detail ? (
@@ -637,142 +642,158 @@ const FundAnalytics = () => {
           ) : (
             <>
               {/* Header */}
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-                <div className="flex flex-col gap-4">
-                  <div>
-                    <h1 className="text-[20px] font-bold text-foreground tracking-tight">{meta?.scheme_sub_name}</h1>
-                    <div className="flex flex-wrap items-center gap-3 mt-1.5">
-                      <span className="text-[12px] px-2 py-0.5 rounded bg-primary/10 text-primary font-medium">
-                        {meta?.scheme_sub_category}
-                      </span>
-                      <span className="text-[12px] text-muted-foreground">{meta?.fund_house}</span>
-                      <span className="text-[12px] text-muted-foreground">
-                        {meta?.plan_type} - {meta?.option_type}
-                      </span>
-                      <span className="text-[12px] text-muted-foreground">Since inception {inceptionYears}</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Latest NAV</div>
-                      <div className="flex items-center justify-between gap-2 mt-1">
-                        <div className="text-[20px] font-semibold text-foreground">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+                <div className="analytics-hero p-6">
+                  <div className="relative z-10 flex flex-col gap-6">
+                    <div className="flex flex-col lg:flex-row lg:items-end gap-6">
+                      <div className="flex-1">
+                        <div className="analytics-chip w-fit">Scheme Analytics</div>
+                        <h1 className="text-[22px] md:text-[26px] font-bold text-foreground tracking-tight mt-3">
+                          {meta?.scheme_sub_name}
+                        </h1>
+                        <div className="flex flex-wrap items-center gap-2 mt-3">
+                          <span className="analytics-chip">{meta?.scheme_sub_category}</span>
+                          <span className="analytics-chip">{meta?.fund_house}</span>
+                          <span className="analytics-chip">
+                            {meta?.plan_type} - {meta?.option_type}
+                          </span>
+                          <span className="analytics-chip">Since inception {inceptionYears}</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1 items-start lg:items-end text-left lg:text-right">
+                        <div className="text-[11px] uppercase tracking-wider analytics-muted">As of {navDateLabel}</div>
+                        <div className="text-[28px] font-semibold text-foreground">
                           INR {typeof meta?.current_nav === "number" ? meta.current_nav.toFixed(4) : "-"}
                         </div>
-                        <div className="h-10 w-20">
-                          {navSparkline.length > 1 ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                              <LineChart data={navSparkline}>
-                                <Line type="monotone" dataKey="nav" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                              </LineChart>
-                            </ResponsiveContainer>
-                          ) : (
-                            <div className="text-[10px] text-muted-foreground">No trend</div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">NAV date {navDateLabel}</div>
-                    </div>
-
-                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">1D Change</div>
-                      <div
-                        className={`text-[18px] font-semibold mt-1 ${
-                          typeof meta?.nav_change_1d === "number" && meta?.nav_change_1d >= 0 ? "text-positive" : "text-negative"
-                        }`}
-                      >
-                        {typeof meta?.nav_change_1d === "number" && typeof meta?.current_nav === "number"
-                          ? `${meta.nav_change_1d >= 0 ? "+" : ""}${meta.nav_change_1d.toFixed(4)}%`
-                          : "-"}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">Change vs previous close</div>
-                    </div>
-
-                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Current Drawdown</div>
-                      <div className="text-[18px] font-semibold mt-1 text-negative">
-                        {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
-                          ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
-                          : "-"}
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 mt-2 text-[11px] text-muted-foreground">
-                        <div>
-                          <div className="uppercase tracking-wider text-[9px]">Drawdown Days</div>
-                          <div className="text-foreground text-[12px] font-semibold">
-                            {typeof drawdown?.current_drawdown?.drawdown_duration_days === "number"
-                              ? `${drawdown.current_drawdown.drawdown_duration_days}d`
-                              : "-"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="uppercase tracking-wider text-[9px]">Recovery Days</div>
-                          <div className="text-foreground text-[12px] font-semibold">
-                            {typeof drawdown?.current_drawdown?.recovery_duration_days === "number"
-                              ? `${drawdown.current_drawdown.recovery_duration_days}d`
-                              : "-"}
-                          </div>
+                        <div
+                          className={`text-[13px] font-medium ${
+                            typeof meta?.nav_change_1d === "number" && meta?.nav_change_1d >= 0 ? "text-positive" : "text-negative"
+                          }`}
+                        >
+                          1D {typeof meta?.nav_change_1d === "number" ? `${meta.nav_change_1d >= 0 ? "+" : ""}${meta.nav_change_1d.toFixed(4)}%` : "-"}
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max Drawdown</div>
-                      <div className="text-[18px] font-semibold mt-1 text-negative">
-                        {typeof drawdown?.mdd_duration_details?.max?.max_drawdown_percent === "number"
-                          ? `${drawdown.mdd_duration_details.max.max_drawdown_percent.toFixed(2)}%`
-                          : "-"}
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 mt-2 text-[11px] text-muted-foreground">
-                        <div>
-                          <div className="uppercase tracking-wider text-[9px]">Drawdown Days</div>
-                          <div className="text-foreground text-[12px] font-semibold">
-                            {typeof drawdown?.mdd_duration_details?.max?.drawdown_duration_days === "number"
-                              ? `${drawdown.mdd_duration_details.max.drawdown_duration_days}d`
-                              : "-"}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                      <div className="analytics-card p-3">
+                        <div className="text-[10px] uppercase tracking-wider analytics-muted">NAV Trend</div>
+                        <div className="flex items-center justify-between gap-2 mt-1">
+                          <div className="text-[18px] font-semibold text-foreground">
+                            INR {typeof meta?.current_nav === "number" ? meta.current_nav.toFixed(4) : "-"}
+                          </div>
+                          <div className="h-10 w-20">
+                            {navSparkline.length > 1 ? (
+                              <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={navSparkline}>
+                                  <Line type="monotone" dataKey="nav" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            ) : (
+                              <div className="text-[10px] analytics-muted">No trend</div>
+                            )}
                           </div>
                         </div>
-                        <div>
-                          <div className="uppercase tracking-wider text-[9px]">Recovery Days</div>
-                          <div className="text-foreground text-[12px] font-semibold">
-                            {typeof drawdown?.mdd_duration_details?.max?.recovery_duration_days === "number"
-                              ? `${drawdown.mdd_duration_details.max.recovery_duration_days}d`
-                              : "-"}
+                        <div className="text-[11px] analytics-muted mt-1">NAV date {navDateLabel}</div>
+                      </div>
+
+                      <div className="analytics-card p-3">
+                        <div className="text-[10px] uppercase tracking-wider analytics-muted">Current Drawdown</div>
+                        <div className="text-[18px] font-semibold mt-1 text-negative">
+                          {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
+                            ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
+                            : "-"}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 mt-2 text-[11px] analytics-muted">
+                          <div>
+                            <div className="uppercase tracking-wider text-[9px]">Drawdown Days</div>
+                            <div className="text-foreground text-[12px] font-semibold">
+                              {typeof drawdown?.current_drawdown?.drawdown_duration_days === "number"
+                                ? `${drawdown.current_drawdown.drawdown_duration_days}d`
+                                : "-"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="uppercase tracking-wider text-[9px]">Recovery Days</div>
+                            <div className="text-foreground text-[12px] font-semibold">
+                              {typeof drawdown?.current_drawdown?.recovery_duration_days === "number"
+                                ? `${drawdown.current_drawdown.recovery_duration_days}d`
+                                : "-"}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        Latest Year Return {latestYoy?.year ? `(${latestYoy.year})` : ""}
+                      <div className="analytics-card p-3">
+                        <div className="text-[10px] uppercase tracking-wider analytics-muted">Max Drawdown</div>
+                        <div className="text-[18px] font-semibold mt-1 text-negative">
+                          {typeof drawdown?.mdd_duration_details?.max?.max_drawdown_percent === "number"
+                            ? `${drawdown.mdd_duration_details.max.max_drawdown_percent.toFixed(2)}%`
+                            : "-"}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 mt-2 text-[11px] analytics-muted">
+                          <div>
+                            <div className="uppercase tracking-wider text-[9px]">Drawdown Days</div>
+                            <div className="text-foreground text-[12px] font-semibold">
+                              {typeof drawdown?.mdd_duration_details?.max?.drawdown_duration_days === "number"
+                                ? `${drawdown.mdd_duration_details.max.drawdown_duration_days}d`
+                                : "-"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="uppercase tracking-wider text-[9px]">Recovery Days</div>
+                            <div className="text-foreground text-[12px] font-semibold">
+                              {typeof drawdown?.mdd_duration_details?.max?.recovery_duration_days === "number"
+                                ? `${drawdown.mdd_duration_details.max.recovery_duration_days}d`
+                                : "-"}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div
-                        className={`text-[18px] font-semibold mt-1 ${
-                          typeof latestYoy?.return === "number" ? (latestYoy.return >= 0 ? "text-positive" : "text-negative") : "text-foreground"
-                        }`}
-                      >
-                        {typeof latestYoy?.return === "number"
-                          ? `${latestYoy.return >= 0 ? "+" : ""}${latestYoy.return.toFixed(2)}%`
-                          : "-"}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">From yearly performance</div>
-                    </div>
 
-                    <div className="bg-surface border border-border/60 rounded-xl p-3 shadow-sm">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Sharpe Ratio (3Y)</div>
-                      <div
-                        className={`text-[18px] font-semibold mt-1 ${
-                          typeof riskAdj?.sharpe_ratio?.three_year === "number"
-                            ? (riskAdj.sharpe_ratio.three_year >= 0 ? "text-positive" : "text-negative")
-                            : "text-foreground"
-                        }`}
-                      >
-                        {typeof riskAdj?.sharpe_ratio?.three_year === "number" ? riskAdj.sharpe_ratio.three_year.toFixed(2) : "-"}
+                      <div className="analytics-card p-3">
+                        <div className="text-[10px] uppercase tracking-wider analytics-muted">
+                          Latest Year Return {latestYoy?.year ? `(${latestYoy.year})` : ""}
+                        </div>
+                        <div
+                          className={`text-[18px] font-semibold mt-1 ${
+                            typeof latestYoy?.return === "number" ? (latestYoy.return >= 0 ? "text-positive" : "text-negative") : "text-foreground"
+                          }`}
+                        >
+                          {typeof latestYoy?.return === "number"
+                            ? `${latestYoy.return >= 0 ? "+" : ""}${latestYoy.return.toFixed(2)}%`
+                            : "-"}
+                        </div>
+                        <div className="text-[11px] analytics-muted mt-1">From yearly performance</div>
                       </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">Risk-adjusted return</div>
-                    </div>
 
+                      <div className="analytics-card p-3">
+                        <div className="text-[10px] uppercase tracking-wider analytics-muted">YoY Delta</div>
+                        <div
+                          className={`text-[18px] font-semibold mt-1 ${
+                            typeof yoyDelta === "number" ? (yoyDelta >= 0 ? "text-positive" : "text-negative") : "text-foreground"
+                          }`}
+                        >
+                          {typeof yoyDelta === "number" ? `${yoyDelta >= 0 ? "+" : ""}${yoyDelta.toFixed(2)}%` : "-"}
+                        </div>
+                        <div className="text-[11px] analytics-muted mt-1">Change vs previous year</div>
+                      </div>
+
+                      <div className="analytics-card p-3">
+                        <div className="text-[10px] uppercase tracking-wider analytics-muted">Sharpe Ratio (3Y)</div>
+                        <div
+                          className={`text-[18px] font-semibold mt-1 ${
+                            typeof riskAdj?.sharpe_ratio?.three_year === "number"
+                              ? (riskAdj.sharpe_ratio.three_year >= 0 ? "text-positive" : "text-negative")
+                              : "text-foreground"
+                          }`}
+                        >
+                          {typeof riskAdj?.sharpe_ratio?.three_year === "number" ? riskAdj.sharpe_ratio.three_year.toFixed(2) : "-"}
+                        </div>
+                        <div className="text-[11px] analytics-muted mt-1">Risk-adjusted return</div>
+                      </div>
+
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -1184,7 +1205,7 @@ const FundAnalytics = () => {
                                   </div>
                                 </div>
                                 <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-foreground opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-                                  {month} {selectedYear} · {(val as number) >= 0 ? "+" : ""}
+                                  {month} {selectedYear} | {(val as number) >= 0 ? "+" : ""}
                                   {(val as number).toFixed(2)}%
                                 </div>
                               </div>
@@ -1376,7 +1397,7 @@ const FundAnalytics = () => {
                             {typeof drawdown?.current_drawdown?.drawdown_duration_days === "number"
                               ? `${drawdown.current_drawdown.drawdown_duration_days}d`
                               : "-"}
-                            {" · "}Recovery:{" "}
+                            {" | "}Recovery:{" "}
                             {typeof drawdown?.current_drawdown?.recovery_duration_days === "number"
                               ? `${drawdown.current_drawdown.recovery_duration_days}d`
                               : "-"}
@@ -1434,7 +1455,7 @@ const FundAnalytics = () => {
                             {typeof drawdown?.mdd_duration_details?.max?.drawdown_duration_days === "number"
                               ? `${drawdown.mdd_duration_details.max.drawdown_duration_days}d`
                               : "-"}
-                            {" · "}Recovery:{" "}
+                            {" | "}Recovery:{" "}
                             {typeof drawdown?.mdd_duration_details?.max?.recovery_duration_days === "number"
                               ? `${drawdown.mdd_duration_details.max.recovery_duration_days}d`
                               : "-"}
