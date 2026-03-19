@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { TrendingUp, TrendingDown, Activity, BarChart3, Shield, Zap } from "lucide-react";
 import { motion } from "framer-motion";
@@ -323,6 +323,7 @@ const FundAnalytics = () => {
   >("one_year");
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [yearPickerOpen, setYearPickerOpen] = useState(false);
+  const yearPickerRef = useRef<HTMLDivElement | null>(null);
   const [rollingKey, setRollingKey] = useState<string>("");
   const [riskMetricKey, setRiskMetricKey] = useState<string>("volatility");
 
@@ -363,6 +364,22 @@ const FundAnalytics = () => {
       setSelectedYear(latestHeatmapYear);
     }
   }, [selectedYear, latestHeatmapYear]);
+
+  useEffect(() => {
+    if (!yearPickerOpen) return;
+    const handleOutside = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (target && yearPickerRef.current && !yearPickerRef.current.contains(target)) {
+        setYearPickerOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("touchstart", handleOutside, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("touchstart", handleOutside);
+    };
+  }, [yearPickerOpen]);
 
 
   const rollingKeys = Object.keys(metrics?.returns?.rolling_cagr_percent || {});
@@ -1138,7 +1155,7 @@ const FundAnalytics = () => {
                       <div className="text-[13px] font-semibold text-foreground">Monthly Breakdown</div>
                       <div className="text-[11px] text-muted-foreground mt-1">Pick a year to view monthly returns.</div>
                     </div>
-                    <div className="relative">
+                    <div className="relative" ref={yearPickerRef}>
                       <button
                         type="button"
                         onClick={() => setYearPickerOpen((prev) => !prev)}
