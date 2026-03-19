@@ -18,8 +18,8 @@ class SchemeSubCategory(str, Enum):
     VALUE = "Value Fund"
     CONTRA = "Contra Fund"
     DIVIDEND_YIELD = "Dividend Yield Fund"
-    SECTORAL_THEMATIC = "Sectoral/ Thematic"
-    INDEX = "Index Funds"
+    SECTORAL_THEMATIC = "Sectoral/Thematic Fund"
+    INDEX = "Index Fund"
 
     #  Debt 
     OVERNIGHT = "Overnight Fund"
@@ -42,7 +42,7 @@ class SchemeSubCategory(str, Enum):
     AGGRESSIVE_HYBRID = "Aggressive Hybrid Fund"
     BALANCED_HYBRID = "Balanced Hybrid Fund"
     CONSERVATIVE_HYBRID = "Conservative Hybrid Fund"
-    DYNAMIC_ASSET_ALLOCATION = "Balanced Advantage"
+    DYNAMIC_ASSET_ALLOCATION = "Balanced Advantage Fund"
     EQUITY_SAVINGS = "Equity Savings"
     MULTI_ASSET_ALLOCATION = "Multi Asset Allocation"
     ARBITRAGE = "Arbitrage Fund"
@@ -50,8 +50,8 @@ class SchemeSubCategory(str, Enum):
     #  Others 
     RETIREMENT = "Retirement Fund"
     CHILDRENS = "Children’s Fund"
-    FOF_DOMESTIC = "FoF Domestic"
-    FOF_OVERSEAS = "FoF Overseas"
+    FOF_DOMESTIC = "Fund of Funds (Domestic)"
+    FOF_OVERSEAS = "Fund of Funds (Overseas)"
 
 class InstrumentType(str, Enum):
     """Financial instrument type enum."""
