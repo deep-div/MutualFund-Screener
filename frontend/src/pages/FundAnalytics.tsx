@@ -698,6 +698,24 @@ const FundAnalytics = () => {
                       </div>
 
                       <div className="analytics-card p-3">
+                        <div className="text-[10px] uppercase tracking-wider analytics-muted">CAGR 3Y</div>
+                        <div
+                          className={`text-[18px] font-semibold mt-1 ${
+                            typeof cagrReturns?.three_year === "number"
+                              ? cagrReturns.three_year >= 0
+                                ? "text-positive"
+                                : "text-negative"
+                              : "text-foreground"
+                          }`}
+                        >
+                          {typeof cagrReturns?.three_year === "number"
+                            ? `${cagrReturns.three_year >= 0 ? "+" : ""}${cagrReturns.three_year.toFixed(2)}%`
+                            : "-"}
+                        </div>
+                        <div className="text-[11px] analytics-muted mt-1">Annualized return (3Y)</div>
+                      </div>
+
+                      <div className="analytics-card p-3">
                         <div className="text-[10px] uppercase tracking-wider analytics-muted">Current Drawdown</div>
                         <div className="text-[18px] font-semibold mt-1 text-negative">
                           {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
@@ -765,18 +783,6 @@ const FundAnalytics = () => {
                             : "-"}
                         </div>
                         <div className="text-[11px] analytics-muted mt-1">From yearly performance</div>
-                      </div>
-
-                      <div className="analytics-card p-3">
-                        <div className="text-[10px] uppercase tracking-wider analytics-muted">YoY Delta</div>
-                        <div
-                          className={`text-[18px] font-semibold mt-1 ${
-                            typeof yoyDelta === "number" ? (yoyDelta >= 0 ? "text-positive" : "text-negative") : "text-foreground"
-                          }`}
-                        >
-                          {typeof yoyDelta === "number" ? `${yoyDelta >= 0 ? "+" : ""}${yoyDelta.toFixed(2)}%` : "-"}
-                        </div>
-                        <div className="text-[11px] analytics-muted mt-1">Change vs previous year</div>
                       </div>
 
                       <div className="analytics-card p-3">
