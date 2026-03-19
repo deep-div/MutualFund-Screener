@@ -93,6 +93,28 @@
     position: relative;
     transition: opacity 150ms ease;
   }
+  .no-cards-right.bg-surface,
+  .no-cards-right.bg-card,
+  .no-cards-right .bg-surface,
+  .no-cards-right .bg-card {
+    background-color: transparent !important;
+  }
+  .no-cards-right.bg-surface.border,
+  .no-cards-right.bg-card.border,
+  .no-cards-right .bg-surface.border,
+  .no-cards-right .bg-card.border {
+    border-color: transparent !important;
+  }
+  .no-cards-right.shadow-sm,
+  .no-cards-right.shadow-md,
+  .no-cards-right.shadow-lg,
+  .no-cards-right.shadow,
+  .no-cards-right .shadow-sm,
+  .no-cards-right .shadow-md,
+  .no-cards-right .shadow-lg,
+  .no-cards-right .shadow {
+    box-shadow: none !important;
+  }
 }
 
 .search-dim .page-dimmable {

@@ -250,7 +250,7 @@ const FundAnalyticsSkeleton = () => (
     </div>
 
     <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch">
-      <div className="bg-surface border border-border/60 rounded-xl p-4 shadow-sm space-y-3">
+      <div className="no-cards-right bg-surface border border-border/60 rounded-xl p-4 shadow-sm space-y-3">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="h-3 w-40" />
         <div className="flex gap-2">
@@ -264,7 +264,7 @@ const FundAnalyticsSkeleton = () => (
           ))}
         </div>
       </div>
-      <div className="bg-surface border border-border rounded-lg p-4 space-y-3">
+      <div className="no-cards-right bg-surface border border-border rounded-lg p-4 space-y-3">
         <Skeleton className="h-4 w-40" />
         <div className="flex gap-2">
           <Skeleton className="h-7 w-20" />
@@ -780,7 +780,7 @@ const FundAnalytics = () => {
 {/* Return Metrics */}
               <SectionHeader icon={TrendingUp} title="Return Metrics" />
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch">
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col h-full no-cards-right">
                   <div className="bg-surface border border-border/60 rounded-xl p-4 shadow-sm flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <div className="text-[13px] font-semibold text-foreground">Return Summary</div>
@@ -949,7 +949,7 @@ const FundAnalytics = () => {
                     )}
                   </div>
                 </div>
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col h-full no-cards-right">
                   <div className="bg-surface border border-border rounded-lg p-4 flex-1">
                     <div className="text-[13px] font-semibold text-foreground mb-3">NAV Performance</div>
                     <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -1105,7 +1105,7 @@ const FundAnalytics = () => {
               {/* Performance Explorer */}
               <SectionHeader icon={Activity} title="Performance Explorer" />
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch">
-                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                <div className="no-cards-right bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
                       <div className="text-[13px] font-semibold text-foreground">Monthly Breakdown</div>
@@ -1198,7 +1198,7 @@ const FundAnalytics = () => {
                   )}
                 </div>
 
-                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm flex flex-col h-full min-h-[360px]">
+                <div className="no-cards-right bg-surface border border-border/60 rounded-2xl p-4 shadow-sm flex flex-col h-full min-h-[360px]">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
                       <div className="text-[13px] font-semibold text-foreground">Yearly Performance</div>
@@ -1251,7 +1251,7 @@ const FundAnalytics = () => {
               {/* Drawdown */}
               <SectionHeader icon={TrendingDown} title="Drawdown Analysis" />
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-4">
-                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm min-h-[420px]">
+                <div className="no-cards-right bg-surface border border-border/60 rounded-2xl p-4 shadow-sm min-h-[420px]">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
                       <div className="text-[13px] font-semibold text-foreground">Year on Year Drawdown Analysis</div>
@@ -1321,7 +1321,7 @@ const FundAnalytics = () => {
                     </div>
                   </div>
                 </div>
-                <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                <div className="no-cards-right bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div>
                       <div className="text-[13px] font-semibold text-foreground">Drawdown Overview</div>
@@ -1521,7 +1521,7 @@ const FundAnalytics = () => {
 
               <SectionHeader icon={Zap} title="Consistency" />
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-6">
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col h-full no-cards-right">
                   <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm flex-1">
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div>
@@ -1582,7 +1582,7 @@ const FundAnalytics = () => {
                 </div>
                 </div>
 
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col h-full no-cards-right">
                   <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm flex-1">
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div>
@@ -1654,7 +1654,7 @@ const FundAnalytics = () => {
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-12">
-                <div>
+                <div className="no-cards-right">
                   <SectionHeader icon={Shield} title="Risk Metrics" />
                   <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
                     <div className="flex items-start justify-between gap-4 mb-3">
@@ -1761,7 +1761,7 @@ const FundAnalytics = () => {
                   </div>
                 </div>
 
-                <div>
+                <div className="no-cards-right">
                   <SectionHeader icon={Shield} title="Risk-Adjusted Returns" />
                   <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
                     <div className="flex items-start justify-between gap-4 mb-3">
