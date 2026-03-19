@@ -19,7 +19,7 @@ const NAV_FORMATTER = new Intl.NumberFormat("en-IN", {
 
 const formatNav = (value?: number | null) =>
   typeof value === "number" ? `₹${NAV_FORMATTER.format(value)}` : "—";
-
+ 
 const formatChange = (value?: number | null) =>
   typeof value === "number" ? `${NAV_FORMATTER.format(Math.abs(value))}%` : "—";
 
