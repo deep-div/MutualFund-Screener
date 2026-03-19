@@ -317,6 +317,7 @@ const FundAnalytics = () => {
     | "max"
   >("one_year");
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const [yearPickerOpen, setYearPickerOpen] = useState(false);
   const [rollingKey, setRollingKey] = useState<string>("");
   const [riskMetricKey, setRiskMetricKey] = useState<string>("volatility");
 
@@ -357,6 +358,7 @@ const FundAnalytics = () => {
       setSelectedYear(latestHeatmapYear);
     }
   }, [selectedYear, latestHeatmapYear]);
+
 
   const rollingKeys = Object.keys(metrics?.returns?.rolling_cagr_percent || {});
   const defaultRolling = rollingKeys[0] || "1_year";
@@ -1104,20 +1106,47 @@ const FundAnalytics = () => {
               <SectionHeader icon={Activity} title="Performance Explorer" />
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch">
                 <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="text-[13px] font-semibold text-foreground">Monthly Breakdown</div>
-                    <select
-                      value={selectedYear ?? ""}
-                      onChange={(event) => setSelectedYear(event.target.value || null)}
-                      className="h-8 rounded-md border border-border bg-background px-2 text-[11px] text-foreground"
-                    >
-                      {!selectedYear && <option value="">Select year</option>}
-                      {heatmapYears.map((year) => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div>
+                      <div className="text-[13px] font-semibold text-foreground">Monthly Breakdown</div>
+                      <div className="text-[11px] text-muted-foreground mt-1">Pick a year to view monthly returns.</div>
+                    </div>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setYearPickerOpen((prev) => !prev)}
+                        className="h-8 rounded-md border border-border bg-background px-2 text-[11px] text-foreground flex items-center gap-2"
+                      >
+                        <span>{selectedYear ?? "Select year"}</span>
+                        <span className="text-[10px] text-muted-foreground">▾</span>
+                      </button>
+                      {yearPickerOpen && heatmapYears.length > 0 ? (
+                        <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-border bg-popover p-2 shadow-lg">
+                          <div className="grid grid-cols-3 gap-2">
+                            {heatmapYears.map((year) => {
+                              const isActive = selectedYear === year;
+                              return (
+                                <button
+                                  key={year}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedYear(year);
+                                    setYearPickerOpen(false);
+                                  }}
+                                  className={`h-8 rounded-md border text-[11px] font-medium transition-colors ${
+                                    isActive
+                                      ? "bg-primary text-primary-foreground border-primary"
+                                      : "bg-background text-muted-foreground border-border hover:text-foreground"
+                                  }`}
+                                >
+                                  {year}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                   {selectedYear && heatmap[selectedYear] ? (
                     (() => {
