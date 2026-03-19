@@ -142,7 +142,7 @@ class MFAPIFetcher:
                     break
 
                 # Contains match (enum inside API value)
-                if enum_value_lower in api_value_lower:
+                if enum_value_lower in api_value_lower and (api_value_lower != "large & mid cap fund"):
                     matched_enum = enum_member
                     break
             

@@ -115,6 +115,20 @@
   .no-cards-right .shadow {
     box-shadow: none !important;
   }
+  .no-cards-right .bg-background,
+  .no-cards-right .bg-secondary,
+  .no-cards-right .bg-accent {
+    background-color: transparent !important;
+  }
+  .no-cards-right .bg-primary {
+    background-color: hsl(var(--primary)) !important;
+  }
+  .no-cards-right .border-primary {
+    border-color: hsl(var(--primary)) !important;
+  }
+  .no-cards-right .text-primary-foreground {
+    color: hsl(var(--primary-foreground)) !important;
+  }
 }
 
 .search-dim .page-dimmable {
