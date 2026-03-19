@@ -1332,7 +1332,7 @@ const FundAnalytics = () => {
                     <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Percentages</div>
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
-                    <div className="group relative rounded-xl border border-border/60 bg-card px-4 py-3 text-center">
+                    <div className="no-cards-right group relative rounded-xl border border-border/60 bg-card px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-3">
                         <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Current Drawdown</div>
                         <div className="text-[22px] font-semibold text-negative">
@@ -1384,7 +1384,7 @@ const FundAnalytics = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="group relative rounded-xl border border-border/60 bg-card px-4 py-3 text-center">
+                    <div className="no-cards-right group relative rounded-xl border border-border/60 bg-card px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-3">
                         <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max Drawdown</div>
                         <div className="text-[26px] font-semibold text-negative text-center">
@@ -1444,7 +1444,7 @@ const FundAnalytics = () => {
                     </div>
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div className="rounded-xl border border-border/50 bg-background/40 p-3">
+                    <div className="rounded-xl p-3">
                       <div className="text-[12px] font-medium text-foreground mb-2">Max Drawdown by Period</div>
                       <div className="h-56">
                         {drawdownMddSeries.length > 0 ? (
@@ -1476,7 +1476,7 @@ const FundAnalytics = () => {
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-border/50 bg-background/40 p-3">
+                    <div className="rounded-xl p-3">
                       <div className="text-[12px] font-medium text-foreground mb-2">Drawdown Frequency</div>
                       <div className="h-56">
                         {drawdownFrequencySeries.length > 0 ? (
