@@ -1126,7 +1126,7 @@ const FundAnalytics = () => {
               {/* Performance Explorer */}
               <SectionHeader icon={Activity} title="Performance Explorer" />
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch">
-                <div className="no-cards-right bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                <div className="no-cards-right bg-surface border border-border/60 rounded-2xl p-4 shadow-sm overflow-visible">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
                       <div className="text-[13px] font-semibold text-foreground">Monthly Breakdown</div>
@@ -1353,7 +1353,7 @@ const FundAnalytics = () => {
                     <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Percentages</div>
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
-                    <div className="no-cards-right group relative rounded-xl border border-border/60 bg-card px-4 py-3 text-center">
+                    <div className="analytics-card group relative px-4 py-3 text-center z-10">
                       <div className="flex items-center justify-center gap-3">
                         <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Current Drawdown</div>
                         <div className="text-[22px] font-semibold text-negative">
@@ -1362,7 +1362,7 @@ const FundAnalytics = () => {
                             : "-"}
                         </div>
                       </div>
-                      <div className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-[260px] -translate-x-1/2 rounded-md border border-border bg-popover px-3 py-2 text-[11px] text-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100">
+                      <div className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 w-[260px] -translate-x-1/2 rounded-md border border-border bg-popover px-3 py-2 text-[11px] text-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100">
                         <div className="font-semibold">Current Drawdown Details</div>
                         <div className="mt-2 space-y-1">
                           <div className="text-muted-foreground">
@@ -1405,7 +1405,7 @@ const FundAnalytics = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="no-cards-right group relative rounded-xl border border-border/60 bg-card px-4 py-3 text-center">
+                    <div className="analytics-card group relative px-4 py-3 text-center z-10">
                       <div className="flex items-center justify-center gap-3">
                         <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max Drawdown</div>
                         <div className="text-[26px] font-semibold text-negative text-center">
@@ -1414,7 +1414,7 @@ const FundAnalytics = () => {
                             : "-"}
                         </div>
                       </div>
-                      <div className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-[260px] -translate-x-1/2 rounded-md border border-border bg-popover px-3 py-2 text-[11px] text-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100">
+                      <div className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 w-[260px] -translate-x-1/2 rounded-md border border-border bg-popover px-3 py-2 text-[11px] text-foreground shadow-md opacity-0 transition-opacity group-hover:opacity-100">
                         <div className="font-semibold">Max Drawdown Details</div>
                         <div className="mt-2 space-y-1">
                           <div className="text-muted-foreground">
