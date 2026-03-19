@@ -121,9 +121,13 @@
     box-shadow: 0 16px 30px -24px hsl(var(--foreground) / 0.35);
     transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
   }
-  .analytics-metric {
-    min-width: 140px;
-    min-height: 70px;
+  .analytics-metric-abs {
+    width: 140px;
+    height: 80px;
+  }
+  .analytics-metric-year {
+    width: 140px;
+    height: 90px;
   }
   .analytics-card:hover {
     transform: translateY(-1px);
