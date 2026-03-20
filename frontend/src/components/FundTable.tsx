@@ -107,13 +107,18 @@ const FundTable = ({ filters }: FundTableProps) => {
       </div>
 
       <div className="flex-1 overflow-auto scrollbar-thin">
-        <table className="w-full border-separate border-spacing-0">
-          <thead>
-            <tr className="bg-surface border-b border-border">
+        <table className="w-full min-w-[640px] table-fixed border-separate border-spacing-0">
+          <colgroup>
+            {columns.map((col) => (
+              <col key={String(col.key)} style={{ width: `${100 / columns.length}%` }} />
+            ))}
+          </colgroup>
+          <thead className="sticky top-0 z-20 bg-surface">
+            <tr className="border-b border-border">
               {columns.map((col) => (
                 <th
                   key={String(col.key)}
-                  className={`sticky top-0 z-20 px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface shadow-[0_1px_0_0_hsl(var(--border))] ${
+                  className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface shadow-[0_1px_0_0_hsl(var(--border))] ${
                     col.align === "right" ? "text-right" : "text-left"
                   }`}
                 >
@@ -168,7 +173,7 @@ const FundTable = ({ filters }: FundTableProps) => {
             <button
               onClick={() => fetchPage(items.length, true)}
               disabled={loading}
-              className="px-4 py-2 border border-border rounded-md text-[13px] font-medium text-foreground hover:bg-surface-hover transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-[13px] font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               {loading ? "Loading..." : "Load more"}
             </button>
