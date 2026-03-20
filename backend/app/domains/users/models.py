@@ -36,12 +36,13 @@ class UserWatchlistORM(Base):
         index=True,
         nullable=False
     )
-    scheme_code = Column(
-        BigInteger,
-        ForeignKey(f"{TABLE_NAME_1}.scheme_code", ondelete="CASCADE"),
+    scheme_id = Column(
+        Integer,
+        ForeignKey(f"{TABLE_NAME_1}.id", ondelete="CASCADE"),
         index=True,
         nullable=False
     )
+    scheme_code = Column(BigInteger, index=True, nullable=False)
     watchlist_name = Column(String, nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -51,7 +52,7 @@ class UserWatchlistORM(Base):
         UniqueConstraint(
             "uid",
             "watchlist_name",
-            "scheme_code",
+            "scheme_id",
         ),
     )
 

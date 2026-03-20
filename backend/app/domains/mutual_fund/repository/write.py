@@ -144,13 +144,31 @@ def bulk_upsert_schema(session, data: list[dict]):
 
 """Bulk insert or update complete mutual fund analytics JSON"""
 def bulk_upsert_analytics(session, data: list[dict]):
+    scheme_codes = [
+        item["meta"]["scheme_code"]
+        for item in data
+        if "meta" in item and "scheme_code" in item["meta"]
+    ]
+
+    if not scheme_codes:
+        return
+
+    mapping = dict(
+        session.query(SchemeMetaORM.scheme_code, SchemeMetaORM.id)
+        .filter(SchemeMetaORM.scheme_code.in_(scheme_codes))
+        .all()
+    )
+
     rows = [
         {
+            "scheme_id": mapping[item["meta"]["scheme_code"]],
             "scheme_code": item["meta"]["scheme_code"],
             "full_data": item
         }
         for item in data
-        if "meta" in item and "scheme_code" in item["meta"]
+        if "meta" in item
+        and "scheme_code" in item["meta"]
+        and item["meta"]["scheme_code"] in mapping
     ]
 
     if not rows:
@@ -159,7 +177,7 @@ def bulk_upsert_analytics(session, data: list[dict]):
     stmt = insert(SchemeAnalyticsORM).values(rows)
 
     stmt = stmt.on_conflict_do_update(
-        index_elements=["scheme_code"],
+        index_elements=["scheme_id"],
         set_={
             "updated_at": func.now(),
             "full_data": stmt.excluded.full_data

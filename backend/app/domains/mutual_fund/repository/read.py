@@ -95,7 +95,8 @@ def get_scheme_analytics(scheme_code: int):
     with get_session() as db:
         result = (
             db.query(SchemeAnalyticsORM.full_data)
-            .filter(SchemeAnalyticsORM.scheme_code == scheme_code)
+            .join(SchemeMetaORM, SchemeAnalyticsORM.scheme_id == SchemeMetaORM.id)
+            .filter(SchemeMetaORM.scheme_code == scheme_code)
             .first()
         )
 

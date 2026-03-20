@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import insert
 from app.core.logging import logger
 from app.db.session import get_session
 from app.domains.users.models import UserORM, UserWatchlistORM, UserFilterORM
+from app.domains.mutual_fund.models import SchemeMetaORM
 
 
 def upsert_user(user: dict) -> None:
@@ -31,15 +32,24 @@ def add_watchlist_item(uid: str, scheme_code: int, watchlist_name: str) -> None:
     """Add a watchlist item for a user."""
     with get_session() as session:
         try:
+            scheme_id = (
+                session.query(SchemeMetaORM.id)
+                .filter(SchemeMetaORM.scheme_code == scheme_code)
+                .scalar()
+            )
+            if scheme_id is None:
+                raise ValueError(f"Invalid scheme_code: {scheme_code}")
+
             stmt = insert(UserWatchlistORM).values(
                 {
                     "uid": uid,
+                    "scheme_id": scheme_id,
                     "scheme_code": scheme_code,
                     "watchlist_name": watchlist_name,
                 }
             )
             stmt = stmt.on_conflict_do_nothing(
-                index_elements=["uid", "watchlist_name", "scheme_code"]
+                index_elements=["uid", "watchlist_name", "scheme_id"]
             )
             session.execute(stmt)
             session.commit()
@@ -53,12 +63,20 @@ def delete_watchlist_item(uid: str, scheme_code: int, watchlist_name: str) -> in
     """Delete a watchlist item for a user. Returns rows deleted."""
     with get_session() as session:
         try:
+            scheme_id = (
+                session.query(SchemeMetaORM.id)
+                .filter(SchemeMetaORM.scheme_code == scheme_code)
+                .scalar()
+            )
+            if scheme_id is None:
+                return 0
+
             deleted = (
                 session.query(UserWatchlistORM)
                 .filter(
                     UserWatchlistORM.uid == uid,
                     UserWatchlistORM.watchlist_name == watchlist_name,
-                    UserWatchlistORM.scheme_code == scheme_code,
+                    UserWatchlistORM.scheme_id == scheme_id,
                 )
                 .delete(synchronize_session=False)
             )

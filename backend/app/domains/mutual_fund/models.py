@@ -15,6 +15,8 @@ class SchemeMetaORM(Base):
     __tablename__ = TABLE_NAME_1
 
     id = Column(Integer, primary_key=True, index=True)
+
+    # External IDs system should not rely on - used only for reference and debugging
     scheme_code = Column(BigInteger, unique=True, index=True, nullable=False)
 
     # Meta Information
@@ -122,13 +124,14 @@ class SchemeAnalyticsORM(Base):
     __tablename__ = TABLE_NAME_2
 
     id = Column(Integer, primary_key=True, index=True)
-    scheme_code = Column(
-        BigInteger,
-        ForeignKey(f"{TABLE_NAME_1}.scheme_code", ondelete="CASCADE"),
+    scheme_id = Column(
+        Integer,
+        ForeignKey(f"{TABLE_NAME_1}.id", ondelete="CASCADE"),
         unique=True,
         index=True,
         nullable=False
     )
+    scheme_code = Column(BigInteger, index=True, nullable=False)
     full_data = Column(JSONB)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
