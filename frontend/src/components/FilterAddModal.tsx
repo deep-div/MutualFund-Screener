@@ -46,7 +46,7 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
       className="absolute inset-0 z-50"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/10" />
+      <div className="absolute inset-0 bg-transparent" />
       <motion.div
         initial={{ x: -420 }}
         animate={{ x: 0 }}

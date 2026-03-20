@@ -83,7 +83,7 @@ const FilterSidebar = ({
 
   return (
     <>
-      <div className="w-72 border-r border-border bg-surface flex flex-col h-full">
+      <div className="w-72 border-r border-border bg-background flex flex-col h-full">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <span className="text-[13px] text-muted-foreground">
             {activeCount} filter{activeCount === 1 ? "" : "s"} applied
