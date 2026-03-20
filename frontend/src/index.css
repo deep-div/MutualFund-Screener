@@ -82,6 +82,60 @@
     background: hsl(var(--border));
     border-radius: 2px;
   }
+
+  .range-input {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    pointer-events: none;
+  }
+  .range-input::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: hsl(var(--primary));
+    position: relative;
+    z-index: 1;
+  }
+  .range-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    position: relative;
+    z-index: 2;
+    height: 14px;
+    width: 14px;
+    border-radius: 999px;
+    background: hsl(var(--primary));
+    border: 2px solid hsl(var(--background));
+    box-shadow: 0 0 0 1px hsl(var(--border));
+    margin-top: -6px;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .range-input::-moz-range-track {
+    height: 4px;
+    border-radius: 999px;
+    background: hsl(var(--primary));
+    position: relative;
+    z-index: 1;
+  }
+  .range-input::-moz-range-thumb {
+    position: relative;
+    z-index: 2;
+    height: 14px;
+    width: 14px;
+    border-radius: 999px;
+    background: hsl(var(--primary));
+    border: 2px solid hsl(var(--background));
+    box-shadow: 0 0 0 1px hsl(var(--border));
+    transform: translateY(-1px);
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .range-input--min {
+    z-index: 30;
+  }
+  .range-input--max {
+    z-index: 20;
+  }
 }
 
 @layer utilities {

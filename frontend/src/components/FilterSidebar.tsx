@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, Plus, Check } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import FilterAddModal from "./FilterAddModal";
@@ -38,6 +38,7 @@ const FilterSidebar = ({
     hybrid: false,
     others: false,
   });
+  const [draftRanges, setDraftRanges] = useState<Record<string, { gte?: number | ""; lte?: number | "" }>>({});
 
   const filtersToRender = useMemo(() => {
     const unique = Array.from(new Set([...PINNED_FILTERS, ...enabledFilters]));
@@ -47,6 +48,16 @@ const FilterSidebar = ({
       .filter((filter) => filter.id !== "scheme_class");
   }, [enabledFilters]);
 
+  useEffect(() => {
+    const next: Record<string, { gte?: number | ""; lte?: number | "" }> = {};
+    Object.entries(values).forEach(([id, value]) => {
+      if (value?.gte !== undefined || value?.lte !== undefined) {
+        next[id] = { ...value };
+      }
+    });
+    setDraftRanges(next);
+  }, [values]);
+
   const toggleFilter = (id: string) => {
     setExpandedFilters((prev) => ({ ...prev, [id]: !prev[id] }));
   };
@@ -54,6 +65,20 @@ const FilterSidebar = ({
   const updateRange = (filterId: string, key: "gte" | "lte", value: string) => {
     const parsed = value === "" ? "" : Number(value);
     onChangeValue(filterId, { ...values[filterId], [key]: parsed });
+  };
+
+  const updateDraftRange = (filterId: string, key: "gte" | "lte", value: string) => {
+    const parsed = value === "" ? "" : Number(value);
+    setDraftRanges((prev) => ({
+      ...prev,
+      [filterId]: { ...values[filterId], ...prev[filterId], [key]: parsed },
+    }));
+  };
+
+  const commitDraftRange = (filterId: string) => {
+    const draft = draftRanges[filterId];
+    if (!draft) return;
+    onChangeValue(filterId, draft);
   };
 
   const getRangeBounds = (filterId: string, label: string) => {
@@ -130,6 +155,7 @@ const FilterSidebar = ({
         <div className="flex-1 overflow-y-auto scrollbar-thin">
           {filtersToRender.map((filter) => {
             const currentValue = values[filter.id] || {};
+            const draftValue = draftRanges[filter.id] ?? currentValue;
             const isExpanded = Boolean(expandedFilters[filter.id]);
             return (
               <div key={filter.id} className="border-b border-border">
@@ -180,7 +206,7 @@ const FilterSidebar = ({
                               const selected = getSegmentSelection(currentValue, min, max);
                               return (
                                 <>
-                                  <div className="space-y-2">
+                                  <div className="space-y-2 pt-2">
                                     <div className="relative h-4">
                                       <input
                                         type="range"
@@ -188,12 +214,15 @@ const FilterSidebar = ({
                                         max={max}
                                         step={step}
                                         value={
-                                          currentValue.gte !== undefined && currentValue.gte !== ""
-                                            ? Number(currentValue.gte)
+                                          draftValue.gte !== undefined && draftValue.gte !== ""
+                                            ? Number(draftValue.gte)
                                             : min
                                         }
-                                        onChange={(e) => updateRange(filter.id, "gte", e.target.value)}
-                                        className="absolute left-0 right-0 top-0 w-full accent-primary"
+                                        onChange={(e) => updateDraftRange(filter.id, "gte", e.target.value)}
+                                        onPointerUp={() => commitDraftRange(filter.id)}
+                                        onPointerCancel={() => commitDraftRange(filter.id)}
+                                        onKeyUp={() => commitDraftRange(filter.id)}
+                                        className="range-input range-input--min absolute left-0 right-0 top-0 w-full"
                                       />
                                       <input
                                         type="range"
@@ -201,18 +230,21 @@ const FilterSidebar = ({
                                         max={max}
                                         step={step}
                                         value={
-                                          currentValue.lte !== undefined && currentValue.lte !== ""
-                                            ? Number(currentValue.lte)
+                                          draftValue.lte !== undefined && draftValue.lte !== ""
+                                            ? Number(draftValue.lte)
                                             : max
                                         }
-                                        onChange={(e) => updateRange(filter.id, "lte", e.target.value)}
-                                        className="absolute left-0 right-0 top-0 w-full accent-primary"
+                                        onChange={(e) => updateDraftRange(filter.id, "lte", e.target.value)}
+                                        onPointerUp={() => commitDraftRange(filter.id)}
+                                        onPointerCancel={() => commitDraftRange(filter.id)}
+                                        onKeyUp={() => commitDraftRange(filter.id)}
+                                        className="range-input range-input--max absolute left-0 right-0 top-0 w-full"
                                       />
                                     </div>
                                     <div className="flex items-center gap-3">
                                       <input
                                         type="number"
-                                        value={currentValue.gte ?? ""}
+                                        value={draftValue.gte ?? ""}
                                         onChange={(e) => updateRange(filter.id, "gte", e.target.value)}
                                         placeholder={String(min)}
                                         className="w-full bg-secondary border border-border rounded-md px-2 py-1.5 text-[12px] font-mono-data text-foreground text-center outline-none focus:border-primary"
@@ -220,7 +252,7 @@ const FilterSidebar = ({
                                       <span className="text-[12px] text-muted-foreground">to</span>
                                       <input
                                         type="number"
-                                        value={currentValue.lte ?? ""}
+                                        value={draftValue.lte ?? ""}
                                         onChange={(e) => updateRange(filter.id, "lte", e.target.value)}
                                         placeholder={String(max)}
                                         className="w-full bg-secondary border border-border rounded-md px-2 py-1.5 text-[12px] font-mono-data text-foreground text-center outline-none focus:border-primary"
