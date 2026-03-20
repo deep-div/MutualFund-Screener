@@ -9,21 +9,9 @@ const columns: Array<{
   key: keyof SchemeListItem;
   label: string;
   align: "left" | "right";
-  format?: "number" | "percent";
 }> = [
   { key: "scheme_sub_name", label: "Name", align: "left" },
   { key: "scheme_sub_category", label: "Sub Category", align: "left" },
-  { key: "scheme_class", label: "Class", align: "left" },
-  { key: "current_nav", label: "NAV", align: "right", format: "number" },
-  { key: "abs_3m", label: "Abs 3M (%)", align: "right", format: "percent" },
-  { key: "abs_6m", label: "Abs 6M (%)", align: "right", format: "percent" },
-  { key: "cagr_1y", label: "CAGR 1Y (%)", align: "right", format: "percent" },
-  { key: "cagr_3y", label: "CAGR 3Y (%)", align: "right", format: "percent" },
-  { key: "cagr_5y", label: "CAGR 5Y (%)", align: "right", format: "percent" },
-  { key: "rolling_avg_1y", label: "Rolling Avg 1Y (%)", align: "right", format: "percent" },
-  { key: "volatility_max", label: "Volatility Max", align: "right", format: "percent" },
-  { key: "sharpe_max", label: "Sharpe Max", align: "right", format: "number" },
-  { key: "mdd_max_drawdown_percent", label: "Max Drawdown (%)", align: "right", format: "percent" },
 ];
 
 interface FundTableProps {
@@ -31,8 +19,8 @@ interface FundTableProps {
 }
 
 const FundTable = ({ filters }: FundTableProps) => {
-  const [sortKey, setSortKey] = useState<keyof SchemeListItem>("scheme_sub_name");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [sortKey] = useState<keyof SchemeListItem>("scheme_sub_name");
+  const [sortDir] = useState<"asc" | "desc">("asc");
   const [items, setItems] = useState<SchemeListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -40,23 +28,8 @@ const FundTable = ({ filters }: FundTableProps) => {
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
 
-  const handleSort = (key: keyof SchemeListItem) => {
-    if (sortKey === key) {
-      setSortDir(sortDir === "asc" ? "desc" : "asc");
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-  };
-
-  const formatNumber = (val: number, format?: "number" | "percent") => {
-    if (format === "percent") return val.toFixed(2);
+  const formatNumber = (val: number) => {
     return val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
-
-  const getReturnColor = (val: number | null | undefined) => {
-    if (typeof val !== "number") return "text-muted-foreground";
-    return val >= 0 ? "text-positive" : "text-negative";
   };
 
   const fetchPage = async (nextOffset: number, append: boolean) => {
@@ -144,13 +117,12 @@ const FundTable = ({ filters }: FundTableProps) => {
               {columns.map((col) => (
                 <th
                   key={String(col.key)}
-                  onClick={() => handleSort(col.key)}
-                  className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors whitespace-nowrap ${
+                  className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap ${
                     col.align === "right" ? "text-right" : "text-left"
                   }`}
                 >
                   {col.label}
-                  {sortKey === col.key && <span className="ml-1">{sortDir === "asc" ? "^" : "v"}</span>}
+                  {col.key === "scheme_sub_name" && <span className="ml-1">^</span>}
                 </th>
               ))}
             </tr>
@@ -179,23 +151,12 @@ const FundTable = ({ filters }: FundTableProps) => {
                     );
                   }
 
-                  if (typeof value === "number") {
-                    return (
-                      <td
-                        key={String(col.key)}
-                        className={`px-3 py-3 text-[13px] font-mono-data text-right ${getReturnColor(value)}`}
-                      >
-                        {formatNumber(value, col.format)}
-                      </td>
-                    );
-                  }
-
                   return (
                     <td
                       key={String(col.key)}
                       className={`px-3 py-3 text-[13px] ${col.align === "right" ? "text-right" : "text-left"} text-foreground`}
                     >
-                      {typeof value === "string" && value ? value : "-"}
+                      {typeof value === "string" && value ? value : typeof value === "number" ? formatNumber(value) : "-"}
                     </td>
                   );
                 })}

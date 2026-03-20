@@ -27,11 +27,11 @@ const FilterSidebar = ({
   onChangeValue,
   onReset,
 }: FilterSidebarProps) => {
-  const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
+  const [expandedFilter, setExpandedFilter] = useState<string | null>("scheme_sub_category");
   const [showAddFilter, setShowAddFilter] = useState(false);
   const [subCategorySearch, setSubCategorySearch] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    equity: true,
+    equity: false,
     debt: false,
     hybrid: false,
     others: false,
@@ -42,6 +42,7 @@ const FilterSidebar = ({
     return unique
       .map((id) => FILTER_DEFINITIONS_BY_ID[id])
       .filter((filter): filter is FilterDefinition => Boolean(filter))
+      .filter((filter) => filter.id !== "scheme_class")
       .sort((a, b) => {
         if (a.pinned && !b.pinned) return -1;
         if (!a.pinned && b.pinned) return 1;
@@ -173,7 +174,7 @@ const FilterSidebar = ({
                                     onClick={() =>
                                       setExpandedGroups((prev) => ({ ...prev, [group.id]: !prev[group.id] }))
                                     }
-                                    className="w-full flex items-center justify-between px-2 py-1.5 rounded border border-border text-[12px] text-foreground hover:bg-surface-hover transition-colors"
+                                    className="w-full flex items-center justify-between px-1 py-1 text-[12px] text-foreground hover:bg-surface-hover transition-colors"
                                   >
                                     <div className="flex items-center gap-2">
                                       <div
@@ -213,14 +214,14 @@ const FilterSidebar = ({
                                           <button
                                             key={option}
                                             onClick={() => {
-                                              updateSingle(filter.id, option);
-                                              onChangeValue("scheme_class", { value: groupSchemeClass });
+                                              if (isSelected) {
+                                                clearFilter(filter.id);
+                                              } else {
+                                                updateSingle(filter.id, option);
+                                                onChangeValue("scheme_class", { value: groupSchemeClass });
+                                              }
                                             }}
-                                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded border text-[12px] transition-colors ${
-                                              isSelected
-                                                ? "border-primary bg-primary/10 text-foreground"
-                                                : "border-border text-muted-foreground hover:text-foreground hover:bg-surface-hover"
-                                            }`}
+                                            className="w-full flex items-center gap-2 px-1 py-1 text-[12px] text-muted-foreground hover:text-foreground hover:bg-surface-hover transition-colors"
                                           >
                                             <div
                                               className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
@@ -231,7 +232,7 @@ const FilterSidebar = ({
                                             >
                                               {isSelected && <Check className="w-3 h-3" />}
                                             </div>
-                                            <span>{option}</span>
+                                            <span className={isSelected ? "text-foreground" : undefined}>{option}</span>
                                           </button>
                                         );
                                       })}
@@ -240,12 +241,6 @@ const FilterSidebar = ({
                                 </div>
                               );
                             })}
-                            <button
-                              onClick={() => clearFilter(filter.id)}
-                              className="text-[11px] text-muted-foreground hover:underline"
-                            >
-                              Clear selection
-                            </button>
                           </div>
                         )}
 

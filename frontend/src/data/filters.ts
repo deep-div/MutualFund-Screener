@@ -115,7 +115,7 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
   },
   {
     id: "scheme_sub_category",
-    label: "Scheme Sub Category",
+    label: "Category",
     type: "single",
     category: "scheme",
     groupedOptions: SCHEME_SUB_CATEGORY_GROUPS,
