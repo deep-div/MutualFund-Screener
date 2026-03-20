@@ -158,7 +158,7 @@ const FundTable = ({ filters }: FundTableProps) => {
                       <td key={String(col.key)} className="px-3 py-3">
                         <Link
                           to={schemePath}
-                          className="block text-[13px] font-medium text-primary hover:underline"
+                          className="block text-[13px] font-medium text-primary hover:no-underline cursor-pointer"
                         >
                           {typeof value === "string" && value ? value : "-"}
                         </Link>
