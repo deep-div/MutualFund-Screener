@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Pencil, Share2, Lock } from "lucide-react";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
@@ -21,7 +21,6 @@ interface FundTableProps {
 }
 
 const FundTable = ({ filters }: FundTableProps) => {
-  const navigate = useNavigate();
   const [sortKey] = useState<keyof SchemeListItem>("scheme_sub_name");
   const [sortDir] = useState<"asc" | "desc">("asc");
   const [items, setItems] = useState<SchemeListItem[]>([]);
@@ -41,6 +40,12 @@ const FundTable = ({ filters }: FundTableProps) => {
       .replace(/&/g, "and")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+
+  const getSchemePath = (fund: SchemeListItem) => {
+    const schemeId = fund.scheme_id;
+    const schemeSlug = toSchemeSlug(fund.scheme_sub_name ?? "scheme");
+    return schemeId ? `/${schemeSlug}/${schemeId}` : "#";
+  };
 
   const fetchPage = async (nextOffset: number, append: boolean) => {
     setLoading(true);
@@ -143,21 +148,20 @@ const FundTable = ({ filters }: FundTableProps) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: index * 0.02 }}
-                onClick={() => {
-                  if (!fund.scheme_id) return;
-                  const schemeSlug = toSchemeSlug(fund.scheme_sub_name ?? "scheme");
-                  navigate(`/${schemeSlug}/${fund.scheme_id}`);
-                }}
                 className="border-b border-border hover:bg-surface-hover/50 transition-colors cursor-pointer group"
               >
                 {columns.map((col) => {
                   const value = fund[col.key];
+                  const schemePath = getSchemePath(fund);
                   if (col.key === "scheme_sub_name") {
                     return (
                       <td key={String(col.key)} className="px-3 py-3">
-                        <span className="text-[13px] font-medium text-primary hover:underline">
+                        <Link
+                          to={schemePath}
+                          className="block text-[13px] font-medium text-primary hover:underline"
+                        >
                           {typeof value === "string" && value ? value : "-"}
-                        </span>
+                        </Link>
                       </td>
                     );
                   }
@@ -167,7 +171,13 @@ const FundTable = ({ filters }: FundTableProps) => {
                       key={String(col.key)}
                       className={`px-3 py-3 text-[13px] ${col.align === "right" ? "text-right" : "text-left"} text-foreground`}
                     >
-                      {typeof value === "string" && value ? value : typeof value === "number" ? formatNumber(value) : "-"}
+                      <Link to={schemePath} className="block">
+                        {typeof value === "string" && value
+                          ? value
+                          : typeof value === "number"
+                            ? formatNumber(value)
+                            : "-"}
+                      </Link>
                     </td>
                   );
                 })}

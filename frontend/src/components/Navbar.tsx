@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Search, ChevronDown, LogOut, User, Bookmark } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
@@ -118,13 +118,13 @@ const Navbar = () => {
       <nav className="h-14 bg-nav border-b border-nav-hover flex items-center px-6 relative z-40">
 
         {/* LEFT: Logo */}
-        <div
-          onClick={() => navigate("/")}
-          className="flex items-center gap-2 text-nav-foreground font-bold text-lg tracking-tight cursor-pointer"
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-nav-foreground font-bold text-lg tracking-tight"
         >
           <img src="/logo.svg" alt="Screener logo" className="w-8 h-8" />
           MF Screener
-        </div>
+        </Link>
 
         {/* CENTER: Nav + Search (Centered, no empty space) */}
         <div className="flex-1 flex items-center justify-center gap-6">
@@ -188,12 +188,11 @@ const Navbar = () => {
                       const schemeSlug = toSchemeSlug(item.scheme_sub_name);
 
                       return (
-                        <button
+                        <Link
                           key={schemeId ?? item.scheme_sub_name}
-                          type="button"
+                          to={`/${schemeSlug}/${schemeId}`}
                           onClick={() => {
                             if (schemeId === undefined || schemeId === null) return;
-                            navigate(`/${schemeSlug}/${schemeId}`);
                             setSearchOpen(false);
                             setSearchFocused(false);
                           }}
@@ -229,7 +228,7 @@ const Navbar = () => {
                               </span>
                             </div>
                           </div>
-                        </button>
+                        </Link>
                       );
                     })}
                   </div>
