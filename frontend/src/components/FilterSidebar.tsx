@@ -42,12 +42,7 @@ const FilterSidebar = ({
     return unique
       .map((id) => FILTER_DEFINITIONS_BY_ID[id])
       .filter((filter): filter is FilterDefinition => Boolean(filter))
-      .filter((filter) => filter.id !== "scheme_class")
-      .sort((a, b) => {
-        if (a.pinned && !b.pinned) return -1;
-        if (!a.pinned && b.pinned) return 1;
-        return a.label.localeCompare(b.label);
-      });
+      .filter((filter) => filter.id !== "scheme_class");
   }, [enabledFilters]);
 
   const toggleFilter = (id: string) => {
