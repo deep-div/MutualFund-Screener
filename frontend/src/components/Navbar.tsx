@@ -4,6 +4,7 @@ import { Search, ChevronDown, LogOut, User, Bookmark } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +30,8 @@ const toSchemeSlug = (value: string) =>
     .replace(/&/g, "and")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+
+const SEARCH_SKELETON_ROWS = 6;
 
 const Navbar = () => {
   const { isLoggedIn, user, logout, loading } = useAuth();
@@ -171,7 +174,24 @@ const Navbar = () => {
             {searchOpen && (
               <div className="absolute left-0 right-0 top-full -mt-px bg-white border border-slate-200 border-t-0 rounded-b-xl shadow-2xl overflow-hidden z-50 antialiased">
                 {searchLoading ? (
-                  <div className="px-4 py-3 text-[13px] text-slate-500">Searching...</div>
+                  <div className="px-4 py-3 space-y-3">
+                    {Array.from({ length: SEARCH_SKELETON_ROWS }).map((_, index) => (
+                      <div key={`search-skel-${index}`} className="flex items-center justify-between gap-4">
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <Skeleton className="h-3 w-56" />
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="h-2.5 w-16" />
+                            <Skeleton className="h-2.5 w-2.5 rounded-full" />
+                            <Skeleton className="h-2.5 w-28" />
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <Skeleton className="h-3 w-16" />
+                          <Skeleton className="h-2.5 w-12" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 ) : searchError ? (
                   <div className="px-4 py-3 text-[13px] text-red-500">{searchError}</div>
                 ) : searchResults.length === 0 ? (
