@@ -43,7 +43,7 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50"
+      className="absolute inset-0 z-50"
       onClick={onClose}
     >
       <div className="absolute inset-0 bg-black/10" />
@@ -53,17 +53,13 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
         exit={{ x: -420 }}
         transition={{ type: "spring", stiffness: 280, damping: 30 }}
         onClick={(e) => e.stopPropagation()}
-        className="absolute left-[288px] top-6 bottom-6 w-[640px] bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+        className="absolute left-72 top-0 bottom-0 w-[640px] bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col"
       >
         <div className="flex items-center justify-between px-5 py-3 border-b border-border">
           <div>
             <h2 className="text-[15px] font-semibold text-foreground">Add Filters</h2>
-            <p className="text-[12px] text-muted-foreground">Pick from over 50 filters</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="px-3 py-1.5 text-[12px] font-medium text-foreground border border-border rounded-md hover:bg-surface-hover transition-colors">
-              Custom
-            </button>
             <div className="flex items-center gap-2 bg-background border border-border rounded-md px-3 py-1.5 w-52">
               <Search className="w-3.5 h-3.5 text-muted-foreground" />
               <input
@@ -107,7 +103,7 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
                     onClick={() => toggleFilter(filter.id)}
                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                       checked
-                        ? "bg-foreground border-foreground text-background"
+                        ? "bg-primary border-primary text-primary-foreground"
                         : "border-border hover:border-muted-foreground"
                     }`}
                   >
@@ -122,8 +118,6 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
 
         <div className="mt-auto flex items-center justify-between px-6 py-3 border-t border-border bg-popover">
           <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
-            <span className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center text-[10px] text-primary">i</span>
-            Learn more about <button className="text-primary hover:underline">Filters</button>
           </div>
           <button
             onClick={onClose}
