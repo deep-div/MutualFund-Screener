@@ -5,7 +5,7 @@ const TickerTape = () => {
   const items = [...TICKER_DATA, ...TICKER_DATA];
 
   return (
-    <div className="h-8 bg-nav border-b border-nav-hover overflow-hidden flex items-center relative z-50">
+    <div className="h-8 bg-nav border-b border-nav-hover overflow-hidden flex items-center relative z-[70]">
       <button className="absolute left-0 z-10 h-full px-1.5 bg-nav border-r border-nav-foreground/10 hover:bg-nav-hover transition-colors">
         <ChevronLeft className="w-3.5 h-3.5 text-nav-foreground/50" />
       </button>

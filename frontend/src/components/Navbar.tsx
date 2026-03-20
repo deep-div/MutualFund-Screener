@@ -110,7 +110,7 @@ const Navbar = () => {
     <>
       {isSearchActive && (
         <div
-          className="fixed inset-0 bg-black/45 z-45"
+          className="fixed inset-0 bg-black/60 z-[55]"
           onClick={() => {
             setSearchOpen(false);
             setSearchFocused(false);
@@ -118,7 +118,7 @@ const Navbar = () => {
         />
       )}
 
-      <nav className="h-14 bg-nav border-b border-nav-hover flex items-center px-6 relative z-40">
+      <nav className="h-14 bg-nav border-b border-nav-hover flex items-center px-6 relative z-[70]">
 
         {/* LEFT: Logo */}
         <Link
@@ -145,7 +145,7 @@ const Navbar = () => {
           </div>
 
           {/* SEARCH */}
-          <div ref={searchRef} className="relative w-full max-w-md z-60">
+          <div ref={searchRef} className="relative w-full max-w-md z-[80]">
             <div
               className={`flex items-center gap-2 w-full border transition-all ${
                 searchOpen || searchFocused
@@ -172,7 +172,7 @@ const Navbar = () => {
             </div>
 
             {searchOpen && (
-              <div className="absolute left-0 right-0 top-full -mt-px bg-white border border-slate-200 border-t-0 rounded-b-xl shadow-2xl overflow-hidden z-50 antialiased">
+              <div className="absolute left-0 right-0 top-full -mt-px bg-white border border-slate-200 border-t-0 rounded-b-xl shadow-2xl overflow-hidden z-[90] antialiased">
                 {searchLoading ? (
                   <div className="px-4 py-3 space-y-3">
                     {Array.from({ length: SEARCH_SKELETON_ROWS }).map((_, index) => (
