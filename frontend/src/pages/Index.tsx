@@ -73,7 +73,7 @@ const Index = () => {
           onChangeValue={handleValueChange}
           onReset={handleReset}
         />
-        <FundTable filters={filtersPayload} enabledFilters={enabledFilters} filterValues={filterValues} />
+        <FundTable filters={filtersPayload} enabledFilters={enabledFilters} />
       </div>
     </div>
   );

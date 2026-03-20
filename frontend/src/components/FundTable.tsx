@@ -4,12 +4,12 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pencil, Share2, Lock } from "lucide-react";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
-import { FILTER_DEFINITIONS_BY_ID, FilterValueMap } from "@/data/filters";
+import { FILTER_DEFINITIONS_BY_ID } from "@/data/filters";
 
 const LIMIT = 15;
 const SKELETON_ROWS = 10;
 
-const columns: Array<{
+const baseColumns: Array<{
   key: keyof SchemeListItem;
   label: string;
   align: "left" | "right";
@@ -22,12 +22,11 @@ const columns: Array<{
 interface FundTableProps {
   filters: Record<string, Record<string, number | string>>;
   enabledFilters: string[];
-  filterValues: FilterValueMap;
 }
 
-const FundTable = ({ filters, enabledFilters, filterValues }: FundTableProps) => {
-  const [sortKey] = useState<keyof SchemeListItem>("scheme_sub_name");
-  const [sortDir] = useState<"asc" | "desc">("asc");
+const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
+  const [sortKey, setSortKey] = useState<keyof SchemeListItem>("scheme_sub_name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [items, setItems] = useState<SchemeListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -39,20 +38,22 @@ const FundTable = ({ filters, enabledFilters, filterValues }: FundTableProps) =>
     return val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  const formatFilterValue = (id: string) => {
-    const def = FILTER_DEFINITIONS_BY_ID[id];
-    const value = filterValues[id] || {};
-    if (!def) return "Any";
-    if (def.type === "single") {
-      return value.value ? String(value.value) : "Any";
-    }
-    const hasGte = value.gte !== undefined && value.gte !== "";
-    const hasLte = value.lte !== undefined && value.lte !== "";
-    if (hasGte && hasLte) return `${value.gte} - ${value.lte}`;
-    if (hasGte) return `>= ${value.gte}`;
-    if (hasLte) return `<= ${value.lte}`;
-    return "Any";
-  };
+  const columns = useMemo(() => {
+    const baseKeys = new Set(baseColumns.map((col) => String(col.key)));
+    const dynamicColumns = enabledFilters
+      .filter((id) => !baseKeys.has(id))
+      .map((id) => {
+        const def = FILTER_DEFINITIONS_BY_ID[id];
+        const isText =
+          id === "scheme_class" || id === "scheme_sub_name" || id === "scheme_sub_category" || id === "option_type";
+        return {
+          key: id as keyof SchemeListItem,
+          label: def?.label ?? id,
+          align: isText ? "left" : "right",
+        };
+      });
+    return [...baseColumns, ...dynamicColumns];
+  }, [enabledFilters]);
 
   const toSchemeSlug = (value: string) =>
     value
@@ -139,23 +140,6 @@ const FundTable = ({ filters, enabledFilters, filterValues }: FundTableProps) =>
           </div>
         </div>
 
-        <div className="mt-3">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
-            {enabledFilters.map((id) => {
-              const def = FILTER_DEFINITIONS_BY_ID[id];
-              if (!def) return null;
-              return (
-                <div
-                  key={id}
-                  className="flex items-center gap-2 px-2.5 py-1 rounded-full border border-border bg-surface text-[11px] text-foreground whitespace-nowrap"
-                >
-                  <span className="font-medium">{def.label}</span>
-                  <span className="text-muted-foreground">{formatFilterValue(id)}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
       <div className="flex-1 overflow-auto scrollbar-thin">
@@ -165,16 +149,30 @@ const FundTable = ({ filters, enabledFilters, filterValues }: FundTableProps) =>
               <col key={String(col.key)} style={{ width: `${100 / columns.length}%` }} />
             ))}
           </colgroup>
-          <thead className="sticky top-0 z-20 bg-surface-hover">
+          <thead className="sticky top-0 z-20 bg-surface-hover dimmable-header">
             <tr className="border-b border-border">
               {columns.map((col) => (
                 <th
                   key={String(col.key)}
-                  className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface-hover shadow-[0_1px_0_0_hsl(var(--border))] ${
+                  onClick={() => {
+                    const nextKey = col.key;
+                    if (sortKey === nextKey) {
+                      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+                    } else {
+                      setSortKey(nextKey);
+                      setSortDir("desc");
+                    }
+                  }}
+                  className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface-hover shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground ${
                     col.align === "right" ? "text-right" : "text-left"
                   }`}
                 >
-                  {col.label}
+                  <span className="inline-flex items-center gap-1">
+                    {col.label}
+                    {sortKey === col.key && (
+                      <span className="text-[10px] text-foreground">{sortDir === "asc" ? "▲" : "▼"}</span>
+                    )}
+                  </span>
                 </th>
               ))}
             </tr>
@@ -204,7 +202,7 @@ const FundTable = ({ filters, enabledFilters, filterValues }: FundTableProps) =>
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.02 }}
-                    className="border-b border-border hover:bg-surface-hover transition-colors cursor-pointer group"
+                    className="border-b border-border hover:bg-surface-hover transition-colors cursor-pointer group dimmable-row"
                   >
                     {columns.map((col) => {
                       const value = fund[col.key];
