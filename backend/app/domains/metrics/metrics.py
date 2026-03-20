@@ -363,9 +363,13 @@ class NavMetrics:
         if n < 2:
             return 0.0
 
+        annual_factor = self._annualization_factor(filtered)
+        if not annual_factor:
+            return 0.0
+
         mean_return = sum(daily_returns) / n
         variance = sum((r - mean_return) ** 2 for r in daily_returns) / (n - 1)
-        annualized_vol = (variance ** 0.5) * (252 ** 0.5) * 100
+        annualized_vol = (variance ** 0.5) * (annual_factor ** 0.5) * 100
         return round(annualized_vol, 2)
     def _sharpe_ratio(self, start_date, risk_free_rate_annual=0.0):
         """Calculate annualized Sharpe ratio from daily NAV returns"""
@@ -386,7 +390,11 @@ class NavMetrics:
         if n < 2:
             return 0.0
 
-        rf_daily = risk_free_rate_annual / 252
+        annual_factor = self._annualization_factor(filtered)
+        if not annual_factor:
+            return 0.0
+
+        rf_daily = risk_free_rate_annual / annual_factor
         excess_returns = [r - rf_daily for r in daily_returns]
 
         mean_excess = sum(excess_returns) / n
@@ -396,7 +404,7 @@ class NavMetrics:
         if std_dev == 0:
             return 0.0
 
-        sharpe = (mean_excess / std_dev) * (252 ** 0.5)
+        sharpe = (mean_excess / std_dev) * (annual_factor ** 0.5)
         return round(sharpe, 4)
 
     def _calendar_year_return_tuples(self):
@@ -500,7 +508,11 @@ class NavMetrics:
         if n < 2:
             return 0.0
 
-        rf_daily = risk_free_rate_annual / 252
+        annual_factor = self._annualization_factor(filtered)
+        if not annual_factor:
+            return 0.0
+
+        rf_daily = risk_free_rate_annual / annual_factor
         excess_returns = [r - rf_daily for r in daily_returns]
 
         mean_excess = sum(excess_returns) / n
@@ -510,7 +522,7 @@ class NavMetrics:
         if downside_deviation == 0:
             return 0.0
 
-        sortino = (mean_excess / downside_deviation) * (252 ** 0.5)
+        sortino = (mean_excess / downside_deviation) * (annual_factor ** 0.5)
         return round(sortino, 4)
 
     def _skewness(self, start_date):
@@ -589,12 +601,33 @@ class NavMetrics:
         if n < 2:
             return 0.0
 
-        threshold_daily = threshold_annual / 252
+        annual_factor = self._annualization_factor(filtered)
+        if not annual_factor:
+            return 0.0
+
+        threshold_daily = threshold_annual / annual_factor
         downside_squared = [(min(0.0, r - threshold_daily)) ** 2 for r in daily_returns]
         downside_deviation_daily = (sum(downside_squared) / n) ** 0.5
-        downside_deviation_annual_percent = downside_deviation_daily * (252 ** 0.5) * 100
+        downside_deviation_annual_percent = downside_deviation_daily * (annual_factor ** 0.5) * 100
 
         return round(downside_deviation_annual_percent, 2)
+    def _annualization_factor(self, filtered):
+        """Infer annualization factor from NAV frequency in the filtered period"""
+        if len(filtered) < 2:
+            return None
+
+        start_date = filtered[0]["date"]
+        end_date = filtered[-1]["date"]
+        days = (end_date - start_date).days
+        if days <= 0:
+            return None
+
+        years = days / 365.25
+        n_returns = len(filtered) - 1
+        if years <= 0 or n_returns <= 0:
+            return None
+
+        return n_returns / years
     def _calmar_ratio(self, cagr_percent, mdd_percent):
         """Calculate Calmar ratio as CAGR / abs(Max Drawdown)"""
         denominator = abs(mdd_percent)
