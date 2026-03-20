@@ -97,10 +97,10 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
               return (
                 <label
                   key={filter.id}
+                  onClick={() => toggleFilter(filter.id)}
                   className="flex items-center gap-3 px-6 py-2.5 hover:bg-surface-hover transition-colors cursor-pointer"
                 >
                   <div
-                    onClick={() => toggleFilter(filter.id)}
                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                       checked
                         ? "bg-primary border-primary text-primary-foreground"
