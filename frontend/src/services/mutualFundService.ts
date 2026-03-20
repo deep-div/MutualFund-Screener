@@ -159,7 +159,11 @@ export const getSchemeAnalytics = (schemeId: number | string, options?: { signal
   });
 
 export const listSchemes = (
-  payload: { filters: Record<string, Record<string, number | string>>; sort_field: string; sort_order: "asc" | "desc" },
+  payload: {
+    filters: Record<string, Record<string, number | string>>;
+    sort_field?: string;
+    sort_order?: "asc" | "desc";
+  },
   options?: { limit?: number; offset?: number; signal?: AbortSignal }
 ) =>
   apiPost<SchemeListResponse, typeof payload>("/api/v1/schemes", payload, {

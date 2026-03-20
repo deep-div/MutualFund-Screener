@@ -25,8 +25,8 @@ interface FundTableProps {
 }
 
 const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
-  const [sortKey, setSortKey] = useState<keyof SchemeListItem>("scheme_sub_name");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [sortKey, setSortKey] = useState<keyof SchemeListItem | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [items, setItems] = useState<SchemeListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -70,14 +70,16 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await listSchemes(
-        {
-          filters,
-          sort_field: String(sortKey),
-          sort_order: sortDir,
-        },
-        { limit: LIMIT, offset: nextOffset }
-      );
+      const payload: {
+        filters: Record<string, Record<string, number | string>>;
+        sort_field?: string;
+        sort_order?: "asc" | "desc";
+      } = { filters };
+      if (sortKey) {
+        payload.sort_field = String(sortKey);
+        payload.sort_order = sortDir;
+      }
+      const response = await listSchemes(payload, { limit: LIMIT, offset: nextOffset });
       setTotal(response.total);
       setItems((prev) => (append ? [...prev, ...response.items] : response.items));
     } catch (err) {
@@ -162,13 +164,26 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
                       setSortDir("desc");
                     }
                   }}
-                  className="px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface-hover shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center"
+                  className="px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface-hover shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group"
                 >
-                  <span className="inline-flex items-center gap-1">
-                    {col.label}
-                    {sortKey === col.key && (
-                      <span className="text-[10px] text-foreground">{sortDir === "asc" ? "▲" : "▼"}</span>
-                    )}
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <span>{col.label}</span>
+                    <span className="inline-flex flex-col items-center leading-none text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span
+                        className={
+                          sortKey === col.key && sortDir === "asc" ? "text-foreground" : "text-muted-foreground"
+                        }
+                      >
+                        ↑
+                      </span>
+                      <span
+                        className={
+                          sortKey === col.key && sortDir === "desc" ? "text-foreground" : "text-muted-foreground"
+                        }
+                      >
+                        ↓
+                      </span>
+                    </span>
                   </span>
                 </th>
               ))}
