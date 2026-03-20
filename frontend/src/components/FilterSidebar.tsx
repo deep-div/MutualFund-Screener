@@ -253,7 +253,7 @@ const FilterSidebar = ({
                             })()}
                             <button
                               onClick={() => clearFilter(filter.id)}
-                              className="text-[11px] text-muted-foreground hover:underline"
+                              className="text-[11px] text-muted-foreground hover:text-negative focus:outline-none active:text-negative"
                             >
                               Clear values
                             </button>
