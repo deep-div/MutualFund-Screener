@@ -27,15 +27,6 @@ FIELD_MAP = {
     "cagr_7y": ("returns", "cagr_percent", "seven_year"),
     "cagr_10y": ("returns", "cagr_percent", "ten_year"),
 
-    # SIP XIRR
-    "sip_xirr_1y": ("returns", "sip_returns", "one_year", "xirr_percent"),
-    "sip_xirr_2y": ("returns", "sip_returns", "two_year", "xirr_percent"),
-    "sip_xirr_3y": ("returns", "sip_returns", "three_year", "xirr_percent"),
-    "sip_xirr_4y": ("returns", "sip_returns", "four_year", "xirr_percent"),
-    "sip_xirr_5y": ("returns", "sip_returns", "five_year", "xirr_percent"),
-    "sip_xirr_7y": ("returns", "sip_returns", "seven_year", "xirr_percent"),
-    "sip_xirr_10y": ("returns", "sip_returns", "ten_year", "xirr_percent"),
-
     # Rolling averages
     "rolling_avg_1y": ("returns", "rolling_cagr_percent", "1_year", "summary", "average"),
     "rolling_avg_2y": ("returns", "rolling_cagr_percent", "2_year", "summary", "average"),

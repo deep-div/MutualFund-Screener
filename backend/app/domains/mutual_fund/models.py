@@ -56,15 +56,6 @@ class SchemeMetaORM(Base):
     cagr_7y = Column(Float)
     cagr_10y = Column(Float)
 
-    # SIP XIRR
-    sip_xirr_1y = Column(Float)
-    sip_xirr_2y = Column(Float)
-    sip_xirr_3y = Column(Float)
-    sip_xirr_4y = Column(Float)
-    sip_xirr_5y = Column(Float)
-    sip_xirr_7y = Column(Float)
-    sip_xirr_10y = Column(Float)
-
     # Rolling CAGR (Average Only)
     rolling_avg_1y = Column(Float)
     rolling_avg_2y = Column(Float)
