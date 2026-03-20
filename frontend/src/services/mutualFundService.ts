@@ -1,4 +1,5 @@
 import { apiGet } from "@/lib/apiClient";
+import { apiPost } from "@/lib/apiClient";
 
 export interface SchemeSearchItem {
   scheme_id: number;
@@ -84,6 +85,59 @@ export interface SchemeAnalyticsResponse {
   };
 }
 
+export interface SchemeListItem {
+  scheme_id: string;
+  scheme_sub_name?: string;
+  scheme_sub_category?: string;
+  scheme_class?: string;
+  current_nav?: number | null;
+  time_since_inception_years?: number | null;
+  abs_1w?: number | null;
+  abs_1m?: number | null;
+  abs_3m?: number | null;
+  abs_6m?: number | null;
+  cagr_1y?: number | null;
+  cagr_2y?: number | null;
+  cagr_3y?: number | null;
+  cagr_4y?: number | null;
+  cagr_5y?: number | null;
+  cagr_7y?: number | null;
+  cagr_10y?: number | null;
+  rolling_avg_1y?: number | null;
+  rolling_avg_2y?: number | null;
+  rolling_avg_3y?: number | null;
+  rolling_avg_4y?: number | null;
+  rolling_avg_5y?: number | null;
+  rolling_avg_7y?: number | null;
+  rolling_avg_10y?: number | null;
+  volatility_max?: number | null;
+  downside_deviation_max?: number | null;
+  skewness_max?: number | null;
+  kurtosis_max?: number | null;
+  sharpe_max?: number | null;
+  sortino_max?: number | null;
+  calmar_max?: number | null;
+  pain_index_max?: number | null;
+  ulcer_index_max?: number | null;
+  current_drawdown_percent?: number | null;
+  mdd_max_drawdown_percent?: number | null;
+  mdd_one_year_pct?: number | null;
+  mdd_two_year_pct?: number | null;
+  mdd_three_year_pct?: number | null;
+  mdd_four_year_pct?: number | null;
+  mdd_five_year_pct?: number | null;
+  mdd_seven_year_pct?: number | null;
+  mdd_ten_year_pct?: number | null;
+  [key: string]: string | number | null | undefined;
+}
+
+export interface SchemeListResponse {
+  limit: number;
+  offset: number;
+  total: number;
+  items: SchemeListItem[];
+}
+
 export const searchSchemes = (
   query: string,
   options?: { limit?: number; offset?: number; signal?: AbortSignal }
@@ -100,5 +154,17 @@ export const searchSchemes = (
 
 export const getSchemeAnalytics = (schemeId: number | string, options?: { signal?: AbortSignal }) =>
   apiGet<SchemeAnalyticsResponse>(`/api/v1/schemes/${schemeId}/analytics`, undefined, {
+    signal: options?.signal,
+  });
+
+export const listSchemes = (
+  payload: { filters: Record<string, Record<string, number | string>>; sort_field: string; sort_order: "asc" | "desc" },
+  options?: { limit?: number; offset?: number; signal?: AbortSignal }
+) =>
+  apiPost<SchemeListResponse, typeof payload>("/api/v1/schemes", payload, {
+    params: {
+      limit: options?.limit ?? 10,
+      offset: options?.offset ?? 0,
+    },
     signal: options?.signal,
   });

@@ -1,27 +1,46 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Pencil, Share2, Lock, Plus } from "lucide-react";
-import { SAMPLE_FUNDS, MutualFund } from "@/data/funds";
+import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
 
-const columns = [
-  { key: "name", label: "Name", align: "left" as const },
-  { key: "subCategory", label: "Sub Category", align: "left" as const },
-  { key: "plan", label: "Plan", align: "left" as const },
-  { key: "aum", label: "AUM", align: "right" as const },
-  { key: "absReturn3M", label: "Absolute Returns - 3M", align: "right" as const },
-  { key: "absReturn6M", label: "Absolute Returns - 6M", align: "right" as const },
-  { key: "absReturn1Y", label: "Absolute Returns - 1Y", align: "right" as const },
-  { key: "cagr3Y", label: "CAGR 3Y", align: "right" as const },
-  { key: "cagr5Y", label: "CAGR 5Y", align: "right" as const },
-  { key: "cagr10Y", label: "CAGR 10Y", align: "right" as const },
+const LIMIT = 10;
+
+const columns: Array<{
+  key: keyof SchemeListItem;
+  label: string;
+  align: "left" | "right";
+  format?: "number" | "percent";
+}> = [
+  { key: "scheme_sub_name", label: "Name", align: "left" },
+  { key: "scheme_sub_category", label: "Sub Category", align: "left" },
+  { key: "scheme_class", label: "Class", align: "left" },
+  { key: "current_nav", label: "NAV", align: "right", format: "number" },
+  { key: "abs_3m", label: "Abs 3M (%)", align: "right", format: "percent" },
+  { key: "abs_6m", label: "Abs 6M (%)", align: "right", format: "percent" },
+  { key: "cagr_1y", label: "CAGR 1Y (%)", align: "right", format: "percent" },
+  { key: "cagr_3y", label: "CAGR 3Y (%)", align: "right", format: "percent" },
+  { key: "cagr_5y", label: "CAGR 5Y (%)", align: "right", format: "percent" },
+  { key: "rolling_avg_1y", label: "Rolling Avg 1Y (%)", align: "right", format: "percent" },
+  { key: "volatility_max", label: "Volatility Max", align: "right", format: "percent" },
+  { key: "sharpe_max", label: "Sharpe Max", align: "right", format: "number" },
+  { key: "mdd_max_drawdown_percent", label: "Max Drawdown (%)", align: "right", format: "percent" },
 ];
 
-const FundTable = () => {
-  const [sortKey, setSortKey] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-  const funds = SAMPLE_FUNDS;
+interface FundTableProps {
+  filters: Record<string, Record<string, number | string>>;
+}
 
-  const handleSort = (key: string) => {
+const FundTable = ({ filters }: FundTableProps) => {
+  const [sortKey, setSortKey] = useState<keyof SchemeListItem>("scheme_sub_name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [items, setItems] = useState<SchemeListItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
+
+  const handleSort = (key: keyof SchemeListItem) => {
     if (sortKey === key) {
       setSortDir(sortDir === "asc" ? "desc" : "asc");
     } else {
@@ -30,30 +49,49 @@ const FundTable = () => {
     }
   };
 
-  const sortedFunds = [...funds].sort((a, b) => {
-    if (!sortKey) return 0;
-    const aVal = a[sortKey as keyof MutualFund];
-    const bVal = b[sortKey as keyof MutualFund];
-    if (typeof aVal === "number" && typeof bVal === "number") {
-      return sortDir === "asc" ? aVal - bVal : bVal - aVal;
-    }
-    return sortDir === "asc"
-      ? String(aVal).localeCompare(String(bVal))
-      : String(bVal).localeCompare(String(aVal));
-  });
-
-  const formatNumber = (val: number, isReturn = false) => {
-    if (isReturn) return val.toFixed(2);
+  const formatNumber = (val: number, format?: "number" | "percent") => {
+    if (format === "percent") return val.toFixed(2);
     return val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  const getReturnColor = (val: number) => {
+  const getReturnColor = (val: number | null | undefined) => {
+    if (typeof val !== "number") return "text-muted-foreground";
     return val >= 0 ? "text-positive" : "text-negative";
   };
 
+  const fetchPage = async (nextOffset: number, append: boolean) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await listSchemes(
+        {
+          filters,
+          sort_field: String(sortKey),
+          sort_order: sortDir,
+        },
+        { limit: LIMIT, offset: nextOffset }
+      );
+      setTotal(response.total);
+      setItems((prev) => (append ? [...prev, ...response.items] : response.items));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load data.");
+      if (!append) {
+        setItems([]);
+        setTotal(0);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPage(0, false);
+  }, [filterKey, sortKey, sortDir]);
+
+  const canLoadMore = items.length < total;
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Screen header */}
       <div className="px-6 py-4 border-b border-border">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -79,9 +117,9 @@ const FundTable = () => {
         <div className="flex items-center justify-between mt-3">
           <p className="text-[13px]">
             <span className="text-muted-foreground">Showing </span>
-            <span className="text-primary font-medium">1 - {funds.length}</span>
+            <span className="text-primary font-medium">1 - {items.length}</span>
             <span className="text-muted-foreground"> of </span>
-            <span className="text-primary font-medium">{funds.length}</span>
+            <span className="text-primary font-medium">{total}</span>
             <span className="text-muted-foreground"> results</span>
           </p>
           <div className="flex items-center gap-3">
@@ -94,7 +132,6 @@ const FundTable = () => {
         </div>
       </div>
 
-      {/* Table */}
       <div className="flex-1 overflow-auto scrollbar-thin">
         <table className="w-full">
           <thead className="sticky top-0 z-10">
@@ -106,24 +143,22 @@ const FundTable = () => {
               </th>
               {columns.map((col) => (
                 <th
-                  key={col.key}
+                  key={String(col.key)}
                   onClick={() => handleSort(col.key)}
                   className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors whitespace-nowrap ${
                     col.align === "right" ? "text-right" : "text-left"
                   }`}
                 >
                   {col.label}
-                  {sortKey === col.key && (
-                    <span className="ml-1">{sortDir === "asc" ? "↑" : "↓"}</span>
-                  )}
+                  {sortKey === col.key && <span className="ml-1">{sortDir === "asc" ? "^" : "v"}</span>}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {sortedFunds.map((fund, index) => (
+            {items.map((fund, index) => (
               <motion.tr
-                key={fund.id}
+                key={fund.scheme_id ?? `${fund.scheme_sub_name}-${index}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: index * 0.02 }}
@@ -132,38 +167,60 @@ const FundTable = () => {
                 <td className="px-3 py-3 text-[13px] font-mono-data text-muted-foreground">
                   {index + 1}.
                 </td>
-                <td className="px-3 py-3">
-                  <span className="text-[13px] font-medium text-primary hover:underline cursor-pointer">
-                    {fund.name}
-                  </span>
-                </td>
-                <td className="px-3 py-3 text-[13px] text-foreground">{fund.subCategory}</td>
-                <td className="px-3 py-3 text-[13px] text-foreground">{fund.plan}</td>
-                <td className="px-3 py-3 text-[13px] font-mono-data text-foreground text-right">
-                  {formatNumber(fund.aum)}
-                </td>
-                <td className={`px-3 py-3 text-[13px] font-mono-data text-right ${getReturnColor(fund.absReturn3M)}`}>
-                  {formatNumber(fund.absReturn3M, true)}
-                </td>
-                <td className={`px-3 py-3 text-[13px] font-mono-data text-right ${getReturnColor(fund.absReturn6M)}`}>
-                  {formatNumber(fund.absReturn6M, true)}
-                </td>
-                <td className={`px-3 py-3 text-[13px] font-mono-data text-right ${getReturnColor(fund.absReturn1Y)}`}>
-                  {formatNumber(fund.absReturn1Y, true)}
-                </td>
-                <td className={`px-3 py-3 text-[13px] font-mono-data text-right ${getReturnColor(fund.cagr3Y)}`}>
-                  {formatNumber(fund.cagr3Y, true)}
-                </td>
-                <td className={`px-3 py-3 text-[13px] font-mono-data text-right ${getReturnColor(fund.cagr5Y)}`}>
-                  {formatNumber(fund.cagr5Y, true)}
-                </td>
-                <td className={`px-3 py-3 text-[13px] font-mono-data text-right ${getReturnColor(fund.cagr10Y)}`}>
-                  {formatNumber(fund.cagr10Y, true)}
-                </td>
+                {columns.map((col) => {
+                  const value = fund[col.key];
+                  if (col.key === "scheme_sub_name") {
+                    return (
+                      <td key={String(col.key)} className="px-3 py-3">
+                        <span className="text-[13px] font-medium text-primary hover:underline cursor-pointer">
+                          {typeof value === "string" && value ? value : "-"}
+                        </span>
+                      </td>
+                    );
+                  }
+
+                  if (typeof value === "number") {
+                    return (
+                      <td
+                        key={String(col.key)}
+                        className={`px-3 py-3 text-[13px] font-mono-data text-right ${getReturnColor(value)}`}
+                      >
+                        {formatNumber(value, col.format)}
+                      </td>
+                    );
+                  }
+
+                  return (
+                    <td
+                      key={String(col.key)}
+                      className={`px-3 py-3 text-[13px] ${col.align === "right" ? "text-right" : "text-left"} text-foreground`}
+                    >
+                      {typeof value === "string" && value ? value : "-"}
+                    </td>
+                  );
+                })}
               </motion.tr>
             ))}
           </tbody>
         </table>
+
+        {error && <div className="p-4 text-sm text-negative">{error}</div>}
+        {loading && items.length === 0 && <div className="p-4 text-sm text-muted-foreground">Loading...</div>}
+        {!loading && items.length === 0 && !error && (
+          <div className="p-4 text-sm text-muted-foreground">No schemes found.</div>
+        )}
+
+        <div className="p-4 flex justify-center">
+          {canLoadMore && (
+            <button
+              onClick={() => fetchPage(items.length, true)}
+              disabled={loading}
+              className="px-4 py-2 border border-border rounded-md text-[13px] font-medium text-foreground hover:bg-surface-hover transition-colors disabled:opacity-50"
+            >
+              {loading ? "Loading..." : "Load more"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
