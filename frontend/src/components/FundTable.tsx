@@ -42,6 +42,7 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
     const baseKeys = new Set(baseColumns.map((col) => String(col.key)));
     const dynamicColumns = enabledFilters
       .filter((id) => !baseKeys.has(id))
+      .filter((id) => id !== "scheme_class")
       .map((id) => {
         const def = FILTER_DEFINITIONS_BY_ID[id];
         return {
