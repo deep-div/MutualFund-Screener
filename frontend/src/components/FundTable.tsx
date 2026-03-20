@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Pencil, Share2, Lock } from "lucide-react";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
 
 const LIMIT = 15;
+const SKELETON_ROWS = 10;
 
 const columns: Array<{
   key: keyof SchemeListItem;
@@ -142,52 +144,71 @@ const FundTable = ({ filters }: FundTableProps) => {
             </tr>
           </thead>
           <tbody>
-            {items.map((fund, index) => (
-              <motion.tr
-                key={fund.scheme_id ?? `${fund.scheme_sub_name}-${index}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: index * 0.02 }}
-                className="border-b border-border hover:bg-surface-hover transition-colors cursor-pointer group"
-              >
-                {columns.map((col) => {
-                  const value = fund[col.key];
-                  const schemePath = getSchemePath(fund);
-                  if (col.key === "scheme_sub_name") {
-                    return (
-                      <td key={String(col.key)} className="px-3 py-3">
-                        <Link
-                          to={schemePath}
-                          className="block text-[13px] font-medium text-primary hover:no-underline cursor-pointer"
-                        >
-                          {typeof value === "string" && value ? value : "-"}
-                        </Link>
+            {loading && items.length === 0
+              ? Array.from({ length: SKELETON_ROWS }).map((_, rowIndex) => (
+                  <tr key={`skeleton-${rowIndex}`} className="border-b border-border">
+                    {columns.map((col) => (
+                      <td key={`${rowIndex}-${String(col.key)}`} className="px-3 py-3">
+                        <Skeleton
+                          className={`h-3 ${
+                            col.key === "scheme_sub_name"
+                              ? "w-48"
+                              : col.key === "scheme_sub_category"
+                                ? "w-40"
+                                : "w-24"
+                          }`}
+                        />
                       </td>
-                    );
-                  }
+                    ))}
+                  </tr>
+                ))
+              : items.map((fund, index) => (
+                  <motion.tr
+                    key={fund.scheme_id ?? `${fund.scheme_sub_name}-${index}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: index * 0.02 }}
+                    className="border-b border-border hover:bg-surface-hover transition-colors cursor-pointer group"
+                  >
+                    {columns.map((col) => {
+                      const value = fund[col.key];
+                      const schemePath = getSchemePath(fund);
+                      if (col.key === "scheme_sub_name") {
+                        return (
+                          <td key={String(col.key)} className="px-3 py-3">
+                            <Link
+                              to={schemePath}
+                              className="block text-[13px] font-medium text-primary hover:no-underline cursor-pointer"
+                            >
+                              {typeof value === "string" && value ? value : "-"}
+                            </Link>
+                          </td>
+                        );
+                      }
 
-                  return (
-                    <td
-                      key={String(col.key)}
-                      className={`px-3 py-3 text-[13px] ${col.align === "right" ? "text-right" : "text-left"} text-foreground`}
-                    >
-                      <Link to={schemePath} className="block">
-                        {typeof value === "string" && value
-                          ? value
-                          : typeof value === "number"
-                            ? formatNumber(value)
-                            : "-"}
-                      </Link>
-                    </td>
-                  );
-                })}
-              </motion.tr>
-            ))}
+                      return (
+                        <td
+                          key={String(col.key)}
+                          className={`px-3 py-3 text-[13px] ${
+                            col.align === "right" ? "text-right" : "text-left"
+                          } text-foreground`}
+                        >
+                          <Link to={schemePath} className="block">
+                            {typeof value === "string" && value
+                              ? value
+                              : typeof value === "number"
+                                ? formatNumber(value)
+                                : "-"}
+                          </Link>
+                        </td>
+                      );
+                    })}
+                  </motion.tr>
+                ))}
           </tbody>
         </table>
 
         {error && <div className="p-4 text-sm text-negative">{error}</div>}
-        {loading && items.length === 0 && <div className="p-4 text-sm text-muted-foreground">Loading...</div>}
         {!loading && items.length === 0 && !error && (
           <div className="p-4 text-sm text-muted-foreground">No schemes found.</div>
         )}
