@@ -165,7 +165,9 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
                       setSortDir("desc");
                     }
                   }}
-                  className="px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface-hover shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group"
+                  className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface-hover shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group ${
+                    col.key === "scheme_sub_name" ? "sticky left-0 z-30" : ""
+                  }`}
                 >
                   <span className="inline-flex items-center justify-center gap-2">
                     <span>{col.label}</span>
@@ -222,22 +224,27 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
                       const schemePath = getSchemePath(fund);
                       if (col.key === "scheme_sub_name") {
                         return (
-                          <td key={String(col.key)} className="px-3 py-3">
-                            <Link
-                              to={schemePath}
-                              className="block text-[13px] font-medium text-primary hover:no-underline cursor-pointer"
-                            >
-                              {typeof value === "string" && value ? value : "-"}
-                            </Link>
-                          </td>
+                      <td
+                        key={String(col.key)}
+                        className={`px-3 py-3 ${col.key === "scheme_sub_name" ? "sticky left-0 z-10 bg-background" : ""}`}
+                      >
+                        <Link
+                          to={schemePath}
+                          className="block text-[13px] font-medium text-primary hover:no-underline cursor-pointer"
+                        >
+                          {typeof value === "string" && value ? value : "-"}
+                        </Link>
+                      </td>
                         );
                       }
 
                       return (
                         <td
                           key={String(col.key)}
-                        className="px-3 py-3 text-[13px] text-center text-foreground"
-                      >
+                          className={`px-3 py-3 text-[13px] text-center text-foreground ${
+                            col.key === "scheme_sub_name" ? "sticky left-0 z-10 bg-background text-left" : ""
+                          }`}
+                        >
                           <Link to={schemePath} className="block">
                             {typeof value === "string" && value
                               ? value
