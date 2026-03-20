@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, Plus, Check, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Check } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import FilterAddModal from "./FilterAddModal";
 import {
@@ -66,6 +66,35 @@ const FilterSidebar = ({
     return { min: 0, max: 100, step: 1 };
   };
 
+  const getSegmentBounds = (min: number, max: number) => {
+    const span = max - min;
+    const first = Math.round(min + span / 3);
+    const second = Math.round(min + (2 * span) / 3);
+    return { first, second };
+  };
+
+  const getSegmentSelection = (value: { gte?: number | ""; lte?: number | "" }, min: number, max: number) => {
+    if (value.gte === undefined || value.lte === undefined || value.gte === "" || value.lte === "") return null;
+    const { first, second } = getSegmentBounds(min, max);
+    if (value.gte <= min && value.lte <= first) return "low";
+    if (value.gte >= first && value.lte <= second) return "mid";
+    if (value.gte >= second && value.lte >= second) return "high";
+    return null;
+  };
+
+  const applySegment = (filterId: string, segment: "low" | "mid" | "high", min: number, max: number) => {
+    const { first, second } = getSegmentBounds(min, max);
+    if (segment === "low") {
+      onChangeValue(filterId, { gte: min, lte: first });
+      return;
+    }
+    if (segment === "mid") {
+      onChangeValue(filterId, { gte: first, lte: second });
+      return;
+    }
+    onChangeValue(filterId, { gte: second, lte: max });
+  };
+
   const updateSingle = (filterId: string, nextValue: string) => {
     onChangeValue(filterId, { value: nextValue });
   };
@@ -102,17 +131,35 @@ const FilterSidebar = ({
             const isExpanded = expandedFilter === filter.id;
             return (
               <div key={filter.id} className="border-b border-border">
-                <button
-                  onClick={() => toggleFilter(filter.id)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-hover transition-colors"
-                >
-                  <span className="text-[13px] font-medium text-foreground">{filter.label}</span>
-                  {isExpanded ? (
-                    <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </button>
+                <div className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-hover transition-colors">
+                  <button
+                    onClick={() => toggleFilter(filter.id)}
+                    className="flex-1 text-left text-[13px] font-semibold text-foreground"
+                  >
+                    {filter.label}
+                  </button>
+                  <div className="flex items-center gap-3">
+                    {!filter.pinned && (
+                      <button
+                        onClick={() => removeFilter(filter.id)}
+                        className="text-[11px] font-medium text-muted-foreground hover:text-negative"
+                      >
+                        Remove
+                      </button>
+                    )}
+                    <button
+                      onClick={() => toggleFilter(filter.id)}
+                      className="text-muted-foreground hover:text-foreground"
+                      aria-label={isExpanded ? "Collapse filter" : "Expand filter"}
+                    >
+                      {isExpanded ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
 
                 <AnimatePresence>
                   {isExpanded && (
@@ -126,23 +173,82 @@ const FilterSidebar = ({
                       <div className="px-4 pb-4 space-y-3">
                         {filter.type === "range" && (
                           <>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="number"
-                                value={currentValue.gte ?? ""}
-                                onChange={(e) => updateRange(filter.id, "gte", e.target.value)}
-                                placeholder="Min"
-                                className="w-full bg-secondary border border-border rounded px-2 py-1.5 text-[12px] font-mono-data text-foreground text-center outline-none focus:border-primary"
-                              />
-                              <span className="text-[12px] text-muted-foreground">to</span>
-                              <input
-                                type="number"
-                                value={currentValue.lte ?? ""}
-                                onChange={(e) => updateRange(filter.id, "lte", e.target.value)}
-                                placeholder="Max"
-                                className="w-full bg-secondary border border-border rounded px-2 py-1.5 text-[12px] font-mono-data text-foreground text-center outline-none focus:border-primary"
-                              />
-                            </div>
+                            {(() => {
+                              const { min, max, step } = getRangeBounds(filter.id, filter.label);
+                              const selected = getSegmentSelection(currentValue, min, max);
+                              return (
+                                <>
+                                  <div className="space-y-2">
+                                    <div className="relative h-4">
+                                      <input
+                                        type="range"
+                                        min={min}
+                                        max={max}
+                                        step={step}
+                                        value={
+                                          currentValue.gte !== undefined && currentValue.gte !== ""
+                                            ? Number(currentValue.gte)
+                                            : min
+                                        }
+                                        onChange={(e) => updateRange(filter.id, "gte", e.target.value)}
+                                        className="absolute left-0 right-0 top-0 w-full accent-primary"
+                                      />
+                                      <input
+                                        type="range"
+                                        min={min}
+                                        max={max}
+                                        step={step}
+                                        value={
+                                          currentValue.lte !== undefined && currentValue.lte !== ""
+                                            ? Number(currentValue.lte)
+                                            : max
+                                        }
+                                        onChange={(e) => updateRange(filter.id, "lte", e.target.value)}
+                                        className="absolute left-0 right-0 top-0 w-full accent-primary"
+                                      />
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                      <input
+                                        type="number"
+                                        value={currentValue.gte ?? ""}
+                                        onChange={(e) => updateRange(filter.id, "gte", e.target.value)}
+                                        placeholder={String(min)}
+                                        className="w-full bg-secondary border border-border rounded-md px-2 py-1.5 text-[12px] font-mono-data text-foreground text-center outline-none focus:border-primary"
+                                      />
+                                      <span className="text-[12px] text-muted-foreground">to</span>
+                                      <input
+                                        type="number"
+                                        value={currentValue.lte ?? ""}
+                                        onChange={(e) => updateRange(filter.id, "lte", e.target.value)}
+                                        placeholder={String(max)}
+                                        className="w-full bg-secondary border border-border rounded-md px-2 py-1.5 text-[12px] font-mono-data text-foreground text-center outline-none focus:border-primary"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-3 rounded-md border border-border overflow-hidden">
+                                    {[
+                                      { id: "low", label: "Low" },
+                                      { id: "mid", label: "Mid" },
+                                      { id: "high", label: "High" },
+                                    ].map((segment) => (
+                                      <button
+                                        key={segment.id}
+                                        onClick={() =>
+                                          applySegment(filter.id, segment.id as "low" | "mid" | "high", min, max)
+                                        }
+                                        className={`py-1.5 text-[12px] font-medium transition-colors ${
+                                          selected === segment.id
+                                            ? "bg-primary text-primary-foreground"
+                                            : "bg-background text-foreground hover:bg-surface-hover"
+                                        } ${segment.id !== "high" ? "border-r border-border" : ""}`}
+                                      >
+                                        {segment.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </>
+                              );
+                            })()}
                             <button
                               onClick={() => clearFilter(filter.id)}
                               className="text-[11px] text-muted-foreground hover:underline"
@@ -280,42 +386,13 @@ const FilterSidebar = ({
                             </div>
                           )}
 
-                        {!filter.pinned && (
-                          <button
-                            onClick={() => removeFilter(filter.id)}
-                            className="flex items-center gap-1 text-[11px] text-negative hover:underline"
-                          >
-                            <X className="w-3 h-3" />
-                            Remove filter
-                          </button>
-                        )}
+                        
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                {!isExpanded && filter.type === "range" && (
-                  <div className="px-4 pb-4">
-                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                      <span>Low</span>
-                      <span>Medium</span>
-                      <span>High</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={getRangeBounds(filter.id, filter.label).min}
-                      max={getRangeBounds(filter.id, filter.label).max}
-                      step={getRangeBounds(filter.id, filter.label).step}
-                      value={
-                        values[filter.id]?.gte !== undefined && values[filter.id]?.gte !== ""
-                          ? Number(values[filter.id]?.gte)
-                          : Math.round(getRangeBounds(filter.id, filter.label).max / 2)
-                      }
-                      onChange={(e) => updateRange(filter.id, "gte", e.target.value)}
-                      className="w-full mt-2"
-                    />
-                  </div>
-                )}
+                
               </div>
             );
           })}
