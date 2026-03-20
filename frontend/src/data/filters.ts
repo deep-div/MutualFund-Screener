@@ -169,6 +169,13 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
 
 export const PINNED_FILTERS = FILTER_DEFINITIONS.filter((filter) => filter.pinned).map((filter) => filter.id);
 
+export const DEFAULT_ENABLED_FILTERS = [
+  ...PINNED_FILTERS,
+  "cagr_1y",
+  "cagr_3y",
+  "cagr_5y",
+];
+
 export const FILTER_DEFINITIONS_BY_ID = Object.fromEntries(
   FILTER_DEFINITIONS.map((filter) => [filter.id, filter])
 );

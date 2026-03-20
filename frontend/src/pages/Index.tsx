@@ -4,13 +4,13 @@ import FilterSidebar from "@/components/FilterSidebar";
 import FundTable from "@/components/FundTable";
 import {
   FILTER_DEFINITIONS_BY_ID,
-  PINNED_FILTERS,
+  DEFAULT_ENABLED_FILTERS,
   FilterValueMap,
 } from "@/data/filters";
 import { useMemo, useState } from "react";
 
 const Index = () => {
-  const [enabledFilters, setEnabledFilters] = useState<string[]>(PINNED_FILTERS);
+  const [enabledFilters, setEnabledFilters] = useState<string[]>(DEFAULT_ENABLED_FILTERS);
   const [filterValues, setFilterValues] = useState<FilterValueMap>({});
 
   const activeCount = useMemo(() => {
@@ -52,7 +52,7 @@ const Index = () => {
   }, [enabledFilters, filterValues]);
 
   const handleReset = () => {
-    setEnabledFilters(PINNED_FILTERS);
+    setEnabledFilters(DEFAULT_ENABLED_FILTERS);
     setFilterValues({});
   };
 
