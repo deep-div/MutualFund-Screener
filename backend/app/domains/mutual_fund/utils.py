@@ -1,16 +1,8 @@
-import uuid
+import secrets
 
-PUBLIC_ID_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-PUBLIC_ID_LENGTH = 22
+SCHEME_ID_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+SCHEME_ID_LENGTH = 8
 
 
-def generate_public_id() -> str:
-    num = uuid.uuid4().int
-    chars = []
-    base = len(PUBLIC_ID_ALPHABET)
-
-    while num > 0:
-        num, rem = divmod(num, base)
-        chars.append(PUBLIC_ID_ALPHABET[rem])
-
-    return "".join(reversed(chars)).rjust(PUBLIC_ID_LENGTH, "0")
+def generate_scheme_id() -> str:
+    return "".join(secrets.choice(SCHEME_ID_ALPHABET) for _ in range(SCHEME_ID_LENGTH))

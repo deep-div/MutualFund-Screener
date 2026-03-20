@@ -89,14 +89,13 @@ def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str
             "items": json_results
         }
 
-
-def get_scheme_analytics(scheme_code: int):
-    """Fetch scheme analytics JSON directly using scheme code"""
+def get_scheme_analytics_by_scheme_id(scheme_id: str):
+    """Fetch scheme analytics JSON directly using scheme id"""
     with get_session() as db:
         result = (
             db.query(SchemeAnalyticsORM.full_data)
             .join(SchemeMetaORM, SchemeAnalyticsORM.scheme_id == SchemeMetaORM.id)
-            .filter(SchemeMetaORM.scheme_code == scheme_code)
+            .filter(SchemeMetaORM.scheme_id == scheme_id)
             .first()
         )
 
@@ -121,11 +120,13 @@ def get_scheme_analytics(scheme_code: int):
         return data
 
 
-def get_scheme_basic_details(scheme_code: int):
-    """Fetch basic scheme information by scheme code."""
+
+def get_scheme_basic_details_by_scheme_id(scheme_id: str):
+    """Fetch basic scheme information by scheme id."""
     with get_session() as db:
         row = (
             db.query(
+                SchemeMetaORM.scheme_id,
                 SchemeMetaORM.scheme_code,
                 SchemeMetaORM.scheme_name,
                 SchemeMetaORM.scheme_sub_name,
@@ -138,7 +139,7 @@ def get_scheme_basic_details(scheme_code: int):
                 SchemeMetaORM.current_nav,
                 SchemeMetaORM.current_date,
             )
-            .filter(SchemeMetaORM.scheme_code == scheme_code)
+            .filter(SchemeMetaORM.scheme_id == scheme_id)
             .first()
         )
 
@@ -146,6 +147,7 @@ def get_scheme_basic_details(scheme_code: int):
             return None
 
         return {
+            "scheme_id": row.scheme_id,
             "scheme_code": row.scheme_code,
             "scheme_name": row.scheme_name,
             "scheme_sub_name": row.scheme_sub_name,
@@ -192,6 +194,7 @@ def search_schemes(query: str, limit: int, offset: int):
 
         items = [
             {
+                "scheme_id": row.scheme_id,
                 "scheme_code": row.scheme_code,
                 "fund_house": row.fund_house,
                 "scheme_sub_name": row.scheme_sub_name,

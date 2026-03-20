@@ -15,6 +15,7 @@ class SchemeMetaORM(Base):
     __tablename__ = TABLE_NAME_1
 
     id = Column(Integer, primary_key=True, index=True)
+    scheme_id = Column(String(8), unique=True, index=True, nullable=False)
 
     # External IDs system should not rely on - used only for reference and debugging
     scheme_code = Column(BigInteger, unique=True, index=True, nullable=False)

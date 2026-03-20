@@ -1,9 +1,9 @@
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Path
 
 from app.domains.mutual_fund.repository.read import (
     get_filtered_schemes,
-    get_scheme_analytics,
-    get_scheme_basic_details,
+    get_scheme_analytics_by_scheme_id,
+    get_scheme_basic_details_by_scheme_id,
     search_schemes,
 )
 from app.orchestrator.pipeline import run_pipeline
@@ -53,17 +53,21 @@ def scheme_search(
     return search_schemes(query=query, limit=limit, offset=offset)
 
 
-@router.get("/schemes/{scheme_code}")
-def scheme_basic(scheme_code: int):
-    data = get_scheme_basic_details(scheme_code)
+@router.get("/schemes/{scheme_id}")
+def scheme_basic_by_scheme_id(
+    scheme_id: str = Path(..., min_length=8, max_length=8),
+):
+    data = get_scheme_basic_details_by_scheme_id(scheme_id)
     if data is None:
         raise HTTPException(status_code=404, detail="Scheme not found")
     return data
 
 
-@router.get("/schemes/{scheme_code}/analytics")
-def scheme_analytics(scheme_code: int):
-    data = get_scheme_analytics(scheme_code)
+@router.get("/schemes/{scheme_id}/analytics")
+def scheme_analytics_by_scheme_id(
+    scheme_id: str = Path(..., min_length=8, max_length=8),
+):
+    data = get_scheme_analytics_by_scheme_id(scheme_id)
     if data is None:
         raise HTTPException(status_code=404, detail="Scheme analytics not found")
     return data
