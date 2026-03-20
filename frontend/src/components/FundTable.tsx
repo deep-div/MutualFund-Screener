@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pencil, Share2, Lock } from "lucide-react";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
+import { FILTER_DEFINITIONS_BY_ID, FilterValueMap } from "@/data/filters";
 
 const LIMIT = 15;
 const SKELETON_ROWS = 10;
@@ -20,9 +21,11 @@ const columns: Array<{
 
 interface FundTableProps {
   filters: Record<string, Record<string, number | string>>;
+  enabledFilters: string[];
+  filterValues: FilterValueMap;
 }
 
-const FundTable = ({ filters }: FundTableProps) => {
+const FundTable = ({ filters, enabledFilters, filterValues }: FundTableProps) => {
   const [sortKey] = useState<keyof SchemeListItem>("scheme_sub_name");
   const [sortDir] = useState<"asc" | "desc">("asc");
   const [items, setItems] = useState<SchemeListItem[]>([]);
@@ -34,6 +37,21 @@ const FundTable = ({ filters }: FundTableProps) => {
 
   const formatNumber = (val: number) => {
     return val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const formatFilterValue = (id: string) => {
+    const def = FILTER_DEFINITIONS_BY_ID[id];
+    const value = filterValues[id] || {};
+    if (!def) return "Any";
+    if (def.type === "single") {
+      return value.value ? String(value.value) : "Any";
+    }
+    const hasGte = value.gte !== undefined && value.gte !== "";
+    const hasLte = value.lte !== undefined && value.lte !== "";
+    if (hasGte && hasLte) return `${value.gte} - ${value.lte}`;
+    if (hasGte) return `>= ${value.gte}`;
+    if (hasLte) return `<= ${value.lte}`;
+    return "Any";
   };
 
   const toSchemeSlug = (value: string) =>
@@ -118,6 +136,24 @@ const FundTable = ({ filters }: FundTableProps) => {
               <Lock className="w-3 h-3" />
               Export
             </button>
+          </div>
+        </div>
+
+        <div className="mt-3">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+            {enabledFilters.map((id) => {
+              const def = FILTER_DEFINITIONS_BY_ID[id];
+              if (!def) return null;
+              return (
+                <div
+                  key={id}
+                  className="flex items-center gap-2 px-2.5 py-1 rounded-full border border-border bg-surface text-[11px] text-foreground whitespace-nowrap"
+                >
+                  <span className="font-medium">{def.label}</span>
+                  <span className="text-muted-foreground">{formatFilterValue(id)}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

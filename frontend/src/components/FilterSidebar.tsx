@@ -59,6 +59,13 @@ const FilterSidebar = ({
     onChangeValue(filterId, { ...values[filterId], [key]: parsed });
   };
 
+  const getRangeBounds = (filterId: string, label: string) => {
+    if (filterId === "current_nav") return { min: 0, max: 1000, step: 1 };
+    if (filterId === "time_since_inception_years") return { min: 0, max: 30, step: 1 };
+    if (label.includes("%")) return { min: 0, max: 100, step: 1 };
+    return { min: 0, max: 100, step: 1 };
+  };
+
   const updateSingle = (filterId: string, nextValue: string) => {
     onChangeValue(filterId, { value: nextValue });
   };
@@ -286,6 +293,29 @@ const FilterSidebar = ({
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+                {!isExpanded && filter.type === "range" && (
+                  <div className="px-4 pb-4">
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                      <span>Low</span>
+                      <span>Medium</span>
+                      <span>High</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={getRangeBounds(filter.id, filter.label).min}
+                      max={getRangeBounds(filter.id, filter.label).max}
+                      step={getRangeBounds(filter.id, filter.label).step}
+                      value={
+                        values[filter.id]?.gte !== undefined && values[filter.id]?.gte !== ""
+                          ? Number(values[filter.id]?.gte)
+                          : Math.round(getRangeBounds(filter.id, filter.label).max / 2)
+                      }
+                      onChange={(e) => updateRange(filter.id, "gte", e.target.value)}
+                      className="w-full mt-2"
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
