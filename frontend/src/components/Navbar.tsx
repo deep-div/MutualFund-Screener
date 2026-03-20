@@ -196,7 +196,7 @@ const Navbar = () => {
                             setSearchOpen(false);
                             setSearchFocused(false);
                           }}
-                          className="w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors font-normal"
+                          className="block w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors font-normal focus-visible:outline-none"
                         >
                           <div className="flex items-center justify-between gap-4">
                             <div className="min-w-0">
@@ -223,8 +223,8 @@ const Navbar = () => {
                                   <span className="text-[12px] text-slate-400">—</span>
                                 )}
                               </div>
-                              <span className="text-slate-400">
-                                <Bookmark className="w-4 h-4" />
+                              <span className="text-slate-400 pointer-events-none">
+                                <Bookmark className="w-4 h-4" aria-hidden="true" focusable="false" />
                               </span>
                             </div>
                           </div>
