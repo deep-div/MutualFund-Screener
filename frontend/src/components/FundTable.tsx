@@ -12,7 +12,7 @@ const SKELETON_ROWS = 10;
 const baseColumns: Array<{
   key: keyof SchemeListItem;
   label: string;
-  align: "left" | "right";
+  align: "left" | "right" | "center";
 }> = [
   { key: "scheme_sub_name", label: "Name", align: "left" },
   { key: "scheme_sub_category", label: "Sub Category", align: "left" },
@@ -44,15 +44,13 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
       .filter((id) => !baseKeys.has(id))
       .map((id) => {
         const def = FILTER_DEFINITIONS_BY_ID[id];
-        const isText =
-          id === "scheme_class" || id === "scheme_sub_name" || id === "scheme_sub_category" || id === "option_type";
         return {
           key: id as keyof SchemeListItem,
           label: def?.label ?? id,
-          align: isText ? "left" : "right",
+          align: "center" as const,
         };
       });
-    return [...baseColumns, ...dynamicColumns];
+    return baseColumns.map((col) => ({ ...col, align: "center" as const })).concat(dynamicColumns);
   }, [enabledFilters]);
 
   const toSchemeSlug = (value: string) =>
@@ -100,7 +98,7 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
   const canLoadMore = items.length < total;
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden min-h-0">
       <div className="px-6 py-4 border-b border-border">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -142,11 +140,12 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
 
       </div>
 
-      <div className="flex-1 overflow-auto scrollbar-thin">
-        <table className="w-full min-w-[640px] table-fixed border-separate border-spacing-0">
+      <div className="flex-1 overflow-y-auto scrollbar-thin min-h-0">
+        <div className="w-full overflow-x-auto scrollbar-thin">
+          <table className="w-full min-w-max table-fixed border-separate border-spacing-0">
           <colgroup>
             {columns.map((col) => (
-              <col key={String(col.key)} style={{ width: `${100 / columns.length}%` }} />
+              <col key={String(col.key)} className="min-w-[160px]" />
             ))}
           </colgroup>
           <thead className="sticky top-0 z-20 bg-surface-hover dimmable-header">
@@ -163,9 +162,7 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
                       setSortDir("desc");
                     }
                   }}
-                  className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface-hover shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground ${
-                    col.align === "right" ? "text-right" : "text-left"
-                  }`}
+                  className="px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface-hover shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center"
                 >
                   <span className="inline-flex items-center gap-1">
                     {col.label}
@@ -223,10 +220,8 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
                       return (
                         <td
                           key={String(col.key)}
-                          className={`px-3 py-3 text-[13px] ${
-                            col.align === "right" ? "text-right" : "text-left"
-                          } text-foreground`}
-                        >
+                        className="px-3 py-3 text-[13px] text-center text-foreground"
+                      >
                           <Link to={schemePath} className="block">
                             {typeof value === "string" && value
                               ? value
@@ -240,7 +235,8 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
                   </motion.tr>
                 ))}
           </tbody>
-        </table>
+          </table>
+        </div>
 
         {error && <div className="p-4 text-sm text-negative">{error}</div>}
         {!loading && items.length === 0 && !error && (
