@@ -133,7 +133,7 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
             <span className="text-muted-foreground"> results</span>
           </p>
           <div className="flex items-center gap-3">
-            <span className="text-[11px] text-muted-foreground font-mono-data">last updated at 8:00 AM IST</span>
+            <span className="text-[11px] text-muted-foreground">last updated at 8:00 AM IST</span>
             <button className="flex items-center gap-1.5 px-3 py-1.5 border border-border rounded-md text-[12px] font-medium text-foreground hover:bg-surface-hover transition-colors">
               <Lock className="w-3 h-3" />
               Export

@@ -13,8 +13,8 @@ const TickerTape = () => {
         {items.map((item, i) => (
           <div key={i} className="flex items-center gap-1.5 px-4 text-xs">
             <span className="font-medium text-nav-foreground tracking-tight">{item.name}</span>
-            <span className="font-mono-data text-nav-foreground">{item.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-            <span className={`font-mono-data ${item.isPositive ? 'text-positive' : 'text-negative'}`}>
+            <span className="text-nav-foreground">{item.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            <span className={`${item.isPositive ? 'text-positive' : 'text-negative'}`}>
               {item.isPositive ? '▲' : '▼'} {Math.abs(item.change).toFixed(2)}%
             </span>
           </div>

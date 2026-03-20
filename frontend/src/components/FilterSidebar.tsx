@@ -274,7 +274,7 @@ const FilterSidebar = ({
                                         value={draftValue.gte ?? ""}
                                         onChange={(e) => updateRange(filter.id, "gte", e.target.value)}
                                         placeholder={String(min)}
-                                        className="w-full bg-secondary border border-border rounded-md px-2 py-1.5 text-[12px] font-mono-data text-foreground text-center outline-none focus:border-primary"
+                                        className="w-full bg-secondary border border-border rounded-md px-2 py-1.5 text-[12px] text-foreground text-center outline-none focus:border-primary"
                                       />
                                       <span className="text-[12px] text-muted-foreground">to</span>
                                       <input
@@ -282,7 +282,7 @@ const FilterSidebar = ({
                                         value={draftValue.lte ?? ""}
                                         onChange={(e) => updateRange(filter.id, "lte", e.target.value)}
                                         placeholder={String(max)}
-                                        className="w-full bg-secondary border border-border rounded-md px-2 py-1.5 text-[12px] font-mono-data text-foreground text-center outline-none focus:border-primary"
+                                        className="w-full bg-secondary border border-border rounded-md px-2 py-1.5 text-[12px] text-foreground text-center outline-none focus:border-primary"
                                       />
                                     </div>
                                   </div>
