@@ -27,7 +27,9 @@ const FilterSidebar = ({
   onChangeValue,
   onReset,
 }: FilterSidebarProps) => {
-  const [expandedFilter, setExpandedFilter] = useState<string | null>("scheme_sub_category");
+  const [expandedFilters, setExpandedFilters] = useState<Record<string, boolean>>({
+    scheme_sub_category: true,
+  });
   const [showAddFilter, setShowAddFilter] = useState(false);
   const [subCategorySearch, setSubCategorySearch] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
@@ -46,7 +48,7 @@ const FilterSidebar = ({
   }, [enabledFilters]);
 
   const toggleFilter = (id: string) => {
-    setExpandedFilter(expandedFilter === id ? null : id);
+    setExpandedFilters((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const updateRange = (filterId: string, key: "gte" | "lte", value: string) => {
@@ -101,7 +103,12 @@ const FilterSidebar = ({
   const removeFilter = (filterId: string) => {
     if (PINNED_FILTERS.includes(filterId)) return;
     onChangeEnabled(enabledFilters.filter((id) => id !== filterId));
-    if (expandedFilter === filterId) setExpandedFilter(null);
+    setExpandedFilters((prev) => {
+      if (!prev[filterId]) return prev;
+      const next = { ...prev };
+      delete next[filterId];
+      return next;
+    });
     clearFilter(filterId);
   };
 
@@ -123,7 +130,7 @@ const FilterSidebar = ({
         <div className="flex-1 overflow-y-auto scrollbar-thin">
           {filtersToRender.map((filter) => {
             const currentValue = values[filter.id] || {};
-            const isExpanded = expandedFilter === filter.id;
+            const isExpanded = Boolean(expandedFilters[filter.id]);
             return (
               <div key={filter.id} className="border-b border-border">
                 <div className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-hover transition-colors">
