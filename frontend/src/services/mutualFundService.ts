@@ -90,6 +90,7 @@ export interface SchemeListItem {
   scheme_sub_name?: string;
   scheme_sub_category?: string;
   scheme_class?: string;
+  option_type?: string;
   current_nav?: number | null;
   time_since_inception_years?: number | null;
   abs_1w?: number | null;

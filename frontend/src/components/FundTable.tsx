@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Pencil, Share2, Lock, Plus } from "lucide-react";
+import { Pencil, Share2, Lock } from "lucide-react";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
 
 const LIMIT = 10;
@@ -12,6 +12,7 @@ const columns: Array<{
 }> = [
   { key: "scheme_sub_name", label: "Name", align: "left" },
   { key: "scheme_sub_category", label: "Sub Category", align: "left" },
+  { key: "option_type", label: "Plan", align: "left" },
 ];
 
 interface FundTableProps {
@@ -106,23 +107,17 @@ const FundTable = ({ filters }: FundTableProps) => {
       </div>
 
       <div className="flex-1 overflow-auto scrollbar-thin">
-        <table className="w-full">
-          <thead className="sticky top-0 z-10">
+        <table className="w-full border-separate border-spacing-0">
+          <thead>
             <tr className="bg-surface border-b border-border">
-              <th className="w-8 px-2 py-3">
-                <button className="p-0.5 hover:bg-surface-hover rounded transition-colors">
-                  <Plus className="w-3.5 h-3.5 text-muted-foreground" />
-                </button>
-              </th>
               {columns.map((col) => (
                 <th
                   key={String(col.key)}
-                  className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap ${
+                  className={`sticky top-0 z-20 px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface shadow-[0_1px_0_0_hsl(var(--border))] ${
                     col.align === "right" ? "text-right" : "text-left"
                   }`}
                 >
                   {col.label}
-                  {col.key === "scheme_sub_name" && <span className="ml-1">^</span>}
                 </th>
               ))}
             </tr>
@@ -136,9 +131,6 @@ const FundTable = ({ filters }: FundTableProps) => {
                 transition={{ delay: index * 0.02 }}
                 className="border-b border-border hover:bg-surface-hover/50 transition-colors cursor-default group"
               >
-                <td className="px-3 py-3 text-[13px] font-mono-data text-muted-foreground">
-                  {index + 1}.
-                </td>
                 {columns.map((col) => {
                   const value = fund[col.key];
                   if (col.key === "scheme_sub_name") {
