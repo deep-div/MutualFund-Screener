@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Pencil, Share2, Lock } from "lucide-react";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
 
-const LIMIT = 10;
+const LIMIT = 15;
 
 const columns: Array<{
   key: keyof SchemeListItem;
@@ -20,6 +21,7 @@ interface FundTableProps {
 }
 
 const FundTable = ({ filters }: FundTableProps) => {
+  const navigate = useNavigate();
   const [sortKey] = useState<keyof SchemeListItem>("scheme_sub_name");
   const [sortDir] = useState<"asc" | "desc">("asc");
   const [items, setItems] = useState<SchemeListItem[]>([]);
@@ -32,6 +34,13 @@ const FundTable = ({ filters }: FundTableProps) => {
   const formatNumber = (val: number) => {
     return val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
+
+  const toSchemeSlug = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
 
   const fetchPage = async (nextOffset: number, append: boolean) => {
     setLoading(true);
@@ -134,14 +143,19 @@ const FundTable = ({ filters }: FundTableProps) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: index * 0.02 }}
-                className="border-b border-border hover:bg-surface-hover/50 transition-colors cursor-default group"
+                onClick={() => {
+                  if (!fund.scheme_id) return;
+                  const schemeSlug = toSchemeSlug(fund.scheme_sub_name ?? "scheme");
+                  navigate(`/${schemeSlug}/${fund.scheme_id}`);
+                }}
+                className="border-b border-border hover:bg-surface-hover/50 transition-colors cursor-pointer group"
               >
                 {columns.map((col) => {
                   const value = fund[col.key];
                   if (col.key === "scheme_sub_name") {
                     return (
                       <td key={String(col.key)} className="px-3 py-3">
-                        <span className="text-[13px] font-medium text-primary hover:underline cursor-pointer">
+                        <span className="text-[13px] font-medium text-primary hover:underline">
                           {typeof value === "string" && value ? value : "-"}
                         </span>
                       </td>
