@@ -23,6 +23,13 @@ const formatNav = (value?: number | null) =>
 const formatChange = (value?: number | null) =>
   typeof value === "number" ? `${NAV_FORMATTER.format(Math.abs(value))}%` : "—";
 
+const toSchemeSlug = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
 const Navbar = () => {
   const { isLoggedIn, user, logout, loading } = useAuth();
   const navigate = useNavigate();
@@ -178,6 +185,7 @@ const Navbar = () => {
                         hasChange && changeValue < 0 ? "text-rose-500" : "text-emerald-600";
                       const changePrefix = changeValue < 0 ? "-" : "+";
                       const schemeId = item.scheme_id ?? item.scheme_code;
+                      const schemeSlug = toSchemeSlug(item.scheme_sub_name);
 
                       return (
                         <button
@@ -185,7 +193,7 @@ const Navbar = () => {
                           type="button"
                           onClick={() => {
                             if (schemeId === undefined || schemeId === null) return;
-                            navigate(`/funds/${schemeId}`);
+                            navigate(`/${schemeSlug}/${schemeId}`);
                             setSearchOpen(false);
                             setSearchFocused(false);
                           }}
