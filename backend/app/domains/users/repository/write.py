@@ -28,23 +28,23 @@ def upsert_user(user: dict) -> None:
             raise
 
 
-def add_watchlist_item(uid: str, scheme_code: int, watchlist_name: str) -> None:
+def add_watchlist_item(uid: str, scheme_id: str, watchlist_name: str) -> None:
     """Add a watchlist item for a user."""
     with get_session() as session:
         try:
-            scheme_id = (
-                session.query(SchemeMetaORM.id)
-                .filter(SchemeMetaORM.scheme_code == scheme_code)
-                .scalar()
+            row = (
+                session.query(SchemeMetaORM.id, SchemeMetaORM.scheme_code)
+                .filter(SchemeMetaORM.scheme_id == scheme_id)
+                .first()
             )
-            if scheme_id is None:
-                raise ValueError(f"Invalid scheme_code: {scheme_code}")
+            if row is None:
+                raise ValueError(f"Invalid scheme_id: {scheme_id}")
 
             stmt = insert(UserWatchlistORM).values(
                 {
                     "uid": uid,
-                    "scheme_id": scheme_id,
-                    "scheme_code": scheme_code,
+                    "scheme_id": row.id,
+                    "scheme_code": row.scheme_code,
                     "watchlist_name": watchlist_name,
                 }
             )
@@ -59,16 +59,16 @@ def add_watchlist_item(uid: str, scheme_code: int, watchlist_name: str) -> None:
             raise
 
 
-def delete_watchlist_item(uid: str, scheme_code: int, watchlist_name: str) -> int:
+def delete_watchlist_item(uid: str, scheme_id: str, watchlist_name: str) -> int:
     """Delete a watchlist item for a user. Returns rows deleted."""
     with get_session() as session:
         try:
-            scheme_id = (
+            scheme_db_id = (
                 session.query(SchemeMetaORM.id)
-                .filter(SchemeMetaORM.scheme_code == scheme_code)
+                .filter(SchemeMetaORM.scheme_id == scheme_id)
                 .scalar()
             )
-            if scheme_id is None:
+            if scheme_db_id is None:
                 return 0
 
             deleted = (
@@ -76,7 +76,7 @@ def delete_watchlist_item(uid: str, scheme_code: int, watchlist_name: str) -> in
                 .filter(
                     UserWatchlistORM.uid == uid,
                     UserWatchlistORM.watchlist_name == watchlist_name,
-                    UserWatchlistORM.scheme_id == scheme_id,
+                    UserWatchlistORM.scheme_id == scheme_db_id,
                 )
                 .delete(synchronize_session=False)
             )

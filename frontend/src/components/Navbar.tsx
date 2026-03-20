@@ -177,13 +177,15 @@ const Navbar = () => {
                       const changeColor =
                         hasChange && changeValue < 0 ? "text-rose-500" : "text-emerald-600";
                       const changePrefix = changeValue < 0 ? "-" : "+";
+                      const schemeId = item.scheme_id ?? item.scheme_code;
 
                       return (
                         <button
-                          key={item.scheme_code}
+                          key={schemeId ?? item.scheme_sub_name}
                           type="button"
                           onClick={() => {
-                            navigate(`/funds/${item.scheme_code}`);
+                            if (schemeId === undefined || schemeId === null) return;
+                            navigate(`/funds/${schemeId}`);
                             setSearchOpen(false);
                             setSearchFocused(false);
                           }}

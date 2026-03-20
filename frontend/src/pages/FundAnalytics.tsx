@@ -302,8 +302,8 @@ const CAGR_RETURN_ORDER = ["one_year", "two_year", "three_year", "four_year", "f
 const METRIC_PERIOD_ORDER = ["one_year", "two_year", "three_year", "four_year", "five_year", "seven_year", "ten_year", "max"];
 
 const FundAnalytics = () => {
-  const { schemeCode } = useParams();
-  const code = schemeCode ? Number(schemeCode) : NaN;
+  const { schemeId } = useParams();
+  const schemeKey = schemeId?.trim() || "";
   const [returnType, setReturnType] = useState<"absolute" | "cagr" | "rolling">("absolute");
   const [heatmapReturnType, setHeatmapReturnType] = useState<"absolute" | "cagr" | "rolling">("absolute");
   const [returnPeriod, setReturnPeriod] = useState<
@@ -328,9 +328,9 @@ const FundAnalytics = () => {
   const [riskMetricKey, setRiskMetricKey] = useState<string>("volatility");
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["scheme-analytics", code],
-    queryFn: () => getSchemeAnalytics(code),
-    enabled: Number.isFinite(code),
+    queryKey: ["scheme-analytics", schemeKey],
+    queryFn: () => getSchemeAnalytics(schemeKey),
+    enabled: schemeKey.length > 0,
   });
 
   const detail = data;
@@ -428,19 +428,20 @@ const FundAnalytics = () => {
 
   const launchDate = toYmd(meta?.launch_date);
   const endDate = toYmd(meta?.current_date);
+  const schemeCode = typeof meta?.scheme_code === "number" ? meta.scheme_code : null;
 
   const navQuery = useQuery({
-    queryKey: ["mfapi-nav", code, launchDate, endDate],
+    queryKey: ["mfapi-nav", schemeCode, launchDate, endDate],
     queryFn: async () => {
       const response = await fetch(
-        `https://api.mfapi.in/mf/${code}?startDate=${launchDate}&endDate=${endDate}`
+        `https://api.mfapi.in/mf/${schemeCode}?startDate=${launchDate}&endDate=${endDate}`
       );
       if (!response.ok) {
         throw new Error("Failed to load NAV history");
       }
       return (await response.json()) as MfApiResponse;
     },
-    enabled: Number.isFinite(code) && !!launchDate && !!endDate,
+    enabled: typeof schemeCode === "number" && !!launchDate && !!endDate,
   });
 
   const navSeries = useMemo(() => {
@@ -636,12 +637,12 @@ const FundAnalytics = () => {
         ? `${meta.time_since_inception_years}Y`
         : "-";
 
-  if (!Number.isFinite(code)) {
+  if (!schemeKey) {
     return (
       <div className="min-h-screen bg-background">
         <TickerTape />
         <Navbar />
-        <div className="p-6 text-sm text-muted-foreground">Invalid scheme code.</div>
+        <div className="p-6 text-sm text-muted-foreground">Invalid scheme id.</div>
       </div>
     );
   }

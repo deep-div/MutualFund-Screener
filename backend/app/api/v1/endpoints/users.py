@@ -54,11 +54,11 @@ def create_or_update_user(
 @router.post("/users/{uid}/watchlist", status_code=201)
 def add_to_watchlist(
     uid: str,
-    scheme_code: int = Query(...),
+    scheme_id: str = Query(..., min_length=8, max_length=8),
     watchlist_name: str = Query("default"),
 ):
     try:
-        add_watchlist_item(uid=uid, scheme_code=scheme_code, watchlist_name=watchlist_name)
+        add_watchlist_item(uid=uid, scheme_id=scheme_id, watchlist_name=watchlist_name)
         return {"status": "ok"}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to add watchlist item: {exc}")
@@ -78,11 +78,11 @@ def get_watchlist(uid: str):
 @router.delete("/users/{uid}/watchlist", status_code=200)
 def delete_from_watchlist(
     uid: str,
-    scheme_code: int = Query(...),
+    scheme_id: str = Query(..., min_length=8, max_length=8),
     watchlist_name: str = Query("default"),
 ):
     try:
-        deleted = delete_watchlist_item(uid=uid, scheme_code=scheme_code, watchlist_name=watchlist_name)
+        deleted = delete_watchlist_item(uid=uid, scheme_id=scheme_id, watchlist_name=watchlist_name)
         if not deleted:
             raise HTTPException(status_code=404, detail="Watchlist item not found")
         return {"status": "ok"}
