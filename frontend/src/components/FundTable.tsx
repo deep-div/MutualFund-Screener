@@ -127,12 +127,12 @@ const FundTable = ({ filters }: FundTableProps) => {
               <col key={String(col.key)} style={{ width: `${100 / columns.length}%` }} />
             ))}
           </colgroup>
-          <thead className="sticky top-0 z-20 bg-surface">
+          <thead className="sticky top-0 z-20 bg-surface-hover">
             <tr className="border-b border-border">
               {columns.map((col) => (
                 <th
                   key={String(col.key)}
-                  className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface shadow-[0_1px_0_0_hsl(var(--border))] ${
+                  className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface-hover shadow-[0_1px_0_0_hsl(var(--border))] ${
                     col.align === "right" ? "text-right" : "text-left"
                   }`}
                 >
@@ -148,7 +148,7 @@ const FundTable = ({ filters }: FundTableProps) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: index * 0.02 }}
-                className="border-b border-border hover:bg-surface-hover/50 transition-colors cursor-pointer group"
+                className="border-b border-border hover:bg-surface-hover transition-colors cursor-pointer group"
               >
                 {columns.map((col) => {
                   const value = fund[col.key];
