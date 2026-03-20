@@ -64,7 +64,7 @@ const Index = () => {
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       <TickerTape />
       <Navbar />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden page-dimmable">
         <FilterSidebar
           enabledFilters={enabledFilters}
           values={filterValues}
