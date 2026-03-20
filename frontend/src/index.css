@@ -83,6 +83,18 @@
     border-radius: 2px;
   }
 
+  .range-track {
+    height: 16px;
+  }
+  .range-track__fill {
+    position: absolute;
+    inset: 5px 0 5px 0;
+    height: 6px;
+    border-radius: 999px;
+    background: hsl(var(--border));
+    z-index: 0;
+  }
+
   .range-input {
     -webkit-appearance: none;
     appearance: none;
@@ -90,9 +102,9 @@
     pointer-events: none;
   }
   .range-input::-webkit-slider-runnable-track {
-    height: 4px;
+    height: 6px;
     border-radius: 999px;
-    background: hsl(var(--primary));
+    background: transparent;
     position: relative;
     z-index: 1;
   }
@@ -100,32 +112,32 @@
     -webkit-appearance: none;
     position: relative;
     z-index: 2;
-    height: 14px;
-    width: 14px;
+    height: 16px;
+    width: 16px;
     border-radius: 999px;
-    background: hsl(var(--primary));
-    border: 2px solid hsl(var(--background));
-    box-shadow: 0 0 0 1px hsl(var(--border));
-    margin-top: -6px;
+    background: hsl(0 0% 100%);
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 1px 2px hsl(0 0% 0% / 0.18);
+    margin-top: -5px;
     pointer-events: auto;
     cursor: pointer;
   }
   .range-input::-moz-range-track {
-    height: 4px;
+    height: 6px;
     border-radius: 999px;
-    background: hsl(var(--primary));
+    background: transparent;
     position: relative;
     z-index: 1;
   }
   .range-input::-moz-range-thumb {
     position: relative;
     z-index: 2;
-    height: 14px;
-    width: 14px;
+    height: 16px;
+    width: 16px;
     border-radius: 999px;
-    background: hsl(var(--primary));
-    border: 2px solid hsl(var(--background));
-    box-shadow: 0 0 0 1px hsl(var(--border));
+    background: hsl(0 0% 100%);
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 1px 2px hsl(0 0% 0% / 0.18);
     transform: translateY(-1px);
     pointer-events: auto;
     cursor: pointer;

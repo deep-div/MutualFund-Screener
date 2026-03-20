@@ -207,7 +207,34 @@ const FilterSidebar = ({
                               return (
                                 <>
                                   <div className="space-y-2 pt-2">
-                                    <div className="relative h-4">
+                                    <div className="relative h-4 range-track">
+                                      {(() => {
+                                        const minValue =
+                                          draftValue.gte !== undefined && draftValue.gte !== ""
+                                            ? Number(draftValue.gte)
+                                            : min;
+                                        const maxValue =
+                                          draftValue.lte !== undefined && draftValue.lte !== ""
+                                            ? Number(draftValue.lte)
+                                            : max;
+                                        const span = max - min || 1;
+                                        const left = ((Math.min(minValue, maxValue) - min) / span) * 100;
+                                        const right = ((Math.max(minValue, maxValue) - min) / span) * 100;
+                                        return (
+                                          <div
+                                            className="range-track__fill"
+                                            style={{
+                                              background: `linear-gradient(90deg,
+                                                hsl(var(--border)) 0%,
+                                                hsl(var(--border)) ${left}%,
+                                                hsl(var(--primary)) ${left}%,
+                                                hsl(var(--primary)) ${right}%,
+                                                hsl(var(--border)) ${right}%,
+                                                hsl(var(--border)) 100%)`,
+                                            }}
+                                          />
+                                        );
+                                      })()}
                                       <input
                                         type="range"
                                         min={min}
