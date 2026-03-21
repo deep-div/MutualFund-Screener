@@ -160,7 +160,7 @@ export const getSchemeAnalytics = (schemeId: number | string, options?: { signal
 
 export const listSchemes = (
   payload: {
-    filters: Record<string, Record<string, number | string>>;
+    filters: Record<string, Record<string, number | string | string[]>>;
     sort_field?: string;
     sort_order?: "asc" | "desc";
   },

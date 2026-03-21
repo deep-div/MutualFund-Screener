@@ -20,7 +20,7 @@ const baseColumns: Array<{
 ];
 
 interface FundTableProps {
-  filters: Record<string, Record<string, number | string>>;
+  filters: Record<string, Record<string, number | string | string[]>>;
   enabledFilters: string[];
 }
 
@@ -76,7 +76,7 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
     }
     try {
       const payload: {
-        filters: Record<string, Record<string, number | string>>;
+        filters: Record<string, Record<string, number | string | string[]>>;
         sort_field?: string;
         sort_order?: "asc" | "desc";
       } = { filters };

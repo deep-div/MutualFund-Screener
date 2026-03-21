@@ -18,7 +18,7 @@ export interface FilterDefinition {
 export type FilterValue = {
   gte?: number | "";
   lte?: number | "";
-  value?: string;
+  value?: string | string[];
 };
 
 export type FilterValueMap = Record<string, FilterValue>;

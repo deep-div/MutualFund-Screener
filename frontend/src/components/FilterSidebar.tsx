@@ -15,7 +15,7 @@ interface FilterSidebarProps {
   values: FilterValueMap;
   activeCount: number;
   onChangeEnabled: (next: string[]) => void;
-  onChangeValue: (id: string, next: { gte?: number | ""; lte?: number | ""; value?: string }) => void;
+  onChangeValue: (id: string, next: { gte?: number | ""; lte?: number | ""; value?: string | string[] }) => void;
   onReset: () => void;
 }
 
@@ -120,6 +120,21 @@ const FilterSidebar = ({
 
   const updateSingle = (filterId: string, nextValue: string) => {
     onChangeValue(filterId, { value: nextValue });
+  };
+
+  const getSelectedList = (value?: string | string[]) => {
+    if (Array.isArray(value)) return value;
+    if (value) return [value];
+    return [];
+  };
+
+  const updateMulti = (filterId: string, nextValues: string[]) => {
+    const uniqueValues = Array.from(new Set(nextValues));
+    if (uniqueValues.length === 0) {
+      onChangeValue(filterId, {});
+      return;
+    }
+    onChangeValue(filterId, { value: uniqueValues });
   };
 
   const clearFilter = (filterId: string) => {
@@ -339,9 +354,9 @@ const FilterSidebar = ({
                               if (groupSearch && filteredOptions.length === 0) return null;
 
                               const isExpanded = expandedGroups[group.id];
-                              const selectedSchemeClass = values["scheme_class"]?.value;
+                              const selectedSchemeClass = getSelectedList(values["scheme_class"]?.value);
                               const groupSchemeClass = group.schemeClassValue ?? group.label;
-                              const isGroupSelected = selectedSchemeClass === groupSchemeClass;
+                              const isGroupSelected = selectedSchemeClass.includes(groupSchemeClass);
 
                               return (
                                 <div key={group.id} className="space-y-2">
@@ -356,9 +371,12 @@ const FilterSidebar = ({
                                         onClick={(event) => {
                                           event.stopPropagation();
                                           if (isGroupSelected) {
-                                            onChangeValue("scheme_class", {});
+                                            updateMulti(
+                                              "scheme_class",
+                                              selectedSchemeClass.filter((item) => item !== groupSchemeClass)
+                                            );
                                           } else {
-                                            onChangeValue("scheme_class", { value: groupSchemeClass });
+                                            updateMulti("scheme_class", [...selectedSchemeClass, groupSchemeClass]);
                                           }
                                         }}
                                         className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
@@ -384,16 +402,32 @@ const FilterSidebar = ({
                                   {isExpanded && (
                                     <div className="space-y-1 pl-6">
                                       {(groupSearch ? filteredOptions : group.options).map((option) => {
-                                        const isSelected = currentValue.value === option;
+                                        const selectedSubCategories = getSelectedList(currentValue.value);
+                                        const isSelected = selectedSubCategories.includes(option);
                                         return (
                                           <button
                                             key={option}
                                             onClick={() => {
-                                              if (isSelected) {
-                                                clearFilter(filter.id);
-                                              } else {
-                                                updateSingle(filter.id, option);
-                                                onChangeValue("scheme_class", { value: groupSchemeClass });
+                                              const nextSelected = isSelected
+                                                ? selectedSubCategories.filter((item) => item !== option)
+                                                : [...selectedSubCategories, option];
+                                              updateMulti(filter.id, nextSelected);
+
+                                              const hasGroupSelections = nextSelected.some((item) =>
+                                                group.options.includes(item)
+                                              );
+                                              if (hasGroupSelections) {
+                                                if (!selectedSchemeClass.includes(groupSchemeClass)) {
+                                                  updateMulti("scheme_class", [
+                                                    ...selectedSchemeClass,
+                                                    groupSchemeClass,
+                                                  ]);
+                                                }
+                                              } else if (selectedSchemeClass.includes(groupSchemeClass)) {
+                                                updateMulti(
+                                                  "scheme_class",
+                                                  selectedSchemeClass.filter((item) => item !== groupSchemeClass)
+                                                );
                                               }
                                             }}
                                             className="w-full flex items-center gap-2 px-1 py-1 text-[12px] text-muted-foreground hover:text-foreground hover:bg-surface-hover transition-colors"

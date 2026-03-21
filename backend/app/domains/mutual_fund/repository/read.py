@@ -4,7 +4,7 @@ from app.db.session import get_session
 from app.domains.mutual_fund.models import SchemeMetaORM, SchemeAnalyticsORM
 from app.domains.ingestion.schemas import SchemeSubCategory
 
-ALLOWED_OPERATORS = {"gte", "lte", "gt", "lt", "eq"}
+ALLOWED_OPERATORS = {"gte", "lte", "gt", "lt", "eq", "in"}
 
 ALL_COLUMNS = {c.name: getattr(SchemeMetaORM, c.name) for c in SchemeMetaORM.__table__.columns}
 
@@ -29,6 +29,9 @@ def build_dynamic_filters(query, filters):
                     query = query.filter(column < val)
                 elif op == "eq":
                     query = query.filter(column == val)
+                elif op == "in": ## Select multiple values for a column, e.g. scheme_sub_category__in=["Large Cap", "Mid Cap"]
+                    if isinstance(val, (list, tuple, set)) and len(val) > 0:
+                        query = query.filter(column.in_(val))
         else:
             query = query.filter(column == value)
 

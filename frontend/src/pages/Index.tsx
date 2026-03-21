@@ -26,6 +26,10 @@ const Index = () => {
         count += 1;
       }
       if (def.type === "single" && value.value) {
+        if (Array.isArray(value.value)) {
+          if (value.value.length > 0) count += 1;
+          return;
+        }
         count += 1;
       }
     });
@@ -33,7 +37,7 @@ const Index = () => {
   }, [enabledFilters, filterValues]);
 
   const filtersPayload = useMemo(() => {
-    const payload: Record<string, Record<string, number | string>> = {};
+    const payload: Record<string, Record<string, number | string | string[]>> = {};
     enabledFilters.forEach((id) => {
       const def = FILTER_DEFINITIONS_BY_ID[id];
       const value = filterValues[id];
@@ -45,6 +49,10 @@ const Index = () => {
         if (Object.keys(range).length > 0) payload[id] = range;
       }
       if (def.type === "single" && value.value) {
+        if (Array.isArray(value.value)) {
+          if (value.value.length > 0) payload[id] = { in: value.value };
+          return;
+        }
         payload[id] = { eq: value.value };
       }
     });
@@ -56,7 +64,10 @@ const Index = () => {
     setFilterValues({});
   };
 
-  const handleValueChange = (id: string, nextValue: { gte?: number | ""; lte?: number | ""; value?: string }) => {
+  const handleValueChange = (
+    id: string,
+    nextValue: { gte?: number | ""; lte?: number | ""; value?: string | string[] }
+  ) => {
     setFilterValues((prev) => ({ ...prev, [id]: nextValue }));
   };
 
