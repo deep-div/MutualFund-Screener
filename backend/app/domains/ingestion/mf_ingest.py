@@ -181,15 +181,17 @@ class MFAPIFetcher:
 
         meta_raw = raw.get("meta", {})
 
-        scheme_name = meta_raw.get("scheme_name") or meta_raw.get("schemeName")
-        scheme_category = meta_raw.get("scheme_category") or meta_raw.get("schemeCategory") or ""
-        fund_house = meta_raw.get("fund_house") or meta_raw.get("fundHouse")
+        scheme_name = self._none_if_missing(meta_raw.get("scheme_name") or meta_raw.get("schemeName"))
+        scheme_category = self._none_if_missing(
+            meta_raw.get("scheme_category") or meta_raw.get("schemeCategory")
+        )
+        fund_house = self._none_if_missing(meta_raw.get("fund_house") or meta_raw.get("fundHouse"))
         if fund_house:
             fund_house = self.normalize_fund_house(fund_house)
-        scheme_code = meta_raw.get("scheme_code") or meta_raw.get("schemeCode")
+        scheme_code = self._none_if_missing(meta_raw.get("scheme_code") or meta_raw.get("schemeCode"))
 
         name_lower = (scheme_name or "").lower()
-        scheme_sub_name = self._extract_scheme_sub_name(scheme_name)
+        scheme_sub_name = self._none_if_missing(self._extract_scheme_sub_name(scheme_name))
 
         # Compute launch_date/current_date and age fields from NAV history
         nav_data = raw.get("data", [])
@@ -219,7 +221,7 @@ class MFAPIFetcher:
         scheme_class = SchemeClass.OTHER
         scheme_sub_category = scheme_category
 
-        if "-" in scheme_category:
+        if scheme_category and "-" in scheme_category:
             left, right = scheme_category.split("-", 1)
             scheme_sub_category_str = right.strip()
 
@@ -247,7 +249,7 @@ class MFAPIFetcher:
             if matched_enum:
                 scheme_sub_category = matched_enum
             else:
-                scheme_sub_category = scheme_sub_category_str  # fallback instead of breaking
+                scheme_sub_category = self._none_if_missing(scheme_sub_category_str)  # fallback instead of breaking
 
             # Scheme Class Detection
             left = left.strip().lower()
@@ -258,8 +260,12 @@ class MFAPIFetcher:
                 scheme_class = SchemeClass.DEBT
             elif "hybrid" in left:
                 scheme_class = SchemeClass.HYBRID
-            else:
+            elif "solution oriented" in left:
                 scheme_class = SchemeClass.OTHER
+            elif "other" in left:
+                scheme_class = SchemeClass.OTHER
+            else:
+                scheme_class = None
 
         # Fix: If class is OTHER but sub-category is INDEX, treat as EQUITY
         if (
@@ -305,9 +311,11 @@ class MFAPIFetcher:
             nav_record_count=nav_record_count,
             option_type=option_type,
             plan_type=plan_type,
-            scheme_type=meta_raw.get("scheme_type") or meta_raw.get("schemeType"),
-            isin_growth=meta_raw.get("isin_growth") or meta_raw.get("isinGrowth"),
-            isin_div_reinvestment=meta_raw.get("isin_div_reinvestment") or meta_raw.get("isinDivReinvestment"),
+            scheme_type=self._none_if_missing(meta_raw.get("scheme_type") or meta_raw.get("schemeType")),
+            isin_growth=self._none_if_missing(meta_raw.get("isin_growth") or meta_raw.get("isinGrowth")),
+            isin_div_reinvestment=self._none_if_missing(
+                meta_raw.get("isin_div_reinvestment") or meta_raw.get("isinDivReinvestment")
+            ),
         )
 
     @staticmethod
@@ -378,6 +386,15 @@ class MFAPIFetcher:
         # remove trailing dots
         cleaned = re.sub(r"\.+$", "", cleaned)
         return cleaned.title()
+
+    @staticmethod
+    def _none_if_missing(value):
+        """Normalize missing/empty values to None for consistent downstream handling."""
+        if value is None:
+            return None
+        if isinstance(value, str) and value.strip() == "":
+            return None
+        return value
     
     async def fetch_scheme(self, session, semaphore, scheme_code):
         """Fetch NAV data, enrich meta from raw, then validate full response."""
