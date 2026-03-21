@@ -371,11 +371,22 @@ const FilterSidebar = ({
                                         onClick={(event) => {
                                           event.stopPropagation();
                                           if (isGroupSelected) {
+                                            const remainingSubCategories = getSelectedList(currentValue.value).filter(
+                                              (item) => !group.options.includes(item)
+                                            );
+                                            updateMulti(filter.id, remainingSubCategories);
                                             updateMulti(
                                               "scheme_class",
                                               selectedSchemeClass.filter((item) => item !== groupSchemeClass)
                                             );
                                           } else {
+                                            const nextSubCategories = Array.from(
+                                              new Set([
+                                                ...getSelectedList(currentValue.value),
+                                                ...group.options,
+                                              ])
+                                            );
+                                            updateMulti(filter.id, nextSubCategories);
                                             updateMulti("scheme_class", [...selectedSchemeClass, groupSchemeClass]);
                                           }
                                         }}
