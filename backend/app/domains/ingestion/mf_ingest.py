@@ -1,3 +1,5 @@
+from os import name
+
 import requests
 import asyncio
 import aiohttp
@@ -87,48 +89,20 @@ class MFAPIFetcher:
 
         logger.info(f"Filtered {len(funds)} eligible schemes")
         return funds
-
+    
+    ## Normalizing Hard codes so new Fund houses are not affected 
     @staticmethod
     def normalize_fund_house(name: str) -> str:
-        """Normalize fund house name with correct casing rules and special handling"""
+        """Normalize fund house name by fixing quant casing only"""
         if not name:
             return name
 
         name = name.strip().lower()
 
-        # Words that should always be uppercase
-        UPPER_WORDS = {
-            "sbi", "hdfc", "dsp", "uti", "lic", "hsbc",
-            "icici", "ppfas", "iti", "nj", "bnp",
-            "pgim", "jm"
-        }
+        if name == "quant mutual fund":
+            return "Quant Mutual Fund"
 
-        # Words that should always be lowercase
-        LOWER_WORDS = {"of"}
-
-        # Special brand casing fixes
-        SPECIAL_WORDS = {
-            "whiteoak": "WhiteOak",
-            "blackrock": "BlackRock",
-        }
-
-        words = name.split()
-        normalized = []
-
-        for i, word in enumerate(words):
-            # Special case: 360 ONE
-            if i > 0 and words[i - 1] == "360" and word == "one":
-                normalized.append("ONE")
-            elif word in SPECIAL_WORDS:
-                normalized.append(SPECIAL_WORDS[word])
-            elif word in UPPER_WORDS:
-                normalized.append(word.upper())
-            elif word in LOWER_WORDS:
-                normalized.append(word.lower())
-            else:
-                normalized.append(word.capitalize())
-
-        return " ".join(normalized)
+        return name.title()
 
     @staticmethod
     def normalize_scheme_sub_category(value: str, is_enum: bool) -> str:
