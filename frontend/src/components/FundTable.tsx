@@ -155,7 +155,7 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
               <col key={String(col.key)} className="min-w-[160px]" />
             ))}
           </colgroup>
-          <thead className="sticky top-0 z-20 bg-surface-hover dimmable-header">
+          <thead className="sticky top-0 z-20 table-header-bg dimmable-header">
             <tr className="border-b border-border">
               {columns.map((col) => (
                 <th
@@ -169,7 +169,7 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
                       setSortDir("desc");
                     }
                   }}
-                  className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-surface-hover shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group ${
+                  className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap table-header-bg shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group ${
                     col.key === "scheme_sub_name" ? "sticky left-0 z-30" : ""
                   }`}
                 >
@@ -221,7 +221,7 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.02 }}
-                    className="border-b border-border hover:bg-surface-hover transition-colors cursor-pointer group dimmable-row"
+                    className="border-b border-border table-row-hover transition-colors cursor-pointer group dimmable-row"
                   >
                     {columns.map((col) => {
                       const value = fund[col.key];
@@ -230,7 +230,7 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
                         return (
                       <td
                         key={String(col.key)}
-                        className={`px-3 py-3 ${col.key === "scheme_sub_name" ? "sticky left-0 z-10 bg-background" : ""}`}
+                        className={`px-3 py-3 transition-colors ${col.key === "scheme_sub_name" ? "sticky left-0 z-10 bg-background sticky-cell" : ""}`}
                       >
                         <Link
                           to={schemePath}

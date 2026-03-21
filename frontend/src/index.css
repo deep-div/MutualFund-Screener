@@ -39,6 +39,7 @@
 
     --surface: 0 0% 100%;
     --surface-hover: 220 33% 98%;
+    --table-header-bg: #f5f4f4;
     --nav: 222 47% 11%;
     --nav-foreground: 210 40% 98%;
     --nav-hover: 222 47% 16%;
@@ -216,6 +217,15 @@
   .page-dimmable {
     position: relative;
     transition: opacity 150ms ease;
+  }
+  .table-header-bg {
+    background-color: var(--table-header-bg);
+  }
+  .table-row-hover:hover {
+    background-color: var(--table-header-bg);
+  }
+  .table-row-hover:hover .sticky-cell {
+    background-color: var(--table-header-bg);
   }
   .no-cards-right.bg-surface,
   .no-cards-right.bg-card,
