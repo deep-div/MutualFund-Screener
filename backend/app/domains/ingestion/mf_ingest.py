@@ -102,7 +102,7 @@ class MFAPIFetcher:
         if name == "quant mutual fund":
             return "Quant Mutual Fund"
 
-        return name.title()
+        return name
 
     @staticmethod
     def normalize_scheme_sub_category(value: str, is_enum: bool) -> str:
