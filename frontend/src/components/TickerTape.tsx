@@ -5,6 +5,7 @@ import { apiGet } from "@/lib/apiClient";
 
 const UP_ARROW = "\u25B2";
 const DOWN_ARROW = "\u25BC";
+const SESSION_KEY = "mf_leaderboards_ticker";
 
 const TickerTape = () => {
   const [tickerItems, setTickerItems] = useState<TickerItem[]>([]);
@@ -13,7 +14,33 @@ const TickerTape = () => {
   useEffect(() => {
     const controller = new AbortController();
 
+    const loadFromSession = () => {
+      try {
+        const raw = sessionStorage.getItem(SESSION_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw) as TickerItem[];
+        if (!Array.isArray(parsed)) return null;
+        return parsed;
+      } catch {
+        return null;
+      }
+    };
+
+    const saveToSession = (items: TickerItem[]) => {
+      try {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(items));
+      } catch {
+        // Ignore storage errors
+      }
+    };
+
     const loadTicker = async () => {
+      const cached = loadFromSession();
+      if (cached && cached.length > 0) {
+        setTickerItems(cached);
+        return;
+      }
+
       try {
         const data = await apiGet<LeaderboardResponse>("/api/v1/schemes/leaderboards", undefined, {
           signal: controller.signal,
@@ -26,6 +53,9 @@ const TickerTape = () => {
         ];
 
         setTickerItems(mapped);
+        if (mapped.length > 0) {
+          saveToSession(mapped);
+        }
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Failed to load ticker data", error);
