@@ -3,7 +3,7 @@ import asyncio
 import aiohttp
 import nest_asyncio
 import re
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 from app.domains.ingestion.schemas import (
     InstrumentType,
@@ -176,7 +176,7 @@ class MFAPIFetcher:
 
         return v
 
-    def _build_scheme_meta(self, raw: dict) -> SchemeMeta:
+    def _build_scheme_meta(self, raw: dict) -> Optional[SchemeMeta]:
         """Derive and construct SchemeMeta from raw meta dictionary."""
 
         meta_raw = raw.get("meta", {})
@@ -292,6 +292,32 @@ class MFAPIFetcher:
             plan_type = PlanType.REGULAR.value
         else:
             plan_type = PlanType.OTHER.value
+
+        required_meta = {
+            "instrument_type": InstrumentType.MUTUAL_FUND.value,
+            "scheme_code": scheme_code,
+            "fund_house": fund_house,
+            "scheme_class": scheme_class,
+            "scheme_category": scheme_category,
+            "scheme_sub_category": scheme_sub_category,
+            "scheme_name": scheme_name,
+            "scheme_sub_name": scheme_sub_name,
+            "launch_date": launch_date,
+            "current_date": current_date,
+            "current_nav": current_nav,
+            "nav_change_1d": nav_change_1d,
+            "time_since_inception_years": time_since_inception_years,
+            "total_active_days": total_active_days,
+            "nav_record_count": nav_record_count,
+        }
+
+        missing_fields = [k for k, v in required_meta.items() if v is None]
+        if missing_fields:
+            logger.warning(
+                "Skipping scheme due to missing required meta fields | "
+                f"scheme_code={scheme_code} | missing={missing_fields}"
+            )
+            return None
 
         return SchemeMeta(
             instrument_type=InstrumentType.MUTUAL_FUND.value,
@@ -423,6 +449,8 @@ class MFAPIFetcher:
 
                             # STEP 1: Enrich meta directly from raw
                             enriched_meta = self._build_scheme_meta(raw)
+                            if enriched_meta is None:
+                                return None
 
                             # STEP 2: Inject enriched meta
                             raw["meta"] = enriched_meta.model_dump(mode="json")
@@ -488,7 +516,47 @@ class MFAPIFetcher:
                 f"NAV fetch completed | Success: {len(final_results)} | Failed/Skipped: {failed_count}"
             )
 
-            return final_results
+            # Post-filter for allowed SchemeSubCategory and SchemeClass enums
+            allowed_sub_categories = {e.value for e in SchemeSubCategory}
+            allowed_scheme_classes = {e.value for e in SchemeClass}
+            invalid_sub_category_counts = {}
+            invalid_scheme_class_counts = {}
+
+            filtered_results = []
+            for item in final_results:
+                meta = item.get("meta", {})
+                sub_category = meta.get("scheme_sub_category")
+                scheme_class = meta.get("scheme_class")
+
+                invalid_sub = sub_category not in allowed_sub_categories
+                invalid_class = scheme_class not in allowed_scheme_classes
+
+                if invalid_sub:
+                    invalid_sub_category_counts[sub_category] = invalid_sub_category_counts.get(sub_category, 0) + 1
+                if invalid_class:
+                    invalid_scheme_class_counts[scheme_class] = invalid_scheme_class_counts.get(scheme_class, 0) + 1
+
+                if invalid_sub or invalid_class:
+                    continue
+
+                filtered_results.append(item)
+
+            removed_count = len(final_results) - len(filtered_results)
+            if removed_count:
+                logger.warning(
+                    f"Removed {removed_count} schemes due to invalid SchemeSubCategory/SchemeClass"
+                )
+                if invalid_sub_category_counts:
+                    logger.warning(
+                        f"Invalid SchemeSubCategory counts: {invalid_sub_category_counts}"
+                    )
+                if invalid_scheme_class_counts:
+                    logger.warning(
+                        f"Invalid SchemeClass counts: {invalid_scheme_class_counts}"
+                    )
+
+            logger.info(f"Final schemes ready: {len(filtered_results)}")
+            return filtered_results
 
 def run_ingestion():
     """Run mutual fund ingestion pipeline"""
