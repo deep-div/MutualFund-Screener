@@ -275,6 +275,15 @@ class MFAPIFetcher:
         ):
             scheme_class = SchemeClass.EQUITY
 
+        # Commodity override based on scheme_sub_name
+        sub_name_lower = (scheme_sub_name or "").lower()
+        if "gold" in sub_name_lower:
+            scheme_class = SchemeClass.COMODITY
+            scheme_sub_category = SchemeSubCategory.GOLD
+        elif "silver" in sub_name_lower:
+            scheme_class = SchemeClass.COMODITY
+            scheme_sub_category = SchemeSubCategory.SILVER
+
         # Option Type
         if "growth" in name_lower:
             option_type = OptionType.GROWTH.value

@@ -47,6 +47,10 @@ class SchemeSubCategory(str, Enum):
     MULTI_ASSET_ALLOCATION = "Multi Asset Allocation Fund"
     ARBITRAGE = "Arbitrage Fund"
 
+    # Commodity
+    GOLD = "Gold"
+    SILVER = "Silver"
+
     #  Others 
     RETIREMENT = "Solution Oriented - Retirement Fund"
     CHILDRENS = "Solution Oriented - Children's Fund"
@@ -65,6 +69,7 @@ class SchemeClass(str, Enum):
     EQUITY = "Equity"
     DEBT = "Debt"
     HYBRID = "Hybrid"
+    COMODITY = "Commodity" 
     OTHER = "Other"
 
 
