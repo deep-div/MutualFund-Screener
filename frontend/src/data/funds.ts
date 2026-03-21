@@ -33,20 +33,6 @@ export const SAMPLE_FUNDS: MutualFund[] = [
   { id: 10, name: "SBI Small Cap Fund", subCategory: "Small Cap Fund", plan: "Growth", aum: 28456.12, absReturn3M: -8.12, absReturn6M: -10.45, absReturn1Y: 6.5, cagr3Y: 22.8, cagr5Y: 26.1, cagr10Y: 19.2, equityHolding: 88.9 },
 ];
 
-export const TICKER_DATA = [
-  { name: "BHARTIARTL", price: 1788.80, change: -0.81, isPositive: false },
-  { name: "HDFCBANK", price: 840.60, change: 2.89, isPositive: true },
-  { name: "HINDUNILVR", price: 2175.70, change: 0.73, isPositive: true },
-  { name: "INDIGO", price: 4222.10, change: 1.54, isPositive: true },
-  { name: "ITC", price: 308.25, change: 2.26, isPositive: true },
-  { name: "MARUTI", price: 12757.00, change: 1.32, isPositive: true },
-  { name: "RELIANCE", price: 1395.10, change: 0.45, isPositive: true },
-  { name: "TCS", price: 3456.20, change: -0.32, isPositive: false },
-  { name: "INFY", price: 1523.40, change: 1.15, isPositive: true },
-  { name: "BAJFINANCE", price: 878.15, change: 2.70, isPositive: true },
-  { name: "NIFTY", price: 25610.15, change: 0.62, isPositive: true },
-];
-
 export const FILTER_CATEGORIES = [
   { id: "scheme", label: "Scheme Info" },
   { id: "returns", label: "Returns" },

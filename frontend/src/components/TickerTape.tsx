@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { TICKER_DATA } from "@/data/funds";
 import { apiGet } from "@/lib/apiClient";
 
 const UP_ARROW = "\u25B2";
 const DOWN_ARROW = "\u25BC";
 
 const TickerTape = () => {
-  const [tickerItems, setTickerItems] = useState<TickerItem[]>(TICKER_DATA);
+  const [tickerItems, setTickerItems] = useState<TickerItem[]>([]);
   const [direction, setDirection] = useState<"normal" | "reverse">("normal");
 
   useEffect(() => {
@@ -26,9 +25,7 @@ const TickerTape = () => {
           ...losers.map((item) => mapLeaderboardItem(item, false)),
         ];
 
-        if (mapped.length > 0) {
-          setTickerItems(mapped);
-        }
+        setTickerItems(mapped);
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Failed to load ticker data", error);
@@ -40,7 +37,10 @@ const TickerTape = () => {
     return () => controller.abort();
   }, []);
 
-  const items = useMemo(() => [...tickerItems, ...tickerItems], [tickerItems]);
+  const items = useMemo(() => {
+    if (tickerItems.length === 0) return [];
+    return [...tickerItems, ...tickerItems];
+  }, [tickerItems]);
 
   return (
     <div className="h-8 bg-nav border-b border-nav-hover overflow-hidden flex items-center relative z-[70]">
