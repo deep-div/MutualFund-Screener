@@ -22,9 +22,10 @@ const baseColumns: Array<{
 interface FundTableProps {
   filters: Record<string, Record<string, number | string | string[]>>;
   enabledFilters: string[];
+  onMetaChange?: (meta: Record<string, { min: number | null; max: number | null }> | undefined) => void;
 }
 
-const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
+const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) => {
   const [sortKey, setSortKey] = useState<keyof SchemeListItem | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [items, setItems] = useState<SchemeListItem[]>([]);
@@ -87,6 +88,9 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
       const response = await listSchemes(payload, { limit: LIMIT, offset: nextOffset });
       setTotal(response.total);
       setItems((prev) => (append ? [...prev, ...response.items] : response.items));
+      if (!append && onMetaChange) {
+        onMetaChange(response.meta);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load data.");
       if (!append) {

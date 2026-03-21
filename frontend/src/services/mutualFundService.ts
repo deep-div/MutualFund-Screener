@@ -136,6 +136,7 @@ export interface SchemeListResponse {
   limit: number;
   offset: number;
   total: number;
+  meta?: Record<string, { min: number | null; max: number | null }>;
   items: SchemeListItem[];
 }
 

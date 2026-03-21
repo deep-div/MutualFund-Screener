@@ -23,6 +23,8 @@ export type FilterValue = {
 
 export type FilterValueMap = Record<string, FilterValue>;
 
+export type FilterRangeMeta = Record<string, { min: number | null; max: number | null }>;
+
 export const FILTER_CATEGORIES: FilterCategory[] = [
   { id: "scheme", label: "Scheme Info" },
   { id: "returns", label: "Returns" },

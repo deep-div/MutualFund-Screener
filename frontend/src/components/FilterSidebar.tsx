@@ -8,11 +8,13 @@ import {
   SCHEME_SUB_CATEGORY_GROUPS,
   FilterValueMap,
   FilterDefinition,
+  FilterRangeMeta,
 } from "@/data/filters";
 
 interface FilterSidebarProps {
   enabledFilters: string[];
   values: FilterValueMap;
+  rangeMeta?: FilterRangeMeta;
   activeCount: number;
   onChangeEnabled: (next: string[]) => void;
   onChangeValue: (id: string, next: { gte?: number | ""; lte?: number | ""; value?: string | string[] }) => void;
@@ -22,6 +24,7 @@ interface FilterSidebarProps {
 const FilterSidebar = ({
   enabledFilters,
   values,
+  rangeMeta,
   activeCount,
   onChangeEnabled,
   onChangeValue,
@@ -79,10 +82,25 @@ const FilterSidebar = ({
   const commitDraftRange = (filterId: string) => {
     const draft = draftRanges[filterId];
     if (!draft) return;
-    onChangeValue(filterId, draft);
+    const next = {
+      gte: draft.gte === "" || draft.gte === undefined ? draft.gte : Math.round(draft.gte * 100) / 100,
+      lte: draft.lte === "" || draft.lte === undefined ? draft.lte : Math.round(draft.lte * 100) / 100,
+    };
+    onChangeValue(filterId, next);
+    setDraftRanges((prev) => ({ ...prev, [filterId]: next }));
   };
 
   const getRangeBounds = (filterId: string, label: string) => {
+    const meta = rangeMeta?.[filterId];
+    const metaMin = meta?.min;
+    const metaMax = meta?.max;
+    if (metaMin !== undefined && metaMin !== null && metaMax !== undefined && metaMax !== null) {
+      const min = Number(metaMin);
+      const max = Number(metaMax);
+      const hasDecimals = !Number.isInteger(min) || !Number.isInteger(max);
+      const step = hasDecimals ? 0.01 : 1;
+      return { min, max: max > min ? max : min, step };
+    }
     if (filterId === "current_nav") return { min: 0, max: 1000, step: 1 };
     if (filterId === "time_since_inception_years") return { min: 0, max: 30, step: 1 };
     if (label.includes("%")) return { min: 0, max: 100, step: 1 };
@@ -90,32 +108,35 @@ const FilterSidebar = ({
   };
 
   const getSegmentBounds = (min: number, max: number) => {
-    const span = max - min;
-    const first = Math.round(min + span / 3);
-    const second = Math.round(min + (2 * span) / 3);
+    const span = max - min || 1;
+    const first = min + span / 3;
+    const second = min + (2 * span) / 3;
     return { first, second };
   };
 
   const getSegmentSelection = (value: { gte?: number | ""; lte?: number | "" }, min: number, max: number) => {
     if (value.gte === undefined || value.lte === undefined || value.gte === "" || value.lte === "") return null;
     const { first, second } = getSegmentBounds(min, max);
-    if (value.gte <= min && value.lte <= first) return "low";
-    if (value.gte >= first && value.lte <= second) return "mid";
-    if (value.gte >= second && value.lte >= second) return "high";
+    const eps = 0.005;
+    if (value.gte <= min + eps && value.lte <= first + eps) return "low";
+    if (value.gte >= first - eps && value.lte <= second + eps) return "mid";
+    if (value.gte >= second - eps && value.lte >= second - eps) return "high";
     return null;
   };
 
   const applySegment = (filterId: string, segment: "low" | "mid" | "high", min: number, max: number) => {
     const { first, second } = getSegmentBounds(min, max);
+    const round2 = (val: number) => Math.round(val * 100) / 100;
+    let next: { gte: number; lte: number };
     if (segment === "low") {
-      onChangeValue(filterId, { gte: min, lte: first });
-      return;
+      next = { gte: round2(min), lte: round2(first) };
+    } else if (segment === "mid") {
+      next = { gte: round2(first), lte: round2(second) };
+    } else {
+      next = { gte: round2(second), lte: round2(max) };
     }
-    if (segment === "mid") {
-      onChangeValue(filterId, { gte: first, lte: second });
-      return;
-    }
-    onChangeValue(filterId, { gte: second, lte: max });
+    setDraftRanges((prev) => ({ ...prev, [filterId]: next }));
+    onChangeValue(filterId, next);
   };
 
   const updateSingle = (filterId: string, nextValue: string) => {
@@ -139,6 +160,12 @@ const FilterSidebar = ({
 
   const clearFilter = (filterId: string) => {
     onChangeValue(filterId, {});
+    setDraftRanges((prev) => {
+      if (!prev[filterId]) return prev;
+      const next = { ...prev };
+      delete next[filterId];
+      return next;
+    });
   };
 
   const removeFilter = (filterId: string) => {

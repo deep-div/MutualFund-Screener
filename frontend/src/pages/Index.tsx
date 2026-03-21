@@ -6,12 +6,14 @@ import {
   FILTER_DEFINITIONS_BY_ID,
   DEFAULT_ENABLED_FILTERS,
   FilterValueMap,
+  FilterRangeMeta,
 } from "@/data/filters";
 import { useMemo, useState } from "react";
 
 const Index = () => {
   const [enabledFilters, setEnabledFilters] = useState<string[]>(DEFAULT_ENABLED_FILTERS);
   const [filterValues, setFilterValues] = useState<FilterValueMap>({});
+  const [rangeMeta, setRangeMeta] = useState<FilterRangeMeta>({});
 
   const activeCount = useMemo(() => {
     let count = 0;
@@ -79,12 +81,19 @@ const Index = () => {
         <FilterSidebar
           enabledFilters={enabledFilters}
           values={filterValues}
+          rangeMeta={rangeMeta}
           activeCount={activeCount}
           onChangeEnabled={setEnabledFilters}
           onChangeValue={handleValueChange}
           onReset={handleReset}
         />
-        <FundTable filters={filtersPayload} enabledFilters={enabledFilters} />
+        <FundTable
+          filters={filtersPayload}
+          enabledFilters={enabledFilters}
+          onMetaChange={(meta) =>
+            setRangeMeta((prev) => (Object.keys(prev).length > 0 ? prev : meta ?? {}))
+          }
+        />
       </div>
     </div>
   );
