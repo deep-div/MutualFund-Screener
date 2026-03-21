@@ -478,6 +478,8 @@ class MFAPIFetcher:
             "Elss": "ELSS",
             "Bse": "BSE",
             "Crisil Ibx": "CRISIL IBX",
+            "Us": "US",
+            "it": "IT",
         }
 
         for k, v in replacements.items():
