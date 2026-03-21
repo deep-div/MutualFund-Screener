@@ -97,9 +97,9 @@ class MFAPIFetcher:
         if not name:
             return name
 
-        name = name.strip().lower()
+        name = name.strip()
 
-        if name == "quant mutual fund":
+        if name == "quant Mutual Fund":
             return "Quant Mutual Fund"
 
         return name
