@@ -51,6 +51,14 @@ type TopGainerItem = {
   nav_change_1d?: number | null;
 };
 
+type TopLoserItem = {
+  scheme_id?: string | number;
+  scheme_code?: number;
+  scheme_sub_name: string;
+  current_nav?: number | null;
+  nav_change_1d?: number | null;
+};
+
 const Navbar = () => {
   const { isLoggedIn, user, logout, loading } = useAuth();
   const navigate = useNavigate();
@@ -63,6 +71,7 @@ const Navbar = () => {
   const [searchFocused, setSearchFocused] = useState(false);
   const [bestPerformers, setBestPerformers] = useState<BestPerformerItem[]>([]);
   const [topGainers, setTopGainers] = useState<TopGainerItem[]>([]);
+  const [topLosers, setTopLosers] = useState<TopLoserItem[]>([]);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const isSearchActive = searchOpen || searchFocused;
 
@@ -73,17 +82,21 @@ const Navbar = () => {
         if (!raw) {
           setBestPerformers([]);
           setTopGainers([]);
+          setTopLosers([]);
           return;
         }
         const parsed = JSON.parse(raw) as {
           best_performers?: BestPerformerItem[];
           top_gainers?: TopGainerItem[];
+          top_losers?: TopLoserItem[];
         };
         setBestPerformers(Array.isArray(parsed?.best_performers) ? parsed.best_performers : []);
         setTopGainers(Array.isArray(parsed?.top_gainers) ? parsed.top_gainers : []);
+        setTopLosers(Array.isArray(parsed?.top_losers) ? parsed.top_losers : []);
       } catch {
         setBestPerformers([]);
         setTopGainers([]);
+        setTopLosers([]);
       }
     };
 
@@ -221,60 +234,13 @@ const Navbar = () => {
             {searchOpen && (
               <div className="absolute left-0 right-0 top-full -mt-px bg-white border border-slate-200 border-t-0 rounded-b-xl shadow-2xl overflow-hidden z-[90] antialiased">
                 {searchQuery.trim().length === 0 ? (
-                  bestPerformers.length === 0 && topGainers.length === 0 ? (
+                  bestPerformers.length === 0 && topGainers.length === 0 && topLosers.length === 0 ? (
                     <div className="px-4 py-3 text-[13px] text-slate-500">Leaderboards not available yet.</div>
                   ) : (
                     <div className="max-h-[450px] overflow-y-auto">
-                      {bestPerformers.length > 0 && (
-                        <>
-                          <div className="px-4 py-2 text-[11px] uppercase tracking-widest text-slate-700 font-semibold bg-slate-50 border-b border-slate-100">
-                            Top Performers
-                          </div>
-                          {bestPerformers.map((item) => {
-                            const schemeId = item.scheme_id ?? item.scheme_code;
-                            const schemeSlug = toSchemeSlug(item.scheme_sub_name);
-                            const cagrValue = item.cagr_3y;
-                            const cagrColor =
-                              typeof cagrValue === "number"
-                                ? cagrValue >= 0
-                                  ? "text-emerald-600"
-                                  : "text-rose-500"
-                                : "text-slate-400";
-                            return (
-                              <Link
-                                key={`top-perf-${schemeId ?? item.scheme_sub_name}`}
-                                to={`/${schemeSlug}/${schemeId}`}
-                                onClick={() => {
-                                  if (schemeId === undefined || schemeId === null) return;
-                                  setSearchOpen(false);
-                                  setSearchFocused(false);
-                                }}
-                                className="block w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors font-normal focus-visible:outline-none"
-                              >
-                                <div className="flex items-center justify-between gap-4">
-                                  <div className="min-w-0">
-                                    <div className="text-[14px] font-medium text-slate-900 truncate">
-                                      {item.scheme_sub_name}
-                                    </div>
-                                    <div className="text-[12px] text-slate-500">Top performer</div>
-                                  </div>
-                                  <div className="flex flex-col items-end">
-                                    <span className={`text-[14px] font-semibold ${cagrColor}`}>
-                                      {typeof cagrValue === "number"
-                                        ? `${cagrValue >= 0 ? "+" : ""}${cagrValue.toFixed(2)}%`
-                                        : "-"}
-                                    </span>
-                                    <span className="text-[11px] text-slate-400">3Y CAGR</span>
-                                  </div>
-                                </div>
-                              </Link>
-                            );
-                          })}
-                        </>
-                      )}
                       {topGainers.length > 0 && (
                         <>
-                          <div className="px-4 py-2 text-[11px] uppercase tracking-widest text-slate-700 font-semibold bg-slate-50 border-b border-slate-100">
+                          <div className="px-4 py-2 text-[11px] uppercase tracking-widest text-slate-700 font-semibold bg-[#f1f1f1] hover:bg-[#f1f1f1] border-b border-slate-100">
                             Top Gainers
                           </div>
                           {topGainers.map((item) => {
@@ -312,6 +278,100 @@ const Navbar = () => {
                                         : "-"}
                                     </span>
                                     <span className="text-[11px] text-slate-400">1D Change</span>
+                                  </div>
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </>
+                      )}
+                      {topLosers.length > 0 && (
+                        <>
+                          <div className="px-4 py-2 text-[11px] uppercase tracking-widest text-slate-700 font-semibold bg-[#f1f1f1] hover:bg-[#f1f1f1] border-b border-slate-100">
+                            Top Losers
+                          </div>
+                          {topLosers.map((item) => {
+                            const schemeId = item.scheme_id ?? item.scheme_code;
+                            const schemeSlug = toSchemeSlug(item.scheme_sub_name);
+                            const changeValue = item.nav_change_1d;
+                            const changeColor =
+                              typeof changeValue === "number"
+                                ? changeValue >= 0
+                                  ? "text-emerald-600"
+                                  : "text-rose-500"
+                                : "text-slate-400";
+                            return (
+                              <Link
+                                key={`top-lose-${schemeId ?? item.scheme_sub_name}`}
+                                to={`/${schemeSlug}/${schemeId}`}
+                                onClick={() => {
+                                  if (schemeId === undefined || schemeId === null) return;
+                                  setSearchOpen(false);
+                                  setSearchFocused(false);
+                                }}
+                                className="block w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors font-normal focus-visible:outline-none"
+                              >
+                                <div className="flex items-center justify-between gap-4">
+                                  <div className="min-w-0">
+                                    <div className="text-[14px] font-medium text-slate-900 truncate">
+                                      {item.scheme_sub_name}
+                                    </div>
+                                    <div className="text-[12px] text-slate-500">Top loser</div>
+                                  </div>
+                                  <div className="flex flex-col items-end">
+                                    <span className={`text-[14px] font-semibold ${changeColor}`}>
+                                      {typeof changeValue === "number"
+                                        ? `${changeValue >= 0 ? "+" : ""}${formatChange(changeValue)}`
+                                        : "-"}
+                                    </span>
+                                    <span className="text-[11px] text-slate-400">1D Change</span>
+                                  </div>
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </>
+                      )}
+                      {bestPerformers.length > 0 && (
+                        <>
+                          <div className="px-4 py-2 text-[11px] uppercase tracking-widest text-slate-700 font-semibold bg-[#f1f1f1] hover:bg-[#f1f1f1] border-b border-slate-100">
+                            Top Performers
+                          </div>
+                          {bestPerformers.map((item) => {
+                            const schemeId = item.scheme_id ?? item.scheme_code;
+                            const schemeSlug = toSchemeSlug(item.scheme_sub_name);
+                            const cagrValue = item.cagr_3y;
+                            const cagrColor =
+                              typeof cagrValue === "number"
+                                ? cagrValue >= 0
+                                  ? "text-emerald-600"
+                                  : "text-rose-500"
+                                : "text-slate-400";
+                            return (
+                              <Link
+                                key={`top-perf-${schemeId ?? item.scheme_sub_name}`}
+                                to={`/${schemeSlug}/${schemeId}`}
+                                onClick={() => {
+                                  if (schemeId === undefined || schemeId === null) return;
+                                  setSearchOpen(false);
+                                  setSearchFocused(false);
+                                }}
+                                className="block w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors font-normal focus-visible:outline-none"
+                              >
+                                <div className="flex items-center justify-between gap-4">
+                                  <div className="min-w-0">
+                                    <div className="text-[14px] font-medium text-slate-900 truncate">
+                                      {item.scheme_sub_name}
+                                    </div>
+                                    <div className="text-[12px] text-slate-500">Top performer</div>
+                                  </div>
+                                  <div className="flex flex-col items-end">
+                                    <span className={`text-[14px] font-semibold ${cagrColor}`}>
+                                      {typeof cagrValue === "number"
+                                        ? `${cagrValue >= 0 ? "+" : ""}${cagrValue.toFixed(2)}%`
+                                        : "-"}
+                                    </span>
+                                    <span className="text-[11px] text-slate-400">3Y CAGR</span>
                                   </div>
                                 </div>
                               </Link>
