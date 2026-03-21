@@ -70,6 +70,10 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
   const fetchPage = async (nextOffset: number, append: boolean) => {
     setLoading(true);
     setError(null);
+    if (!append) {
+      setItems([]);
+      setTotal(0);
+    }
     try {
       const payload: {
         filters: Record<string, Record<string, number | string>>;
