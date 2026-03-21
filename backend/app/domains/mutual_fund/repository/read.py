@@ -219,7 +219,7 @@ def _scheme_row_to_best_performer_item(row):
 
 
 def get_leaderboards():
-    """Fetch top gainers, losers, and best performers for each scheme sub-category."""
+    """Fetch top gainers, losers, and best performers across scheme sub-categories."""
     top_gainers_limit = 1
     top_losers_limit = 1
     best_performers_limit = 1
@@ -230,7 +230,9 @@ def get_leaderboards():
         SchemeSubCategory.FLEXI_CAP,
     ]
     with get_session() as db:
-        payload = []
+        top_gainers_items = []
+        top_losers_items = []
+        best_performers_items = []
 
         for sub_category in allowed_sub_categories:
             sub_category_value = sub_category.value
@@ -268,14 +270,9 @@ def get_leaderboards():
                 .all()
             )
 
-            payload.append(
-                {
-                    "scheme_sub_category": sub_category_value,
-                    "top_gainers": [_scheme_row_to_gainer_loser_item(r) for r in gainers],
-                    "top_losers": [_scheme_row_to_gainer_loser_item(r) for r in losers],
-                    "best_performers": [_scheme_row_to_best_performer_item(r) for r in best_performers],
-                }
-            )
+            top_gainers_items.extend([_scheme_row_to_gainer_loser_item(r) for r in gainers])
+            top_losers_items.extend([_scheme_row_to_gainer_loser_item(r) for r in losers])
+            best_performers_items.extend([_scheme_row_to_best_performer_item(r) for r in best_performers])
 
         return {
             "limits": {
@@ -283,5 +280,9 @@ def get_leaderboards():
                 "top_losers": top_losers_limit,
                 "best_performers": best_performers_limit,
             },
-            "items": payload,
+            "items": {
+                "top_gainers": top_gainers_items,
+                "top_losers": top_losers_items,
+                "best_performers": best_performers_items,
+            },
         }
