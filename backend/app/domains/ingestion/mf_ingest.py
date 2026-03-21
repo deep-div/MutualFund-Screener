@@ -521,6 +521,7 @@ class MFAPIFetcher:
             allowed_scheme_classes = {e.value for e in SchemeClass}
             invalid_sub_category_counts = {}
             invalid_scheme_class_counts = {}
+            removed_scheme_codes = []
 
             filtered_results = []
             for item in final_results:
@@ -537,6 +538,9 @@ class MFAPIFetcher:
                     invalid_scheme_class_counts[scheme_class] = invalid_scheme_class_counts.get(scheme_class, 0) + 1
 
                 if invalid_sub or invalid_class:
+                    scheme_code = meta.get("scheme_code")
+                    if scheme_code is not None:
+                        removed_scheme_codes.append(scheme_code)
                     continue
 
                 filtered_results.append(item)
@@ -546,6 +550,10 @@ class MFAPIFetcher:
                 logger.warning(
                     f"Removed {removed_count} schemes due to invalid SchemeSubCategory/SchemeClass"
                 )
+                if removed_scheme_codes:
+                    logger.warning(
+                        f"Removed scheme_code list: {removed_scheme_codes}"
+                    )
                 if invalid_sub_category_counts:
                     logger.warning(
                         f"Invalid SchemeSubCategory counts: {invalid_sub_category_counts}"
