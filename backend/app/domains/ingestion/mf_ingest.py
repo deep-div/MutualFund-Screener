@@ -480,6 +480,7 @@ class MFAPIFetcher:
             "Crisil Ibx": "CRISIL IBX",
             "Us": "US",
             "it": "IT",
+            "pgim": "PGIM",
         }
 
         for k, v in replacements.items():
