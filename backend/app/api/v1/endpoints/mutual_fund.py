@@ -2,6 +2,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Path
 
 from app.domains.mutual_fund.repository.read import (
     get_filtered_schemes,
+    get_leaderboards,
     get_scheme_analytics_by_scheme_id,
     get_scheme_basic_details_by_scheme_id,
     search_schemes,
@@ -51,6 +52,10 @@ def scheme_search(
     offset: int = 0,
 ):
     return search_schemes(query=query, limit=limit, offset=offset)
+
+@router.get("/schemes/leaderboards")
+def scheme_leaderboards():
+    return get_leaderboards()
 
 
 @router.get("/schemes/{scheme_id}")

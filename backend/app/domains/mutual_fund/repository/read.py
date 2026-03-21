@@ -2,6 +2,7 @@ from sqlalchemy import asc, desc, and_
 
 from app.db.session import get_session
 from app.domains.mutual_fund.models import SchemeMetaORM, SchemeAnalyticsORM
+from app.domains.ingestion.schemas import SchemeSubCategory
 
 ALLOWED_OPERATORS = {"gte", "lte", "gt", "lt", "eq"}
 
@@ -212,4 +213,92 @@ def search_schemes(query: str, limit: int, offset: int):
             "offset": offset,
             "total": total,
             "items": items,
+        }
+
+def _scheme_row_to_gainer_loser_item(row):
+    return {
+        "scheme_id": row.scheme_id,
+        "scheme_code": row.scheme_code,
+        "scheme_sub_name": row.scheme_sub_name,
+        "current_nav": row.current_nav,
+        "nav_change_1d": row.nav_change_1d,
+    }
+
+
+def _scheme_row_to_best_performer_item(row):
+    return {
+        "scheme_id": row.scheme_id,
+        "scheme_code": row.scheme_code,
+        "scheme_sub_name": row.scheme_sub_name,
+        "current_nav": row.current_nav,
+        "cagr_3y": row.cagr_3y,
+    }
+
+
+def get_leaderboards():
+    """Fetch top gainers, losers, and best performers for each scheme sub-category."""
+    top_gainers_limit = 1
+    top_losers_limit = 1
+    best_performers_limit = 1
+    allowed_sub_categories = [
+        SchemeSubCategory.LARGE_CAP,
+        SchemeSubCategory.MID_CAP,
+        SchemeSubCategory.SMALL_CAP,
+        SchemeSubCategory.FLEXI_CAP,
+    ]
+    with get_session() as db:
+        payload = []
+
+        for sub_category in allowed_sub_categories:
+            sub_category_value = sub_category.value
+
+            gainers = (
+                db.query(SchemeMetaORM)
+                .filter(
+                    SchemeMetaORM.scheme_sub_category == sub_category_value,
+                    SchemeMetaORM.nav_change_1d.isnot(None),
+                )
+                .order_by(desc(SchemeMetaORM.nav_change_1d).nullslast())
+                .limit(top_gainers_limit)
+                .all()
+            )
+
+            losers = (
+                db.query(SchemeMetaORM)
+                .filter(
+                    SchemeMetaORM.scheme_sub_category == sub_category_value,
+                    SchemeMetaORM.nav_change_1d.isnot(None),
+                )
+                .order_by(asc(SchemeMetaORM.nav_change_1d).nullslast())
+                .limit(top_losers_limit)
+                .all()
+            )
+
+            best_performers = (
+                db.query(SchemeMetaORM)
+                .filter(
+                    SchemeMetaORM.scheme_sub_category == sub_category_value,
+                    SchemeMetaORM.cagr_3y.isnot(None),
+                )
+                .order_by(desc(SchemeMetaORM.cagr_3y).nullslast())
+                .limit(best_performers_limit)
+                .all()
+            )
+
+            payload.append(
+                {
+                    "scheme_sub_category": sub_category_value,
+                    "top_gainers": [_scheme_row_to_gainer_loser_item(r) for r in gainers],
+                    "top_losers": [_scheme_row_to_gainer_loser_item(r) for r in losers],
+                    "best_performers": [_scheme_row_to_best_performer_item(r) for r in best_performers],
+                }
+            )
+
+        return {
+            "limits": {
+                "top_gainers": top_gainers_limit,
+                "top_losers": top_losers_limit,
+                "best_performers": best_performers_limit,
+            },
+            "items": payload,
         }
