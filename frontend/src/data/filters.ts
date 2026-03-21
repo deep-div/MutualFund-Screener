@@ -32,7 +32,7 @@ export const FILTER_CATEGORIES: FilterCategory[] = [
   { id: "drawdown", label: "Drawdown" },
 ];
 
-export const SCHEME_CLASS_OPTIONS = ["Equity", "Debt", "Hybrid", "Other"] as const;
+export const SCHEME_CLASS_OPTIONS = ["Equity", "Debt", "Hybrid", "Commodity", "Other"] as const;
 
 export const SCHEME_SUB_CATEGORY_GROUPS = [
   {
@@ -47,7 +47,7 @@ export const SCHEME_SUB_CATEGORY_GROUPS = [
       "Multi Cap Fund",
       "Flexi Cap Fund",
       "Focused Fund",
-      "ELSS",
+      "ELSS Fund",
       "Value Fund",
       "Contra Fund",
       "Dividend Yield Fund",
@@ -69,7 +69,7 @@ export const SCHEME_SUB_CATEGORY_GROUPS = [
       "Medium Duration Fund",
       "Medium to Long Duration Fund",
       "Long Duration Fund",
-      "Dynamic Bond",
+      "Dynamic Bond Fund",
       "Corporate Bond Fund",
       "Banking and PSU Fund",
       "Credit Risk Fund",
@@ -85,21 +85,27 @@ export const SCHEME_SUB_CATEGORY_GROUPS = [
       "Aggressive Hybrid Fund",
       "Balanced Hybrid Fund",
       "Conservative Hybrid Fund",
-      "Balanced Advantage Fund",
-      "Equity Savings",
-      "Multi Asset Allocation",
+      "Dynamic Asset Allocation Fund",
+      "Equity Savings Fund",
+      "Multi Asset Allocation Fund",
       "Arbitrage Fund",
     ],
+  },
+  {
+    id: "commodity",
+    label: "Commodity",
+    schemeClassValue: "Commodity",
+    options: ["Gold", "Silver"],
   },
   {
     id: "others",
     label: "Others",
     schemeClassValue: "Other",
     options: [
-      "Retirement Fund",
-      "Children's Fund",
-      "Fund of Funds (Domestic)",
-      "Fund of Funds (Overseas)",
+      "Solution Oriented - Retirement Fund",
+      "Solution Oriented - Children's Fund",
+      "FoFs (Domestic)",
+      "FoFs (Overseas)",
     ],
   },
 ];

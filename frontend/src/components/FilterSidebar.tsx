@@ -36,6 +36,7 @@ const FilterSidebar = ({
     equity: false,
     debt: false,
     hybrid: false,
+    commodity: false,
     others: false,
   });
   const [draftRanges, setDraftRanges] = useState<Record<string, { gte?: number | ""; lte?: number | "" }>>({});
