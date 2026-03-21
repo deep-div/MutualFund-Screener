@@ -4,7 +4,6 @@ from app.domains.mutual_fund.repository.read import (
     get_filtered_schemes,
     get_leaderboards,
     get_scheme_analytics_by_scheme_id,
-    get_scheme_basic_details_by_scheme_id,
     search_schemes,
 )
 from app.orchestrator.pipeline import run_pipeline
