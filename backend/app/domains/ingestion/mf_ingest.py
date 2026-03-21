@@ -362,29 +362,70 @@ class MFAPIFetcher:
         """Return base scheme name in title case by removing brackets, plan words and hyphen."""
         if not scheme_name:
             return ""
+
         cleaned = scheme_name.strip()
+
         # remove anything inside parentheses
         cleaned = re.sub(r"\(.*?\)", "", cleaned).strip()
+
         # remove plan/option related words
         cleaned = re.sub(
-            r"\b(direct|regular|plan|growth|option)\b",
+            r"\b(direct|regular|plan|growth|option|idcw|bonus|segregated|unclaimed)\b",
             "",
             cleaned,
             flags=re.IGNORECASE,
         )
+
         # remove hyphen
         cleaned = cleaned.replace("-", " ")
+
         # remove pipe symbol
         cleaned = cleaned.replace("|", " ")
+
         # remove commas
         cleaned = cleaned.replace(",", " ")
+
+        # normalize 'and' to '&'
+        cleaned = re.sub(r"\band\b", "&", cleaned, flags=re.IGNORECASE)
+
+        # standardize FoF naming
+        cleaned = re.sub(r"\bfof\b", "Fund of Funds", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bfund of fund\b", "Fund of Funds", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bfund of funds\b", "Fund of Funds", cleaned, flags=re.IGNORECASE)
+
+        # normalize common category words
+        cleaned = re.sub(r"\bmidcap\b", "Mid Cap", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bsmallcap\b", "Small Cap", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\blargecap\b", "Large Cap", cleaned, flags=re.IGNORECASE)
+
+        # fix 'largemidcap'
+        cleaned = re.sub(r"\blargemidcap\b", "Large Midcap", cleaned, flags=re.IGNORECASE)
+
+        # normalize Nifty naming
+        cleaned = re.sub(r"\bnifty\s*50\b", "Nifty 50", cleaned, flags=re.IGNORECASE)
+
+        # fix Nifty IT
+        cleaned = re.sub(r"\bniftyit\b", "Nifty IT", cleaned, flags=re.IGNORECASE)
+
+        # fix 3 6 → 3-6 Months
+        cleaned = re.sub(r"\b(\d)\s+(\d)\s+Months\b", r"\1-\2 Months", cleaned, flags=re.IGNORECASE)
+
+        # fix 9 12 → 9-12 Months
+        cleaned = re.sub(r"\b(\d)\s+(\d{2})\s+Months\b", r"\1-\2 Months", cleaned, flags=re.IGNORECASE)
+
         # remove consecutive duplicate 'fund fund'
         cleaned = re.sub(r"\b(fund)\s+\1\b", r"\1", cleaned, flags=re.IGNORECASE)
+
+        # remove any duplicate words (extra safety)
+        cleaned = re.sub(r"\b(\w+)\s+\1\b", r"\1", cleaned, flags=re.IGNORECASE)
+
         # normalize spaces
         cleaned = re.sub(r"\s+", " ", cleaned).strip()
+
         # hardcoded corrections
         if "uti mmf" in cleaned.lower():
-            cleaned = re.sub(r"\buti mmf\b", "Uti Money Market Fund", cleaned, flags=re.IGNORECASE)
+            cleaned = re.sub(r"\buti mmf\b", "UTI Money Market Fund", cleaned, flags=re.IGNORECASE)
+
         if "motilal oswal large cap" in cleaned.lower():
             cleaned = re.sub(
                 r"\b(motilal oswal large cap)(?!\s+fund)\b",
@@ -392,9 +433,107 @@ class MFAPIFetcher:
                 cleaned,
                 flags=re.IGNORECASE,
             )
+
+        # fix typo
+        cleaned = re.sub(r"\bcomma fund\b", "Commodity Fund", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\bheathcare\b", "Healthcare", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\boff\s+shore\b", "Offshore", cleaned, flags=re.IGNORECASE)
+
+        # fix spacing around +
+        cleaned = re.sub(r"\s*\+\s*", " + ", cleaned)
+
+        # fix numeric formats like 60 40 → 60:40
+        cleaned = re.sub(r"\b60\s*40\b", "60:40", cleaned)
+        cleaned = re.sub(r"\b70\s*30\b", "70:30", cleaned)
+        cleaned = re.sub(r"\b50\s*50\b", "50:50", cleaned)
+
         # remove trailing dots
         cleaned = re.sub(r"\.+$", "", cleaned)
-        return cleaned.title()
+
+        # apply title case first
+        cleaned = cleaned.title()
+
+        # fix fund house casing (VERY IMPORTANT)
+        replacements = {
+            "Hdfc": "HDFC",
+            "Icici": "ICICI",
+            "Sbi": "SBI",
+            "Uti": "UTI",
+            "Hsbc": "HSBC",
+            "Lic": "LIC",
+            "Dsp": "DSP",
+            "Psu": "PSU",
+            "Bnp": "BNP",
+            "Esg": "ESG",
+            "Etf": "ETF",
+            "Etfs": "ETFs",
+            "Mnc": "MNC",
+            "Aaa": "AAA",
+            "Sdl": "SDL",
+            "Mf": "MF",
+            "Jm": "JM",
+            "Trustmf": "TrustMF",
+            "Jioblackrock": "JioBlackRock",
+            "Fof": "Fund of Funds",
+            "Elss": "ELSS",
+            "Bse": "BSE",
+            "Crisil Ibx": "CRISIL IBX",
+        }
+
+        for k, v in replacements.items():
+            cleaned = re.sub(rf"\b{k}\b", v, cleaned)
+
+        # fix Fund Of Funds casing
+        cleaned = re.sub(r"\bFund Of Funds\b", "Fund of Funds", cleaned)
+
+        # fix 'Fund Of Funds Fund'
+        cleaned = re.sub(r"\bFund Of Funds Fund\b", "Fund of Funds", cleaned)
+
+        # optional: standardize G-Sec
+        cleaned = re.sub(r"\bG\s?Sec\b", "G-Sec", cleaned)
+
+        # fix specific broken names (hardcoded edge cases)
+        cleaned = re.sub(r"\bAssethang\b", "Asset Hang", cleaned)
+        cleaned = re.sub(r"\bChildren'S\b", "Children's", cleaned)
+
+        # fix duplicate 'Index Fund'
+        cleaned = re.sub(r"\bIndex Fund Index Fund\b", "Index Fund", cleaned)
+
+        # fix BSE Sensex naming
+        cleaned = re.sub(r"\bIndex Fund Bse Sensex\b", "BSE Sensex Index Fund", cleaned)
+
+        # add missing "Fund"
+        if cleaned in {
+            "Aditya Birla Sun Life Medium Term",
+            "Kotak Debt Hybrid",
+            "Kotak Business Cycle",
+            "Kotak Banking & PSU Debt",
+        }:
+            cleaned += " Fund"
+
+        # fix specific incorrect naming
+        if cleaned == "Kotak Bond Short Term":
+            cleaned = "Kotak Short Term Bond Fund"
+
+        if cleaned == "UTI Liquid Cash":
+            cleaned = "UTI Liquid Fund"
+
+        if cleaned == "Franklin India Index Fund Nse Nifty 50 Index Fund":
+            cleaned = "Franklin India Nifty 50 Index Fund"
+
+        if cleaned == "Nippon India Index Fund Nifty 50":
+            cleaned = "Nippon India Nifty 50 Index Fund"
+
+        if cleaned == "SBI Nifty Index Fund":
+            cleaned = "SBI Nifty 50 Index Fund"
+
+        if cleaned == "Kotak Manufacture In India Fund":
+            cleaned = "Kotak Manufacturing In India Fund"
+
+        if cleaned == "Bandhan Gilt Fund With 10 Year Constant Duration Fund":
+            cleaned = "Bandhan Gilt Fund With 10 Year Constant Duration"
+
+        return cleaned
 
     @staticmethod
     def _none_if_missing(value):
