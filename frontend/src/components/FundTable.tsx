@@ -234,7 +234,7 @@ const FundTable = ({ filters, enabledFilters }: FundTableProps) => {
                       >
                         <Link
                           to={schemePath}
-                          className="block text-[13px] font-medium text-primary hover:no-underline cursor-pointer"
+                          className="block text-[13px] font-medium text-foreground hover:no-underline cursor-pointer"
                         >
                           {typeof value === "string" && value ? value : "-"}
                         </Link>

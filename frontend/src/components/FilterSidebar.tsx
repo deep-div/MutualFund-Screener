@@ -360,15 +360,15 @@ const FilterSidebar = ({
 
                               return (
                                 <div key={group.id} className="space-y-2">
-                                  <button
-                                    onClick={() =>
-                                      setExpandedGroups((prev) => ({ ...prev, [group.id]: !prev[group.id] }))
-                                    }
-                                    className="w-full flex items-center justify-between px-1 py-1 text-[12px] text-foreground hover:bg-surface-hover transition-colors"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <div
-                                        onClick={(event) => {
+                              <button
+                                onClick={() =>
+                                  setExpandedGroups((prev) => ({ ...prev, [group.id]: !prev[group.id] }))
+                                }
+                                className="w-full flex items-center justify-between px-1 py-1 text-[12px] text-foreground hover:bg-surface-hover transition-colors"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    onClick={(event) => {
                                           event.stopPropagation();
                                           if (isGroupSelected) {
                                             const remainingSubCategories = getSelectedList(currentValue.value).filter(
@@ -398,11 +398,11 @@ const FilterSidebar = ({
                                       >
                                         {isGroupSelected && <Check className="w-3 h-3" />}
                                       </div>
-                                      <span className="text-[12px] font-medium">{group.label}</span>
-                                      <span className="text-[11px] text-muted-foreground">
-                                        ({group.options.length})
-                                      </span>
-                                    </div>
+                                  <span className="text-[12px] font-medium text-foreground">{group.label}</span>
+                                  <span className="text-[11px] text-foreground">
+                                    ({group.options.length})
+                                  </span>
+                                </div>
                                     {isExpanded ? (
                                       <ChevronUp className="w-4 h-4 text-muted-foreground" />
                                     ) : (
@@ -441,7 +441,7 @@ const FilterSidebar = ({
                                                 );
                                               }
                                             }}
-                                            className="w-full flex items-center gap-2 px-1 py-1 text-[12px] text-muted-foreground hover:text-foreground hover:bg-surface-hover transition-colors"
+                                            className="w-full flex items-center gap-2 px-1 py-1 text-[12px] text-foreground hover:bg-surface-hover transition-colors"
                                           >
                                             <div
                                               className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
@@ -452,7 +452,7 @@ const FilterSidebar = ({
                                             >
                                               {isSelected && <Check className="w-3 h-3" />}
                                             </div>
-                                            <span className={isSelected ? "text-foreground" : undefined}>{option}</span>
+                                            <span className="text-foreground">{option}</span>
                                           </button>
                                         );
                                       })}
