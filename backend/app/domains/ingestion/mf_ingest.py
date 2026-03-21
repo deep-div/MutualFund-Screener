@@ -88,6 +88,94 @@ class MFAPIFetcher:
         logger.info(f"Filtered {len(funds)} eligible schemes")
         return funds
 
+    @staticmethod
+    def normalize_fund_house(name: str) -> str:
+        """Normalize fund house name with correct casing rules and special handling"""
+        if not name:
+            return name
+
+        name = name.strip().lower()
+
+        # Words that should always be uppercase
+        UPPER_WORDS = {
+            "sbi", "hdfc", "dsp", "uti", "lic", "hsbc",
+            "icici", "ppfas", "iti", "nj", "bnp",
+            "pgim", "jm"
+        }
+
+        # Words that should always be lowercase
+        LOWER_WORDS = {"of"}
+
+        # Special brand casing fixes
+        SPECIAL_WORDS = {
+            "whiteoak": "WhiteOak",
+            "blackrock": "BlackRock",
+        }
+
+        words = name.split()
+        normalized = []
+
+        for i, word in enumerate(words):
+            # Special case: 360 ONE
+            if i > 0 and words[i - 1] == "360" and word == "one":
+                normalized.append("ONE")
+            elif word in SPECIAL_WORDS:
+                normalized.append(SPECIAL_WORDS[word])
+            elif word in UPPER_WORDS:
+                normalized.append(word.upper())
+            elif word in LOWER_WORDS:
+                normalized.append(word.lower())
+            else:
+                normalized.append(word.capitalize())
+
+        return " ".join(normalized)
+
+    @staticmethod
+    def normalize_scheme_sub_category(value: str, is_enum: bool) -> str:
+        """Normalize scheme sub-category string for consistent enum matching"""
+        if not value:
+            return value
+
+        v = value.lower().strip()
+
+        # Basic cleanup
+        v = v.replace("&", "and")
+        v = v.replace("/", " ")
+        v = v.replace("-", " ")
+        v = v.replace("funds", "fund")
+
+        # Remove possessive forms ('s and ’s)
+        v = v.replace("'s", "")
+        v = v.replace("’s", "")
+        
+        # Remove brackets but keep content
+        v = v.replace("(", " ")
+        v = v.replace(")", " ")
+
+        v = " ".join(v.split())
+
+        # Apply mapping ONLY for API values, Match to ENUM SchemeSubCategory, After Normalization
+        # Right we have values for ENUMS normalized and left keys we have API values normalized. We want to match them.
+        if not is_enum:
+            normalization_map = {
+                "dynamic asset allocation or balanced advantage": "dynamic asset allocation fund",
+                "retirement fund": "solution oriented retirement fund",
+                "children fund": "solution oriented children fund",
+                "sectoral thematic": "sectoral thematic fund",
+                "multi asset allocation": "multi asset allocation fund",
+                "elss": "elss fund",
+                "dynamic bond": "dynamic bond fund",
+                "equity savings": "equity savings fund",
+                "fund of funds domestic": "fofs domestic",
+                "fof domestic": "fofs domestic",
+                "fund of funds overseas": "fofs overseas",
+                "fof overseas": "fofs overseas",
+            }
+
+            v = normalization_map.get(v, v)
+
+        return v
+
     def _build_scheme_meta(self, raw: dict) -> SchemeMeta:
         """Derive and construct SchemeMeta from raw meta dictionary."""
 
@@ -96,6 +184,8 @@ class MFAPIFetcher:
         scheme_name = meta_raw.get("scheme_name") or meta_raw.get("schemeName")
         scheme_category = meta_raw.get("scheme_category") or meta_raw.get("schemeCategory") or ""
         fund_house = meta_raw.get("fund_house") or meta_raw.get("fundHouse")
+        if fund_house:
+            fund_house = self.normalize_fund_house(fund_house)
         scheme_code = meta_raw.get("scheme_code") or meta_raw.get("schemeCode")
 
         name_lower = (scheme_name or "").lower()
@@ -128,30 +218,38 @@ class MFAPIFetcher:
         # Asset Class Mapping
         scheme_class = SchemeClass.OTHER
         scheme_sub_category = scheme_category
+
         if "-" in scheme_category:
             left, right = scheme_category.split("-", 1)
             scheme_sub_category_str = right.strip()
-            #  Case-insensitive exact enum match 
-            api_value_lower = scheme_sub_category_str.lower().strip()
+
+            # Normalize API value
+            api_value_normalized = self.normalize_scheme_sub_category(scheme_sub_category_str, is_enum=False)
+
             matched_enum = None
+
+            # 1. Exact match FIRST (highest priority)
             for enum_member in SchemeSubCategory:
-                enum_value_lower = enum_member.value.lower()
-                # Exact match
-                if enum_value_lower == api_value_lower:
+                enum_value_normalized = self.normalize_scheme_sub_category(enum_member.value, is_enum=True)
+                if enum_value_normalized == api_value_normalized:
                     matched_enum = enum_member
                     break
 
-                # Contains match (enum inside API value)
-                if enum_value_lower in api_value_lower and (api_value_lower != "large & mid cap fund"):
-                    matched_enum = enum_member
-                    break
-            
+            # 2. Contains match (only if exact not found)
+            if not matched_enum:
+                for enum_member in SchemeSubCategory:
+                    enum_value_normalized = self.normalize_scheme_sub_category(enum_member.value, is_enum=True)
+                    if enum_value_normalized in api_value_normalized:
+                        matched_enum = enum_member
+                        break
+
+            # 3. Assign result
             if matched_enum:
                 scheme_sub_category = matched_enum
             else:
-                scheme_sub_category = scheme_sub_category_str
+                scheme_sub_category = scheme_sub_category_str  # fallback instead of breaking
 
-            #  Scheme Class Detection 
+            # Scheme Class Detection
             left = left.strip().lower()
 
             if "equity" in left:
