@@ -151,15 +151,15 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
 
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin min-h-0">
-        <div className="w-full overflow-x-auto scrollbar-thin">
+      <div className="flex-1 min-h-0">
+        <div className="h-full w-full overflow-auto scrollbar-thin">
           <table className="w-full min-w-max table-fixed border-separate border-spacing-0">
           <colgroup>
             {columns.map((col) => (
               <col key={String(col.key)} className="min-w-[160px]" />
             ))}
           </colgroup>
-          <thead className="sticky top-0 z-20 table-header-bg dimmable-header">
+          <thead className="sticky top-0 z-30 table-header-bg dimmable-header">
             <tr className="border-b border-border">
               {columns.map((col) => (
                 <th
@@ -173,8 +173,8 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
                       setSortDir("desc");
                     }
                   }}
-                  className={`px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap table-header-bg shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group ${
-                    col.key === "scheme_sub_name" ? "sticky left-0 z-30" : ""
+                  className={`sticky top-0 z-20 px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap table-header-bg bg-background shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group ${
+                    col.key === "scheme_sub_name" ? "sticky left-0 z-40" : ""
                   }`}
                 >
                   <span className="inline-flex items-center justify-center gap-2">
@@ -267,23 +267,23 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
                 ))}
           </tbody>
           </table>
-        </div>
 
-        {error && <div className="p-4 text-sm text-negative">{error}</div>}
-        {!loading && items.length === 0 && !error && (
-          <div className="p-4 text-sm text-muted-foreground">No schemes found.</div>
-        )}
-
-        <div className="p-4 flex justify-center">
-          {canLoadMore && (
-            <button
-              onClick={() => fetchPage(items.length, true)}
-              disabled={loading}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-[13px] font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              {loading ? "Loading..." : "Load more"}
-            </button>
+          {error && <div className="p-4 text-sm text-negative">{error}</div>}
+          {!loading && items.length === 0 && !error && (
+            <div className="p-4 text-sm text-muted-foreground">No schemes found.</div>
           )}
+
+          <div className="p-4 flex justify-center">
+            {canLoadMore && (
+              <button
+                onClick={() => fetchPage(items.length, true)}
+                disabled={loading}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-[13px] font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {loading ? "Loading..." : "Load more"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
