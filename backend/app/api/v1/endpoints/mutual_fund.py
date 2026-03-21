@@ -57,17 +57,6 @@ def scheme_search(
 def scheme_leaderboards():
     return get_leaderboards()
 
-
-@router.get("/schemes/{scheme_id}")
-def scheme_basic_by_scheme_id(
-    scheme_id: str = Path(..., min_length=8, max_length=8),
-):
-    data = get_scheme_basic_details_by_scheme_id(scheme_id)
-    if data is None:
-        raise HTTPException(status_code=404, detail="Scheme not found")
-    return data
-
-
 @router.get("/schemes/{scheme_id}/analytics")
 def scheme_analytics_by_scheme_id(
     scheme_id: str = Path(..., min_length=8, max_length=8),

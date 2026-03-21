@@ -120,49 +120,6 @@ def get_scheme_analytics_by_scheme_id(scheme_id: str):
 
         return data
 
-
-
-def get_scheme_basic_details_by_scheme_id(scheme_id: str):
-    """Fetch basic scheme information by scheme id."""
-    with get_session() as db:
-        row = (
-            db.query(
-                SchemeMetaORM.scheme_id,
-                SchemeMetaORM.scheme_code,
-                SchemeMetaORM.scheme_name,
-                SchemeMetaORM.scheme_sub_name,
-                SchemeMetaORM.fund_house,
-                SchemeMetaORM.scheme_category,
-                SchemeMetaORM.scheme_class,
-                SchemeMetaORM.scheme_sub_category,
-                SchemeMetaORM.option_type,
-                SchemeMetaORM.plan_type,
-                SchemeMetaORM.current_nav,
-                SchemeMetaORM.current_date,
-            )
-            .filter(SchemeMetaORM.scheme_id == scheme_id)
-            .first()
-        )
-
-        if row is None:
-            return None
-
-        return {
-            "scheme_id": row.scheme_id,
-            "scheme_code": row.scheme_code,
-            "scheme_name": row.scheme_name,
-            "scheme_sub_name": row.scheme_sub_name,
-            "plan_type": row.plan_type,
-            "option_type": row.option_type,
-            "scheme_category": row.scheme_category,
-            "scheme_class": row.scheme_class,
-            "scheme_sub_category": row.scheme_sub_category,
-            "fund_house": row.fund_house,
-            "current_nav": row.current_nav,
-            "launch_date": row.current_date,
-        }
-
-
 def search_schemes(query: str, limit: int, offset: int):
     """Incremental search by scheme_sub_name."""
     if not query:
