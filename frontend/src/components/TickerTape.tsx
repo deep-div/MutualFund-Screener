@@ -6,6 +6,7 @@ import { apiGet } from "@/lib/apiClient";
 const UP_ARROW = "\u25B2";
 const DOWN_ARROW = "\u25BC";
 const SESSION_KEY = "mf_leaderboards_ticker";
+const LEADERBOARDS_SESSION_KEY = "mf_leaderboards_cache";
 
 const TickerTape = () => {
   const [tickerItems, setTickerItems] = useState<TickerItem[]>([]);
@@ -34,11 +35,35 @@ const TickerTape = () => {
       }
     };
 
+    const saveLeaderboards = (items: LeaderboardResponse["items"]) => {
+      try {
+        sessionStorage.setItem(LEADERBOARDS_SESSION_KEY, JSON.stringify(items));
+        window.dispatchEvent(new Event("mf_leaderboards_updated"));
+      } catch {
+        // Ignore storage errors
+      }
+    };
+
+    const loadLeaderboards = () => {
+      try {
+        const raw = sessionStorage.getItem(LEADERBOARDS_SESSION_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw) as LeaderboardResponse["items"];
+        if (!parsed || typeof parsed !== "object") return null;
+        return parsed;
+      } catch {
+        return null;
+      }
+    };
+
     const loadTicker = async () => {
       const cached = loadFromSession();
+      const leaderboardsCached = loadLeaderboards();
       if (cached && cached.length > 0) {
         setTickerItems(cached);
-        return;
+        if (leaderboardsCached) {
+          return;
+        }
       }
 
       try {
@@ -55,6 +80,9 @@ const TickerTape = () => {
         setTickerItems(mapped);
         if (mapped.length > 0) {
           saveToSession(mapped);
+        }
+        if (data.items) {
+          saveLeaderboards(data.items);
         }
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
@@ -131,13 +159,15 @@ type LeaderboardItem = {
   scheme_code: number;
   scheme_sub_name: string;
   current_nav: number;
-  nav_change_1d: number;
+  nav_change_1d?: number;
+  cagr_3y?: number | null;
 };
 
 type LeaderboardResponse = {
   items: {
     top_gainers: LeaderboardItem[];
     top_losers: LeaderboardItem[];
+    best_performers?: LeaderboardItem[];
   };
 };
 
