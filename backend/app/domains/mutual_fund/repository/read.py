@@ -1,4 +1,4 @@
-from sqlalchemy import asc, desc, and_
+from sqlalchemy import asc, desc, and_, func, Integer, Float, BigInteger
 
 from app.db.session import get_session
 from app.domains.mutual_fund.models import SchemeMetaORM, SchemeAnalyticsORM
@@ -60,22 +60,44 @@ def orm_to_dict(row):
 def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str, sort_order: str):
     """Fetch schemes with filters, sorting, and pagination"""
     with get_session() as db:
-        query = db.query(SchemeMetaORM)
+        base_query = db.query(SchemeMetaORM)
         if filters:
-            query = build_dynamic_filters(query, filters)
-        total = query.count()
-        query = apply_sorting(query, sort_field, sort_order)
-        results = (
-            query.offset(offset)
-            .limit(limit)
-            .all()
-        )
+            base_query = build_dynamic_filters(base_query, filters)
+        total = base_query.count()
 
         remove_fields = { 
             "id", "instrument_type", "scheme_name", "scheme_category", 
             "scheme_type", "launch_date", "current_date", "total_active_days", "nav_record_count", 
             "isin_growth", "isin_div_reinvestment", "created_at", "updated_at",
         }
+
+        numeric_columns = {
+            name: col
+            for name, col in ALL_COLUMNS.items()
+            if isinstance(col.type, (Integer, Float, BigInteger)) and name not in remove_fields
+        }
+
+        meta = {}
+        if numeric_columns:
+            agg_expressions = []
+            for name, col in numeric_columns.items():
+                agg_expressions.append(func.min(col).label(f"{name}__min"))
+                agg_expressions.append(func.max(col).label(f"{name}__max"))
+
+            agg_row = base_query.with_entities(*agg_expressions).first()
+            if agg_row is not None:
+                for name in numeric_columns.keys():
+                    meta[name] = {
+                        "min": getattr(agg_row, f"{name}__min"),
+                        "max": getattr(agg_row, f"{name}__max"),
+                    }
+
+        query = apply_sorting(base_query, sort_field, sort_order)
+        results = (
+            query.offset(offset)
+            .limit(limit)
+            .all()
+        )
 
         json_results = []
         for row in results:
@@ -87,6 +109,7 @@ def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str
             "limit": limit,
             "offset": offset,
             "total": total,
+            "meta": meta,
             "items": json_results
         }
 
