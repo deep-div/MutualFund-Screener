@@ -64,7 +64,7 @@ class MFAPIFetcher:
                     continue
 
                 if any(x in name_lower for x in [
-                    "regular", "idcw", "bonus", "segregated", "unclaimed"
+                    "regular", "idcw", "bonus", "segregated", "seg. portfolio", "seg portfolio", "unclaimed"
                 ]):
                     continue
 
