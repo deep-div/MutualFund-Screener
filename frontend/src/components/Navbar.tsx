@@ -111,6 +111,7 @@ const Navbar = () => {
       if (!searchRef.current?.contains(event.target as Node)) {
         setSearchOpen(false);
         setSearchFocused(false);
+        setSearchQuery("");
       }
     };
     document.addEventListener("mousedown", handleOutsideClick);
