@@ -2,10 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Pencil, Share2, Lock } from "lucide-react";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
 import { FILTER_DEFINITIONS_BY_ID } from "@/data/filters";
-
+import { ArrowDown, ArrowUp, ChevronDown, MoveUp,MoveDown, ChevronUp, Pencil, Share2, Lock } from "lucide-react";
 const LIMIT = 15;
 const SKELETON_ROWS = 10;
 
@@ -179,22 +178,13 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
                 >
                   <span className="inline-flex items-center justify-center gap-2">
                     <span>{col.label}</span>
-                    <span className="inline-flex flex-col items-center leading-none text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span
-                        className={
-                          sortKey === col.key && sortDir === "asc" ? "text-foreground" : "text-muted-foreground"
-                        }
-                      >
-                        ↑
-                      </span>
-                      <span
-                        className={
-                          sortKey === col.key && sortDir === "desc" ? "text-foreground" : "text-muted-foreground"
-                        }
-                      >
-                        ↓
-                      </span>
-                    </span>
+                    {sortKey === col.key ? (
+                      sortDir === "asc" ? (
+                        <MoveUp  className="w-3 h-3 text-foreground" strokeWidth={1.5} />
+                      ) : (
+                        <MoveDown className="w-3 h-3 text-foreground" strokeWidth={1.5} />
+                      )
+                    ) : null}
                   </span>
                 </th>
               ))}
