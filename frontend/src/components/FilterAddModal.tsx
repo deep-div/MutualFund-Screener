@@ -104,7 +104,7 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                       checked
                         ? "bg-primary border-primary text-primary-foreground"
-                        : "border-border hover:border-muted-foreground"
+                        : "border-border hover:border-muted-foreground bg-[#f1f1f1]"
                     }`}
                   >
                     {checked && <Check className="w-3 h-3" />}

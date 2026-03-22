@@ -420,7 +420,7 @@ const FilterSidebar = ({
                                         className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                                           isGroupSelected
                                             ? "bg-primary border-primary text-primary-foreground"
-                                            : "border-border hover:border-muted-foreground"
+                                            : "border-border hover:border-muted-foreground bg-[#f1f1f1]"
                                         }`}
                                       >
                                         {isGroupSelected && <Check className="w-3 h-3" />}
@@ -474,7 +474,7 @@ const FilterSidebar = ({
                                               className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                                                 isSelected
                                                   ? "bg-primary border-primary text-primary-foreground"
-                                                  : "border-border"
+                                                  : "border-border bg-[#f1f1f1]"
                                               }`}
                                             >
                                               {isSelected && <Check className="w-3 h-3" />}
