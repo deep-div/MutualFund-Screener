@@ -158,11 +158,11 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
   { id: "skewness_max", label: "Skewness", type: "range", category: "risk" },
   { id: "kurtosis_max", label: "Kurtosis", type: "range", category: "risk" },
 
-  { id: "sharpe_max", label: "Sharpe", type: "range", category: "ratios" },
-  { id: "sortino_max", label: "Sortino", type: "range", category: "ratios" },
-  { id: "calmar_max", label: "Calmar", type: "range", category: "ratios" },
-  { id: "pain_index_max", label: "Pain Index", type: "range", category: "ratios" },
-  { id: "ulcer_index_max", label: "Ulcer Index", type: "range", category: "ratios" },
+  { id: "sharpe_max", label: "Sharpe Ratio", type: "range", category: "ratios" },
+  { id: "sortino_max", label: "Sortino Ratio", type: "range", category: "ratios" },
+  { id: "calmar_max", label: "Calmar Ratio", type: "range", category: "ratios" },
+  { id: "pain_index_max", label: "Pain Ratio", type: "range", category: "ratios" },
+  { id: "ulcer_index_max", label: "Ulcer Ratio", type: "range", category: "ratios" },
 
   { id: "current_drawdown_percent", label: "Current Drawdown", type: "range", category: "drawdown" },
   { id: "mdd_max_drawdown_percent", label: "Max Drawdown", type: "range", category: "drawdown" },

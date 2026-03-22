@@ -144,8 +144,16 @@ const MetricCard = ({
   </div>
 );
 
-const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
-  <div className="flex items-center gap-3 mb-4 mt-10 first:mt-0">
+const SectionHeader = ({
+  icon: Icon,
+  title,
+  id,
+}: {
+  icon: React.ElementType;
+  title: string;
+  id?: string;
+}) => (
+  <div id={id} className="flex items-center gap-3 mb-4 mt-10 first:mt-0 scroll-mt-24">
     <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
       <Icon className="w-4 h-4" />
     </div>
@@ -322,6 +330,11 @@ const FundAnalytics = () => {
     | "max"
   >("one_year");
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const [yearPickerOpen, setYearPickerOpen] = useState(false);
   const yearPickerRef = useRef<HTMLDivElement | null>(null);
   const [rollingKey, setRollingKey] = useState<string>("");
@@ -693,137 +706,164 @@ const FundAnalytics = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                      <div className="analytics-card p-3">
-                        <div className="text-[10px] uppercase tracking-wider analytics-muted">NAV Trend</div>
-                        <div className="flex items-center justify-between gap-2 mt-1">
-                          <div className="text-[18px] font-semibold text-foreground">
-                            INR {typeof meta?.current_nav === "number" ? meta.current_nav.toFixed(4) : "-"}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                        <div className="analytics-card p-3">
+                          <div className="text-[10px] uppercase tracking-wider analytics-muted">NAV Trend</div>
+                          <div className="flex items-center justify-between gap-2 mt-1">
+                            <div className="text-[18px] font-semibold text-foreground">
+                              INR {typeof meta?.current_nav === "number" ? meta.current_nav.toFixed(4) : "-"}
+                            </div>
+                            <div className="h-10 w-20">
+                              {navSparkline.length > 1 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <LineChart data={navSparkline}>
+                                    <Line type="monotone" dataKey="nav" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                                  </LineChart>
+                                </ResponsiveContainer>
+                              ) : (
+                                <div className="text-[10px] analytics-muted">No trend</div>
+                              )}
+                            </div>
                           </div>
-                          <div className="h-10 w-20">
-                            {navSparkline.length > 1 ? (
-                              <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={navSparkline}>
-                                  <Line type="monotone" dataKey="nav" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                                </LineChart>
-                              </ResponsiveContainer>
-                            ) : (
-                              <div className="text-[10px] analytics-muted">No trend</div>
-                            )}
-                          </div>
+                          <div className="text-[11px] analytics-muted mt-1">NAV date {navDateLabel}</div>
                         </div>
-                        <div className="text-[11px] analytics-muted mt-1">NAV date {navDateLabel}</div>
-                      </div>
 
-                      <div className="analytics-card p-3">
-                        <div className="text-[10px] uppercase tracking-wider analytics-muted">CAGR 3Y</div>
-                        <div
-                          className={`text-[18px] font-semibold mt-1 ${
-                            typeof cagrReturns?.three_year === "number"
-                              ? cagrReturns.three_year >= 0
-                                ? "text-positive"
-                                : "text-negative"
-                              : "text-foreground"
-                          }`}
+                        <button
+                          type="button"
+                          onClick={() => scrollToSection("return-analytics")}
+                          className="analytics-card p-3 text-left cursor-pointer hover:border-primary/40"
                         >
-                          {typeof cagrReturns?.three_year === "number"
-                            ? `${cagrReturns.three_year >= 0 ? "+" : ""}${cagrReturns.three_year.toFixed(2)}%`
-                            : "-"}
-                        </div>
-                        <div className="text-[11px] analytics-muted mt-1">Annualized return (3Y)</div>
-                      </div>
+                          <div className="text-[10px] uppercase tracking-wider analytics-muted">CAGR 3Y</div>
+                          <div
+                            className={`text-[18px] font-semibold mt-1 ${
+                              typeof cagrReturns?.three_year === "number"
+                                ? cagrReturns.three_year >= 0
+                                  ? "text-positive"
+                                  : "text-negative"
+                                : "text-foreground"
+                            }`}
+                          >
+                            {typeof cagrReturns?.three_year === "number"
+                              ? `${cagrReturns.three_year >= 0 ? "+" : ""}${cagrReturns.three_year.toFixed(2)}%`
+                              : "-"}
+                          </div>
+                          <div className="text-[11px] analytics-muted mt-1">Annualized return (3Y)</div>
+                        </button>
 
-                      <div className="analytics-card p-3">
-                        <div className="text-[10px] uppercase tracking-wider analytics-muted">Current Drawdown</div>
-                        <div className="text-[18px] font-semibold mt-1 text-negative">
-                          {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
-                            ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
-                            : "-"}
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 mt-2 text-[11px] analytics-muted">
-                          <div>
-                            <div className="uppercase tracking-wider text-[9px]">Drawdown Days</div>
-                            <div className="text-foreground text-[12px] font-semibold">
-                              {typeof drawdown?.current_drawdown?.drawdown_duration_days === "number"
-                                ? `${drawdown.current_drawdown.drawdown_duration_days}d`
-                                : "-"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="uppercase tracking-wider text-[9px]">Recovery Days</div>
-                            <div className="text-foreground text-[12px] font-semibold">
-                              {typeof drawdown?.current_drawdown?.recovery_duration_days === "number"
-                                ? `${drawdown.current_drawdown.recovery_duration_days}d`
-                                : "-"}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="analytics-card p-3">
-                        <div className="text-[10px] uppercase tracking-wider analytics-muted">Max Drawdown</div>
-                        <div className="text-[18px] font-semibold mt-1 text-negative">
-                          {typeof drawdown?.mdd_duration_details?.max?.max_drawdown_percent === "number"
-                            ? `${drawdown.mdd_duration_details.max.max_drawdown_percent.toFixed(2)}%`
-                            : "-"}
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 mt-2 text-[11px] analytics-muted">
-                          <div>
-                            <div className="uppercase tracking-wider text-[9px]">Drawdown Days</div>
-                            <div className="text-foreground text-[12px] font-semibold">
-                              {typeof drawdown?.mdd_duration_details?.max?.drawdown_duration_days === "number"
-                                ? `${drawdown.mdd_duration_details.max.drawdown_duration_days}d`
-                                : "-"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="uppercase tracking-wider text-[9px]">Recovery Days</div>
-                            <div className="text-foreground text-[12px] font-semibold">
-                              {typeof drawdown?.mdd_duration_details?.max?.recovery_duration_days === "number"
-                                ? `${drawdown.mdd_duration_details.max.recovery_duration_days}d`
-                                : "-"}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="analytics-card p-3">
-                        <div className="text-[10px] uppercase tracking-wider analytics-muted">
-                          Latest Year Return {latestYoy?.year ? `(${latestYoy.year})` : ""}
-                        </div>
-                        <div
-                          className={`text-[18px] font-semibold mt-1 ${
-                            typeof latestYoy?.return === "number" ? (latestYoy.return >= 0 ? "text-positive" : "text-negative") : "text-foreground"
-                          }`}
+                        <button
+                          type="button"
+                          onClick={() => scrollToSection("drawdown-analysis")}
+                          className="analytics-card p-3 text-left cursor-pointer hover:border-primary/40"
                         >
-                          {typeof latestYoy?.return === "number"
-                            ? `${latestYoy.return >= 0 ? "+" : ""}${latestYoy.return.toFixed(2)}%`
-                            : "-"}
-                        </div>
-                        <div className="text-[11px] analytics-muted mt-1">From yearly performance</div>
-                      </div>
+                          <div className="text-[10px] uppercase tracking-wider analytics-muted">Current Drawdown</div>
+                          <div className="text-[18px] font-semibold mt-1 text-negative">
+                            {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
+                              ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
+                              : "-"}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mt-2 text-[11px] analytics-muted">
+                            <div>
+                              <div className="uppercase tracking-wider text-[9px]">Drawdown Days</div>
+                              <div className="text-foreground text-[12px] font-semibold">
+                                {typeof drawdown?.current_drawdown?.drawdown_duration_days === "number"
+                                  ? `${drawdown.current_drawdown.drawdown_duration_days}d`
+                                  : "-"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="uppercase tracking-wider text-[9px]">Recovery Days</div>
+                              <div className="text-foreground text-[12px] font-semibold">
+                                {typeof drawdown?.current_drawdown?.recovery_duration_days === "number"
+                                  ? `${drawdown.current_drawdown.recovery_duration_days}d`
+                                  : "-"}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
 
-                      <div className="analytics-card p-3">
-                        <div className="text-[10px] uppercase tracking-wider analytics-muted">Sharpe Ratio (3Y)</div>
-                        <div
-                          className={`text-[18px] font-semibold mt-1 ${
-                            typeof riskAdj?.sharpe_ratio?.three_year === "number"
-                              ? (riskAdj.sharpe_ratio.three_year >= 0 ? "text-positive" : "text-negative")
-                              : "text-foreground"
-                          }`}
+                        <button
+                          type="button"
+                          onClick={() => scrollToSection("drawdown-analysis")}
+                          className="analytics-card p-3 text-left cursor-pointer hover:border-primary/40"
                         >
-                          {typeof riskAdj?.sharpe_ratio?.three_year === "number" ? riskAdj.sharpe_ratio.three_year.toFixed(2) : "-"}
-                        </div>
-                        <div className="text-[11px] analytics-muted mt-1">Risk-adjusted return</div>
-                      </div>
+                          <div className="text-[10px] uppercase tracking-wider analytics-muted">Max Drawdown</div>
+                          <div className="text-[18px] font-semibold mt-1 text-negative">
+                            {typeof drawdown?.mdd_duration_details?.max?.max_drawdown_percent === "number"
+                              ? `${drawdown.mdd_duration_details.max.max_drawdown_percent.toFixed(2)}%`
+                              : "-"}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mt-2 text-[11px] analytics-muted">
+                            <div>
+                              <div className="uppercase tracking-wider text-[9px]">Drawdown Days</div>
+                              <div className="text-foreground text-[12px] font-semibold">
+                                {typeof drawdown?.mdd_duration_details?.max?.drawdown_duration_days === "number"
+                                  ? `${drawdown.mdd_duration_details.max.drawdown_duration_days}d`
+                                  : "-"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="uppercase tracking-wider text-[9px]">Recovery Days</div>
+                              <div className="text-foreground text-[12px] font-semibold">
+                                {typeof drawdown?.mdd_duration_details?.max?.recovery_duration_days === "number"
+                                  ? `${drawdown.mdd_duration_details.max.recovery_duration_days}d`
+                                  : "-"}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
 
-                    </div>
+                        <button
+                          type="button"
+                          onClick={() => scrollToSection("performance-explorer")}
+                          className="analytics-card p-3 text-left cursor-pointer hover:border-primary/40"
+                        >
+                          <div className="text-[10px] uppercase tracking-wider analytics-muted">
+                            Latest Year Return {latestYoy?.year ? `(${latestYoy.year})` : ""}
+                          </div>
+                          <div
+                            className={`text-[18px] font-semibold mt-1 ${
+                              typeof latestYoy?.return === "number"
+                                ? latestYoy.return >= 0
+                                  ? "text-positive"
+                                  : "text-negative"
+                                : "text-foreground"
+                            }`}
+                          >
+                            {typeof latestYoy?.return === "number"
+                              ? `${latestYoy.return >= 0 ? "+" : ""}${latestYoy.return.toFixed(2)}%`
+                              : "-"}
+                          </div>
+                          <div className="text-[11px] analytics-muted mt-1">From yearly performance</div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => scrollToSection("risk-metrics")}
+                          className="analytics-card p-3 text-left cursor-pointer hover:border-primary/40"
+                        >
+                          <div className="text-[10px] uppercase tracking-wider analytics-muted">Sharpe Ratio (3Y)</div>
+                          <div
+                            className={`text-[18px] font-semibold mt-1 ${
+                              typeof riskAdj?.sharpe_ratio?.three_year === "number"
+                                ? riskAdj.sharpe_ratio.three_year >= 0
+                                  ? "text-positive"
+                                  : "text-negative"
+                                : "text-foreground"
+                            }`}
+                          >
+                            {typeof riskAdj?.sharpe_ratio?.three_year === "number"
+                              ? riskAdj.sharpe_ratio.three_year.toFixed(2)
+                              : "-"}
+                          </div>
+                          <div className="text-[11px] analytics-muted mt-1">Risk-adjusted return</div>
+                        </button>
+                      </div>
                   </div>
                 </div>
               </motion.div>
 
 {/* Return Metrics */}
-              <SectionHeader icon={TrendingUp} title="Return Metrics" />
+              <SectionHeader id="return-analytics" icon={TrendingUp} title="Return Metrics" />
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch">
                 <div className="flex flex-col h-full no-cards-right">
                   <div className="bg-surface border border-border/60 rounded-xl p-4 shadow-sm flex-1">
@@ -1147,7 +1187,7 @@ const FundAnalytics = () => {
               </div>
 
               {/* Performance Explorer */}
-              <SectionHeader icon={Activity} title="Performance Explorer" />
+              <SectionHeader id="performance-explorer" icon={Activity} title="Performance Explorer" />
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch">
                 <div className="no-cards-right bg-surface border border-border/60 rounded-2xl p-4 shadow-sm overflow-visible">
                   <div className="flex items-start justify-between gap-4 mb-3">
@@ -1293,7 +1333,7 @@ const FundAnalytics = () => {
               </div>
 
               {/* Drawdown */}
-              <SectionHeader icon={TrendingDown} title="Drawdown Analysis" />
+              <SectionHeader id="drawdown-analysis" icon={TrendingDown} title="Drawdown Analysis" />
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-4">
                 <div className="no-cards-right bg-surface border border-border/60 rounded-2xl p-4 shadow-sm min-h-[420px]">
                   <div className="flex items-start justify-between gap-4 mb-3">
@@ -1695,7 +1735,7 @@ const FundAnalytics = () => {
 
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-12">
                 <div className="no-cards-right">
-                  <SectionHeader icon={Shield} title="Risk Metrics" />
+                  <SectionHeader id="risk-metrics" icon={Shield} title="Risk Metrics" />
                   <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div>
