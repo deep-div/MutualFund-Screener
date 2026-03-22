@@ -18,7 +18,7 @@ const Index = () => {
 
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem(sessionKey);
+      const raw = localStorage.getItem(sessionKey);
       if (!raw) return;
       const parsed = JSON.parse(raw) as {
         enabledFilters?: string[];
@@ -37,7 +37,7 @@ const Index = () => {
 
   useEffect(() => {
     try {
-      sessionStorage.setItem(
+      localStorage.setItem(
         sessionKey,
         JSON.stringify({
           enabledFilters,
@@ -99,7 +99,7 @@ const Index = () => {
     setEnabledFilters(DEFAULT_ENABLED_FILTERS);
     setFilterValues({});
     try {
-      sessionStorage.removeItem(sessionKey);
+      localStorage.removeItem(sessionKey);
     } catch {
       // Ignore storage errors.
     }
