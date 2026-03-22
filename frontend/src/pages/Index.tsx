@@ -8,12 +8,46 @@ import {
   FilterValueMap,
   FilterRangeMeta,
 } from "@/data/filters";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const Index = () => {
+  const sessionKey = "mfs:filters:temp";
   const [enabledFilters, setEnabledFilters] = useState<string[]>(DEFAULT_ENABLED_FILTERS);
   const [filterValues, setFilterValues] = useState<FilterValueMap>({});
   const [rangeMeta, setRangeMeta] = useState<FilterRangeMeta>({});
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(sessionKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as {
+        enabledFilters?: string[];
+        filterValues?: FilterValueMap;
+      };
+      if (parsed.enabledFilters && Array.isArray(parsed.enabledFilters)) {
+        setEnabledFilters(parsed.enabledFilters);
+      }
+      if (parsed.filterValues && typeof parsed.filterValues === "object") {
+        setFilterValues(parsed.filterValues);
+      }
+    } catch {
+      // Ignore corrupted session data.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(
+        sessionKey,
+        JSON.stringify({
+          enabledFilters,
+          filterValues,
+        })
+      );
+    } catch {
+      // Ignore write errors (e.g., storage full).
+    }
+  }, [enabledFilters, filterValues]);
 
   const activeCount = useMemo(() => {
     let count = 0;
@@ -64,6 +98,11 @@ const Index = () => {
   const handleReset = () => {
     setEnabledFilters(DEFAULT_ENABLED_FILTERS);
     setFilterValues({});
+    try {
+      sessionStorage.removeItem(sessionKey);
+    } catch {
+      // Ignore storage errors.
+    }
   };
 
   const handleValueChange = (
