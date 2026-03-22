@@ -130,7 +130,7 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
     pinned: true,
   },
   { id: "current_nav", label: "Current NAV", type: "range", category: "scheme" },
-  { id: "time_since_inception_years", label: "Time Since Inception (Years)", type: "range", category: "scheme" },
+  { id: "time_since_inception_years", label: "Time Since Inception", type: "range", category: "scheme" },
 
   { id: "abs_1w", label: "Absolute Return 1W (%)", type: "range", category: "returns" },
   { id: "abs_1m", label: "Absolute Return 1M (%)", type: "range", category: "returns" },
