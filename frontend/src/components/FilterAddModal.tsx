@@ -53,19 +53,20 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
         exit={{ x: -420 }}
         transition={{ type: "spring", stiffness: 280, damping: 30 }}
         onClick={(e) => e.stopPropagation()}
-        className="absolute left-72 top-0 bottom-0 w-[640px] bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+        className="absolute left-72 top-0 bottom-0 w-[640px] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col"
       >
         <div className="flex items-center justify-between px-5 py-3 border-b border-border">
           <div>
             <h2 className="text-[15px] font-semibold text-foreground">Add Filters</h2>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-background border border-border rounded-md px-3 py-1.5 w-52">
+            <div className="flex items-center gap-2 bg-background border border-border rounded-md px-3 py-1.5 w-52 hover:bg-[#f1f1f1] transition-colors">
               <Search className="w-3.5 h-3.5 text-muted-foreground" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onBlur={() => setSearchQuery("")}
                 placeholder="Search for Filters"
                 className="bg-transparent text-[12px] text-foreground placeholder:text-muted-foreground outline-none w-full"
               />
@@ -98,7 +99,7 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
                 <label
                   key={filter.id}
                   onClick={() => toggleFilter(filter.id)}
-                  className="flex items-center gap-3 px-6 py-2.5 hover:bg-surface-hover transition-colors cursor-pointer"
+                  className="flex items-center gap-3 px-6 py-2.5 hover:bg-[#f1f1f1] transition-colors cursor-pointer"
                 >
                   <div
                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
