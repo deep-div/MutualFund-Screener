@@ -901,7 +901,7 @@ const FundAnalytics = () => {
                                   <div className="rounded-xl px-3 py-3 min-h-[74px] flex flex-col justify-between" style={{ backgroundColor: bg }}>
                                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{entry.label}</div>
                                     <div
-                                      className={`text-[16px] font-semibold ${
+                                      className={`text-[14px] font-semibold ${
                                         isNumber && (entry.value as number) >= 0 ? "text-positive" : "text-negative"
                                       }`}
                                     >
@@ -928,15 +928,15 @@ const FundAnalytics = () => {
                             return (
                               <div
                                 key={entry.key}
-                                className="group relative rounded-xl border border-border/40 shadow-sm hover:shadow-md transition-all bg-card"
+                                className="group relative rounded-xl border border-border/40 shadow-sm hover:shadow-md transition-all bg-card min-w-0"
                               >
                                 <div
-                                  className="rounded-xl px-3 py-3 min-h-[74px] flex flex-col justify-between"
+                                  className="rounded-xl px-3 py-3 min-h-[74px] flex flex-col justify-between min-w-0"
                                   style={{ backgroundColor: bg }}
                                 >
                                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{entry.label}</div>
                                   <div
-                                    className={`text-[16px] font-semibold ${
+                                    className={`text-[14px] font-semibold truncate ${
                                       entry.value >= 0 ? "text-positive" : "text-negative"
                                     }`}
                                   >
@@ -966,15 +966,15 @@ const FundAnalytics = () => {
                           return (
                             <div
                               key={entry.key}
-                              className="group relative rounded-xl border border-border/40 shadow-sm hover:shadow-md transition-all bg-card"
+                              className="group relative rounded-xl border border-border/40 shadow-sm hover:shadow-md transition-all bg-card min-w-0"
                             >
                               <div
-                                className="rounded-xl px-3 py-3 min-h-[74px] flex flex-col justify-between"
+                                className="rounded-xl px-3 py-3 min-h-[74px] flex flex-col justify-between min-w-0"
                                 style={{ backgroundColor: bg }}
                               >
                                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{entry.label}</div>
                                 <div
-                                  className={`text-[16px] font-semibold ${
+                                  className={`text-[14px] font-semibold truncate ${
                                     entry.value >= 0 ? "text-positive" : "text-negative"
                                   }`}
                                 >
