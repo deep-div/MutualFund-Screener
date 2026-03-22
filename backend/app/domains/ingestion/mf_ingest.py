@@ -183,7 +183,7 @@ class MFAPIFetcher:
         current_nav = float(sorted_nav[-1]["nav"])
         prev_nav = float(sorted_nav[-2]["nav"]) if len(sorted_nav) >= 2 else None
         nav_change_1d = (
-            round(((current_nav - prev_nav) / prev_nav) * 100, 4)
+            round(((current_nav - prev_nav) / prev_nav) * 100, 2)
             if prev_nav not in (None, 0.0)
             else None
         )
