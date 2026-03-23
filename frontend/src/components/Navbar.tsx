@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ChevronDown, LogOut, User, Bookmark } from "lucide-react";
+import { Search, ChevronDown, LogOut, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
@@ -452,9 +452,6 @@ const Navbar = () => {
                                   <span className="text-[12px] text-slate-400">—</span>
                                 )}
                               </div>
-                              <span className="text-slate-400 pointer-events-none">
-                                <Bookmark className="w-4 h-4" aria-hidden="true" focusable="false" />
-                              </span>
                             </div>
                           </div>
                         </Link>
