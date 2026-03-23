@@ -17,25 +17,25 @@ def run_pipeline():
         try:
             update_pipeline_run(run_id, ingestion_status="running")
             raw_data = run_ingestion()
-            update_pipeline_run(run_id, ingestion_status="success", ingestion_records=len(raw_data), ingestion_error=None)
+            update_pipeline_run(run_id, ingestion_status="success", ingestion_records=len(raw_data))
         except Exception as e:
-            update_pipeline_run(run_id, pipeline_status="failed", ingestion_status="failed", ingestion_error=str(e), completed_at=datetime.now(ist))
+            update_pipeline_run(run_id, pipeline_status="failed", ingestion_status="failed", completed_at=datetime.now(ist))
             raise
 
         try:
             update_pipeline_run(run_id, metrics_status="running")
             metrics = run_metrics(raw_data)
-            update_pipeline_run(run_id, metrics_status="success", metrics_records=len(metrics), metrics_error=None)
+            update_pipeline_run(run_id, metrics_status="success", metrics_records=len(metrics))
         except Exception as e:
-            update_pipeline_run(run_id, pipeline_status="failed", metrics_status="failed", metrics_error=str(e), completed_at=datetime.now(ist))
+            update_pipeline_run(run_id, pipeline_status="failed", metrics_status="failed", completed_at=datetime.now(ist))
             raise
 
         try:
             update_pipeline_run(run_id, db_status="running")
             db_records = run_store_in_db(metrics)
-            update_pipeline_run(run_id, db_status="success", db_records=db_records, db_error=None)
+            update_pipeline_run(run_id, db_status="success", db_records=db_records)
         except Exception as e:
-            update_pipeline_run(run_id, pipeline_status="failed", db_status="failed", db_error=str(e), completed_at=datetime.now(ist))
+            update_pipeline_run(run_id, pipeline_status="failed", db_status="failed", completed_at=datetime.now(ist))
             raise
 
         update_pipeline_run(run_id, pipeline_status="success", completed_at=datetime.now(ist))

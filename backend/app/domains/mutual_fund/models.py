@@ -145,9 +145,5 @@ class PipelineRunORM(Base):
     metrics_records = Column(Integer)
     db_records = Column(Integer)
 
-    ingestion_error = Column(String)
-    metrics_error = Column(String)
-    db_error = Column(String)
-
     started_at = Column(DateTime(timezone=True), server_default=func.now())
     completed_at = Column(DateTime(timezone=True))
