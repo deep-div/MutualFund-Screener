@@ -36,13 +36,13 @@ class UserWatchlistORM(Base):
         index=True,
         nullable=False
     )
-    mf_id = Column(
+    scheme_id = Column(
         Integer,
         ForeignKey(f"{TABLE_NAME_1}.id", ondelete="CASCADE"),
         index=True,
         nullable=False
     )
-    scheme_id = Column(String(8), index=True, nullable=False)
+    external_id = Column(String(8), index=True, nullable=False)
     scheme_code = Column(BigInteger, index=True, nullable=False)
     watchlist_name = Column(String, nullable=False)
 
@@ -53,7 +53,7 @@ class UserWatchlistORM(Base):
         UniqueConstraint(
             "uid",
             "watchlist_name",
-            "scheme_id",
+            "external_id",
         ),
     )
 

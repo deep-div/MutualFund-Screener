@@ -2,7 +2,7 @@ import { apiGet } from "@/lib/apiClient";
 import { apiPost } from "@/lib/apiClient";
 
 export interface SchemeSearchItem {
-  scheme_id: number;
+  external_id: string;
   scheme_code?: number;
   fund_house?: string;
   scheme_sub_name: string;
@@ -22,7 +22,7 @@ export interface SchemeSearchResponse {
 
 export interface SchemeAnalyticsResponse {
   meta: {
-    scheme_id?: number;
+    external_id?: string;
     scheme_code: number;
     scheme_sub_name: string;
     scheme_sub_category: string;
@@ -86,7 +86,7 @@ export interface SchemeAnalyticsResponse {
 }
 
 export interface SchemeListItem {
-  scheme_id: string;
+  external_id: string;
   scheme_sub_name?: string;
   scheme_sub_category?: string;
   scheme_class?: string;
@@ -154,8 +154,8 @@ export const searchSchemes = (
     { signal: options?.signal }
   );
 
-export const getSchemeAnalytics = (schemeId: number | string, options?: { signal?: AbortSignal }) =>
-  apiGet<SchemeAnalyticsResponse>(`/api/v1/schemes/${schemeId}/analytics`, undefined, {
+export const getSchemeAnalytics = (externalId: string, options?: { signal?: AbortSignal }) =>
+  apiGet<SchemeAnalyticsResponse>(`/api/v1/schemes/${externalId}/analytics`, undefined, {
     signal: options?.signal,
   });
 

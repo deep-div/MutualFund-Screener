@@ -117,13 +117,13 @@ def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str
             "items": json_results
         }
 
-def get_scheme_analytics_by_scheme_id(scheme_id: str):
-    """Fetch scheme analytics JSON directly using scheme id"""
+def get_scheme_analytics_by_external_id(external_id: str):
+    """Fetch scheme analytics JSON directly using external id"""
     with get_session() as db:
         result = (
             db.query(SchemeAnalyticsORM.full_data)
             .join(SchemeMetaORM, SchemeAnalyticsORM.scheme_id == SchemeMetaORM.id)
-            .filter(SchemeMetaORM.scheme_id == scheme_id)
+            .filter(SchemeMetaORM.external_id == external_id)
             .first()
         )
 
@@ -179,7 +179,7 @@ def search_schemes(query: str, limit: int, offset: int):
 
         items = [
             {
-                "scheme_id": row.scheme_id,
+                "external_id": row.external_id,
                 "scheme_code": row.scheme_code,
                 "fund_house": row.fund_house,
                 "scheme_sub_name": row.scheme_sub_name,
@@ -201,7 +201,7 @@ def search_schemes(query: str, limit: int, offset: int):
 
 def _scheme_row_to_gainer_loser_item(row):
     return {
-        "scheme_id": row.scheme_id,
+        "external_id": row.external_id,
         "scheme_code": row.scheme_code,
         "scheme_sub_name": row.scheme_sub_name,
         "current_nav": row.current_nav,
@@ -211,7 +211,7 @@ def _scheme_row_to_gainer_loser_item(row):
 
 def _scheme_row_to_best_performer_item(row):
     return {
-        "scheme_id": row.scheme_id,
+        "external_id": row.external_id,
         "scheme_code": row.scheme_code,
         "scheme_sub_name": row.scheme_sub_name,
         "current_nav": row.current_nav,

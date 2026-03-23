@@ -82,9 +82,9 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
       .replace(/^-+|-+$/g, "");
 
   const getSchemePath = (fund: SchemeListItem) => {
-    const schemeId = fund.scheme_id;
+    const externalId = fund.external_id;
     const schemeSlug = toSchemeSlug(fund.scheme_sub_name ?? "scheme");
-    return schemeId ? `/${schemeSlug}/${schemeId}` : "#";
+    return externalId ? `/${schemeSlug}/${externalId}` : "#";
   };
 
   const fetchPage = async (nextOffset: number, append: boolean) => {
@@ -327,7 +327,7 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
                 ))
               : items.map((fund, index) => (
                   <motion.tr
-                    key={fund.scheme_id ?? `${fund.scheme_sub_name}-${index}`}
+                    key={fund.external_id ?? `${fund.scheme_sub_name}-${index}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.02 }}

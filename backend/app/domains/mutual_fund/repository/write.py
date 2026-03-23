@@ -1,6 +1,6 @@
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.sql import func
-from app.domains.mutual_fund.utils import generate_scheme_id
+from app.domains.mutual_fund.utils import generate_external_id
 
 from app.core.logging import logger
 from app.db.session import get_session
@@ -95,8 +95,11 @@ def build_row(meta: dict, metrics: dict):
     """Transform metrics dictionary into a flat DB row"""
     row = {**meta}
 
-    if not row.get("scheme_id"):
-        row["scheme_id"] = generate_scheme_id()
+    if "external_id" not in row and "scheme_id" in row:
+        row["external_id"] = row.pop("scheme_id")
+
+    if not row.get("external_id"):
+        row["external_id"] = generate_external_id()
 
     for column, path in FIELD_MAP.items():
         row[column] = safe_get(metrics, *path)
@@ -126,7 +129,7 @@ def bulk_upsert_schema(session, data: list[dict]):
     update_columns = {
         c.name: getattr(stmt.excluded, c.name)
         for c in SchemeMetaORM.__table__.columns
-        if c.name not in ["id", "scheme_id", "created_at"]
+        if c.name not in ["id", "external_id", "created_at"]
     }
 
     stmt = stmt.on_conflict_do_update(

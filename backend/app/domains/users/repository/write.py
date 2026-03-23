@@ -30,29 +30,29 @@ def upsert_user(user: dict) -> None:
             raise
 
 
-def add_watchlist_item(uid: str, scheme_id: str, watchlist_name: str) -> None:
+def add_watchlist_item(uid: str, external_id: str, watchlist_name: str) -> None:
     """Add a watchlist item for a user."""
     with get_session() as session:
         try:
             row = (
                 session.query(SchemeMetaORM.id, SchemeMetaORM.scheme_code)
-                .filter(SchemeMetaORM.scheme_id == scheme_id)
+                .filter(SchemeMetaORM.external_id == external_id)
                 .first()
             )
             if row is None:
-                raise ValueError(f"Invalid scheme_id: {scheme_id}")
+                raise ValueError(f"Invalid external_id: {external_id}")
 
             stmt = insert(UserWatchlistORM).values(
                 {
                     "uid": uid,
-                    "mf_id": row.id,
-                    "scheme_id": scheme_id,
+                    "scheme_id": row.id,
+                    "external_id": external_id,
                     "scheme_code": row.scheme_code,
                     "watchlist_name": watchlist_name,
                 }
             )
             stmt = stmt.on_conflict_do_nothing(
-                index_elements=["uid", "watchlist_name", "scheme_id"]
+                index_elements=["uid", "watchlist_name", "external_id"]
             )
             session.execute(stmt)
             session.commit()
@@ -62,7 +62,7 @@ def add_watchlist_item(uid: str, scheme_id: str, watchlist_name: str) -> None:
             raise
 
 
-def delete_watchlist_item(uid: str, scheme_id: str, watchlist_name: str) -> int:
+def delete_watchlist_item(uid: str, external_id: str, watchlist_name: str) -> int:
     """Delete a watchlist item for a user. Returns rows deleted."""
     with get_session() as session:
         try:
@@ -71,7 +71,7 @@ def delete_watchlist_item(uid: str, scheme_id: str, watchlist_name: str) -> int:
                 .filter(
                     UserWatchlistORM.uid == uid,
                     UserWatchlistORM.watchlist_name == watchlist_name,
-                    UserWatchlistORM.scheme_id == scheme_id,
+                    UserWatchlistORM.external_id == external_id,
                 )
                 .delete(synchronize_session=False)
             )

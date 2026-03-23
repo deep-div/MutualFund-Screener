@@ -155,7 +155,7 @@ const TickerTape = () => {
 };
 
 type LeaderboardItem = {
-  scheme_id: string;
+  external_id: string;
   scheme_code: number;
   scheme_sub_name: string;
   current_nav: number;
@@ -196,7 +196,7 @@ const mapLeaderboardItem = (item: LeaderboardItem, isPositive: boolean): TickerI
   price: item.current_nav,
   change: Math.abs(item.nav_change_1d ?? 0),
   isPositive,
-  schemeId: item.scheme_id ?? item.scheme_code,
+  schemeId: item.external_id ?? item.scheme_code,
 });
 
 export default TickerTape;

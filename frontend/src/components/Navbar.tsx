@@ -36,7 +36,7 @@ const toSchemeSlug = (value: string) =>
 const SEARCH_SKELETON_ROWS = 6;
 
 type BestPerformerItem = {
-  scheme_id?: string | number;
+  external_id?: string | number;
   scheme_code?: number;
   scheme_sub_name: string;
   current_nav?: number | null;
@@ -44,7 +44,7 @@ type BestPerformerItem = {
 };
 
 type TopGainerItem = {
-  scheme_id?: string | number;
+  external_id?: string | number;
   scheme_code?: number;
   scheme_sub_name: string;
   current_nav?: number | null;
@@ -52,7 +52,7 @@ type TopGainerItem = {
 };
 
 type TopLoserItem = {
-  scheme_id?: string | number;
+  external_id?: string | number;
   scheme_code?: number;
   scheme_sub_name: string;
   current_nav?: number | null;
@@ -245,7 +245,7 @@ const Navbar = () => {
                             Top Gainers
                           </div>
                           {topGainers.map((item) => {
-                            const schemeId = item.scheme_id ?? item.scheme_code;
+                            const externalId = item.external_id ?? item.scheme_code;
                             const schemeSlug = toSchemeSlug(item.scheme_sub_name);
                             const changeValue = item.nav_change_1d;
                             const changeColor =
@@ -256,10 +256,10 @@ const Navbar = () => {
                                 : "text-slate-400";
                             return (
                               <Link
-                                key={`top-gain-${schemeId ?? item.scheme_sub_name}`}
-                                to={`/${schemeSlug}/${schemeId}`}
+                                key={`top-gain-${externalId ?? item.scheme_sub_name}`}
+                                to={`/${schemeSlug}/${externalId}`}
                                 onClick={() => {
-                                  if (schemeId === undefined || schemeId === null) return;
+                                  if (externalId === undefined || externalId === null) return;
                                   setSearchOpen(false);
                                   setSearchFocused(false);
                                 }}
@@ -292,7 +292,7 @@ const Navbar = () => {
                             Top Losers
                           </div>
                           {topLosers.map((item) => {
-                            const schemeId = item.scheme_id ?? item.scheme_code;
+                            const externalId = item.external_id ?? item.scheme_code;
                             const schemeSlug = toSchemeSlug(item.scheme_sub_name);
                             const changeValue = item.nav_change_1d;
                             const changeColor =
@@ -303,10 +303,10 @@ const Navbar = () => {
                                 : "text-slate-400";
                             return (
                               <Link
-                                key={`top-lose-${schemeId ?? item.scheme_sub_name}`}
-                                to={`/${schemeSlug}/${schemeId}`}
+                                key={`top-lose-${externalId ?? item.scheme_sub_name}`}
+                                to={`/${schemeSlug}/${externalId}`}
                                 onClick={() => {
-                                  if (schemeId === undefined || schemeId === null) return;
+                                  if (externalId === undefined || externalId === null) return;
                                   setSearchOpen(false);
                                   setSearchFocused(false);
                                 }}
@@ -339,7 +339,7 @@ const Navbar = () => {
                             Top Performers
                           </div>
                           {bestPerformers.map((item) => {
-                            const schemeId = item.scheme_id ?? item.scheme_code;
+                            const externalId = item.external_id ?? item.scheme_code;
                             const schemeSlug = toSchemeSlug(item.scheme_sub_name);
                             const cagrValue = item.cagr_3y;
                             const cagrColor =
@@ -350,10 +350,10 @@ const Navbar = () => {
                                 : "text-slate-400";
                             return (
                               <Link
-                                key={`top-perf-${schemeId ?? item.scheme_sub_name}`}
-                                to={`/${schemeSlug}/${schemeId}`}
+                                key={`top-perf-${externalId ?? item.scheme_sub_name}`}
+                                to={`/${schemeSlug}/${externalId}`}
                                 onClick={() => {
-                                  if (schemeId === undefined || schemeId === null) return;
+                                  if (externalId === undefined || externalId === null) return;
                                   setSearchOpen(false);
                                   setSearchFocused(false);
                                 }}
@@ -413,15 +413,15 @@ const Navbar = () => {
                       const changeColor =
                         hasChange && changeValue < 0 ? "text-rose-500" : "text-emerald-600";
                       const changePrefix = changeValue < 0 ? "-" : "+";
-                      const schemeId = item.scheme_id ?? item.scheme_code;
+                      const externalId = item.external_id ?? item.scheme_code;
                       const schemeSlug = toSchemeSlug(item.scheme_sub_name);
 
                       return (
                         <Link
-                          key={schemeId ?? item.scheme_sub_name}
-                          to={`/${schemeSlug}/${schemeId}`}
+                          key={externalId ?? item.scheme_sub_name}
+                          to={`/${schemeSlug}/${externalId}`}
                           onClick={() => {
-                            if (schemeId === undefined || schemeId === null) return;
+                            if (externalId === undefined || externalId === null) return;
                             setSearchOpen(false);
                             setSearchFocused(false);
                           }}
