@@ -133,7 +133,7 @@ def rename_watchlist(
 def add_filters(payload: UserFilterCreate, token: str = Query(...)):
     try:
         token_uid = _get_uid_from_token(token)
-        add_user_filters(
+        external_id = add_user_filters(
             uid=token_uid,
             filters=payload.filters,
             name=payload.name,
@@ -141,7 +141,7 @@ def add_filters(payload: UserFilterCreate, token: str = Query(...)):
             sort_field=payload.sort_field,
             sort_order=payload.sort_order,
         )
-        return {"status": "ok"}
+        return {"status": "ok", "external_id": external_id}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to add user filters: {exc}")
     

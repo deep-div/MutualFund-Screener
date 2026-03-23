@@ -4,9 +4,21 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
 import { FILTER_DEFINITIONS_BY_ID } from "@/data/filters";
-import { ArrowDown, ArrowUp, ChevronDown, MoveUp,MoveDown, ChevronUp, Pencil, Share2, Lock } from "lucide-react";
+import { MoveUp, MoveDown, Pencil, Share2, Lock } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
+import { saveUserFilters } from "@/services/userService";
 const LIMIT = 15;
 const SKELETON_ROWS = 10;
+const DEFAULT_TITLE = "Mutual Funds Screener";
+const DEFAULT_DESCRIPTION =
+  "Add a note explaining the purpose behind creating this - such as \"Top 5 ELSS funds for tax saving,\" \"High-performing mid-cap funds,\" or \"My SIP growth selections.\"";
 
 const baseColumns: Array<{
   key: keyof SchemeListItem;
@@ -25,12 +37,20 @@ interface FundTableProps {
 }
 
 const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) => {
+  const { user } = useAuth();
   const [sortKey, setSortKey] = useState<keyof SchemeListItem | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [items, setItems] = useState<SchemeListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftDescription, setDraftDescription] = useState("");
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
 
@@ -106,6 +126,54 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
   }, [filterKey, sortKey, sortDir]);
 
   const canLoadMore = items.length < total;
+  const displayTitle = title.trim() || DEFAULT_TITLE;
+  const displayDescription = description.trim() || DEFAULT_DESCRIPTION;
+
+  const handleOpenChange = (open: boolean) => {
+    setEditorOpen(open);
+    if (open) {
+      setDraftTitle(title);
+      setDraftDescription(description);
+    }
+  };
+
+  const applyDraft = () => {
+    setTitle(draftTitle.trim());
+    setDescription(draftDescription.trim());
+    setEditorOpen(false);
+  };
+
+  const handleSave = async () => {
+    setSaveError(null);
+    if (!user) {
+      setSaveError("Please sign in to save your filters.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const token = await user.getIdToken();
+      const payload: {
+        name: string;
+        description: string;
+        filters: Record<string, Record<string, number | string | string[]>>;
+        sort_field?: string;
+        sort_order?: "asc" | "desc";
+      } = {
+        name: displayTitle,
+        description: displayDescription,
+        filters,
+      };
+      if (sortKey) {
+        payload.sort_field = String(sortKey);
+        payload.sort_order = sortDir;
+      }
+      await saveUserFilters(token, payload);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save filters.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
@@ -113,24 +181,69 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <h1 className="text-[15px] font-semibold text-foreground tracking-tight">
-              Track, Sell bad funds, Buy other Opportunities -20%
+              {displayTitle}
             </h1>
             <p className="text-[12px] text-muted-foreground mt-1 leading-relaxed">
-              1. Check rolling returns 2. AUM more then 20 3. Number of stocks held high 60 plus 4. No funds with same fund house 5. Cagr overall in ticker tape
+              {displayDescription}
             </p>
           </div>
           <div className="flex items-center gap-2 ml-4">
-            <button className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors">
-              <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-            </button>
+            <DropdownMenu open={editorOpen} onOpenChange={handleOpenChange}>
+              <DropdownMenuTrigger asChild>
+                <button className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors">
+                  <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-80 p-3" sideOffset={8} align="end">
+                <div className="grid gap-3">
+                  <div className="grid gap-1">
+                    <Label htmlFor="screen-title">Name</Label>
+                    <Input
+                      id="screen-title"
+                      value={draftTitle}
+                      placeholder={DEFAULT_TITLE}
+                      onChange={(event) => setDraftTitle(event.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-1">
+                    <Label htmlFor="screen-description">Description</Label>
+                    <Input
+                      id="screen-description"
+                      value={draftDescription}
+                      placeholder={DEFAULT_DESCRIPTION}
+                      onChange={(event) => setDraftDescription(event.target.value)}
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2 pt-1">
+                    <button
+                      className="px-3 py-1.5 text-[12px] border border-border rounded-md hover:bg-surface-hover transition-colors"
+                      onClick={() => setEditorOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="px-3 py-1.5 text-[12px] bg-foreground text-background rounded-md font-medium hover:bg-foreground/90 transition-colors"
+                      onClick={applyDraft}
+                    >
+                      OK
+                    </button>
+                  </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <button className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors">
               <Share2 className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
-            <button className="px-4 py-2 bg-foreground text-background rounded-md text-[13px] font-medium hover:bg-foreground/90 transition-colors">
-              Update
+            <button
+              className="px-4 py-2 bg-foreground text-background rounded-md text-[13px] font-medium hover:bg-foreground/90 transition-colors disabled:opacity-60"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
+        {saveError && <div className="mt-2 text-xs text-negative">{saveError}</div>}
         <div className="flex items-center justify-between mt-3">
           <p className="text-[13px]">
             <span className="text-muted-foreground">Showing </span>

@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from sqlalchemy.dialects.postgresql import insert
 
 from app.core.logging import logger
@@ -108,10 +110,10 @@ def add_user_filters(
     filters: dict,
     name: str | None = None,
     description: str | None = None,
-    sort_field: str | None = "cagr_3y",
-    sort_order: str | None = "desc",
-) -> None:
-    """Store applied filters for a user. Upsert by (uid, name) when name is provided."""
+    sort_field: str | None = None,
+    sort_order: str | None = None,
+) -> str:
+    """Store applied filters for a user as a new entry. Returns external_id."""
     with get_session() as session:
         try:
             filters_payload = {
@@ -119,29 +121,27 @@ def add_user_filters(
                 "sort_field": sort_field,
                 "sort_order": sort_order,
             }
-            if name:
-                existing = (
-                    session.query(UserFilterORM)
-                    .filter(
-                        UserFilterORM.uid == uid,
-                        UserFilterORM.name == name,
-                    )
+            external_id = None
+            while external_id is None:
+                candidate = uuid4().hex
+                exists = (
+                    session.query(UserFilterORM.id)
+                    .filter(UserFilterORM.external_id == candidate)
                     .first()
                 )
-                if existing:
-                    existing.description = description
-                    existing.filters = filters_payload
-                    session.commit()
-                    return
+                if not exists:
+                    external_id = candidate
 
             record = UserFilterORM(
                 uid=uid,
+                external_id=external_id,
                 name=name,
                 description=description,
                 filters=filters_payload,
             )
             session.add(record)
             session.commit()
+            return external_id
         except Exception as e:
             session.rollback()
             logger.error(f"Failed to add user filters | Error: {str(e)}", exc_info=True)

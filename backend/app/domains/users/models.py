@@ -69,13 +69,10 @@ class UserFilterORM(Base):
         index=True,
         nullable=False
     )
+    external_id = Column(String(32), index=True, nullable=False, unique=True)
     name = Column(String)
     description = Column(String)
     filters = Column(JSONB, nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
-
-    __table_args__ = (
-        UniqueConstraint("uid", "name", name="uq_user_filters_uid_name"),
-    )
