@@ -179,7 +179,7 @@ const Navbar = () => {
         />
       )}
 
-      <nav className="h-14 bg-nav border-b border-nav-hover flex items-center px-6 relative z-[70]">
+      <nav className="h-14 bg-nav border-b border-nav-hover flex items-center pl-6 pr-0 relative z-[70]">
 
         {/* LEFT: Logo */}
         <Link
@@ -483,7 +483,7 @@ const Navbar = () => {
                 </button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuContent align="end" sideOffset={15} className="w-52">
                 <div className="px-2 py-1.5">
                   <p className="text-[13px] font-medium">{user?.displayName || user?.email}</p>
                 </div>
