@@ -155,7 +155,10 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
           <table className="w-full min-w-max table-fixed border-separate border-spacing-0">
           <colgroup>
             {columns.map((col) => (
-              <col key={String(col.key)} className="min-w-[160px]" />
+              <col
+                key={String(col.key)}
+                className={col.key === "scheme_sub_name" ? "w-[200px]" : "w-[140px]"}
+              />
             ))}
           </colgroup>
           <thead className="sticky top-0 z-30 table-header-bg dimmable-header">
@@ -172,7 +175,7 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
                       setSortDir("desc");
                     }
                   }}
-                  className={`sticky top-0 z-20 px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap table-header-bg bg-background shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group ${
+                  className={`sticky top-0 z-20 px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-normal break-words leading-normal table-header-bg bg-background shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group ${
                     col.key === "scheme_sub_name" ? "sticky left-0 z-40" : ""
                   }`}
                 >
