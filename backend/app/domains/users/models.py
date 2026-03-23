@@ -36,12 +36,13 @@ class UserWatchlistORM(Base):
         index=True,
         nullable=False
     )
-    scheme_id = Column(
+    mf_id = Column(
         Integer,
         ForeignKey(f"{TABLE_NAME_1}.id", ondelete="CASCADE"),
         index=True,
         nullable=False
     )
+    scheme_id = Column(String(8), index=True, nullable=False)
     scheme_code = Column(BigInteger, index=True, nullable=False)
     watchlist_name = Column(String, nullable=False)
 

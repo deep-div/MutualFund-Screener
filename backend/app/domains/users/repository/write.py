@@ -43,7 +43,8 @@ def add_watchlist_item(uid: str, scheme_id: str, watchlist_name: str) -> None:
             stmt = insert(UserWatchlistORM).values(
                 {
                     "uid": uid,
-                    "scheme_id": row.id,
+                    "mf_id": row.id,
+                    "scheme_id": scheme_id,
                     "scheme_code": row.scheme_code,
                     "watchlist_name": watchlist_name,
                 }
@@ -63,20 +64,12 @@ def delete_watchlist_item(uid: str, scheme_id: str, watchlist_name: str) -> int:
     """Delete a watchlist item for a user. Returns rows deleted."""
     with get_session() as session:
         try:
-            scheme_db_id = (
-                session.query(SchemeMetaORM.id)
-                .filter(SchemeMetaORM.scheme_id == scheme_id)
-                .scalar()
-            )
-            if scheme_db_id is None:
-                return 0
-
             deleted = (
                 session.query(UserWatchlistORM)
                 .filter(
                     UserWatchlistORM.uid == uid,
                     UserWatchlistORM.watchlist_name == watchlist_name,
-                    UserWatchlistORM.scheme_id == scheme_db_id,
+                    UserWatchlistORM.scheme_id == scheme_id,
                 )
                 .delete(synchronize_session=False)
             )
