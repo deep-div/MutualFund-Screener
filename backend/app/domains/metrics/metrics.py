@@ -912,18 +912,35 @@ class NavMetrics:
                         continue
                     target_date = start_date + timedelta(days=window_days)
 
+                    # Pick the NAV date closest to the target date to avoid
+                    # shrinking the window (inflated CAGR) or stretching it too far.
                     j = bisect.bisect_left(dates, target_date)
-                    if j >= n:
+                    candidates = []
+                    if j < n:
+                        candidates.append(j)
+                    if j - 1 >= 0:
+                        candidates.append(j - 1)
+                    if not candidates:
                         break
 
-                    end_date = dates[j]
-                    end_nav = navs[j]
+                    end_idx = min(
+                        candidates,
+                        key=lambda idx: abs((dates[idx] - target_date).days)
+                    )
+
+                    # Ensure end index is after the start index.
+                    if end_idx <= i:
+                        continue
+
+                    end_date = dates[end_idx]
+                    end_nav = navs[end_idx]
                     if end_nav <= 0:
                         continue
 
                     actual_years = (end_date - start_date).days / 365.25
 
-                    if actual_years > 0:
+                    # Skip windows that are materially shorter than requested.
+                    if actual_years >= years * 0.9:
                         cagr = ((end_nav / start_nav) ** (1 / actual_years) - 1) * 100
 
                         rolling_values.append(cagr)
