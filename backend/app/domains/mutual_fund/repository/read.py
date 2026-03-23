@@ -87,7 +87,8 @@ def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str
                 agg_expressions.append(func.min(col).label(f"{name}__min"))
                 agg_expressions.append(func.max(col).label(f"{name}__max"))
 
-            agg_row = base_query.with_entities(*agg_expressions).first()
+            # Compute min/max on the full table (no filters)
+            agg_row = db.query(*agg_expressions).select_from(SchemeMetaORM).first()
             if agg_row is not None:
                 for name in numeric_columns.keys():
                     meta[name] = {
