@@ -36,7 +36,7 @@ class MFAPIFetcher:
         logger.info(f"Fetching latest schemes (last {days} days)")
 
         try:
-            response = requests.get(url, timeout=30)
+            response = requests.get(url, timeout=30, headers=self._browser_headers())
             response.raise_for_status()
             data = response.json()
         except Exception as e:
@@ -613,6 +613,13 @@ class MFAPIFetcher:
         if isinstance(value, str) and value.strip() == "":
             return None
         return value
+
+    @staticmethod
+    def _browser_headers() -> Dict[str, str]:
+        """Basic browser-like headers to avoid bot-style fingerprints."""
+        return {
+         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
     
     async def fetch_scheme(self, session, semaphore, scheme_code):
         """Fetch NAV data, enrich meta from raw, then validate full response."""
@@ -620,7 +627,11 @@ class MFAPIFetcher:
             max_retries = 4
             for attempt in range(1, max_retries + 1):
                 try:
-                    async with session.get(f"{self.base_url}/{scheme_code}", timeout=60) as response:
+                    async with session.get(
+                        f"{self.base_url}/{scheme_code}",
+                        timeout=60,
+                        headers=self._browser_headers(),
+                    ) as response:
                         if response.status != 200:
                             logger.warning(
                                 f"Non-200 response for scheme_code={scheme_code} "
