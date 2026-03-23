@@ -1,10 +1,9 @@
-from uuid import uuid4
-
 from sqlalchemy.dialects.postgresql import insert
 
 from app.core.logging import logger
 from app.db.session import get_session
 from app.domains.users.models import UserORM, UserWatchlistORM, UserFilterORM
+from app.domains.users.utils import generate_external_id
 from app.domains.mutual_fund.models import SchemeMetaORM
 
 
@@ -30,29 +29,40 @@ def upsert_user(user: dict) -> None:
             raise
 
 
-def add_watchlist_item(uid: str, external_id: str, watchlist_name: str) -> None:
+def add_watchlist_item(uid: str, scheme_external_id: str, watchlist_name: str) -> None:
     """Add a watchlist item for a user."""
     with get_session() as session:
         try:
             row = (
                 session.query(SchemeMetaORM.id, SchemeMetaORM.scheme_code)
-                .filter(SchemeMetaORM.external_id == external_id)
+                .filter(SchemeMetaORM.external_id == scheme_external_id)
                 .first()
             )
             if row is None:
-                raise ValueError(f"Invalid external_id: {external_id}")
+                raise ValueError(f"Invalid external_id: {scheme_external_id}")
+
+            watchlist_external_id = None
+            while watchlist_external_id is None:
+                candidate = generate_external_id()
+                exists = (
+                    session.query(UserWatchlistORM.id)
+                    .filter(UserWatchlistORM.external_id == candidate)
+                    .first()
+                )
+                if not exists:
+                    watchlist_external_id = candidate
 
             stmt = insert(UserWatchlistORM).values(
                 {
                     "uid": uid,
                     "scheme_id": row.id,
-                    "external_id": external_id,
+                    "external_id": watchlist_external_id,
                     "scheme_code": row.scheme_code,
                     "watchlist_name": watchlist_name,
                 }
             )
             stmt = stmt.on_conflict_do_nothing(
-                index_elements=["uid", "watchlist_name", "external_id"]
+                index_elements=["uid", "watchlist_name", "scheme_id"]
             )
             session.execute(stmt)
             session.commit()
@@ -62,16 +72,23 @@ def add_watchlist_item(uid: str, external_id: str, watchlist_name: str) -> None:
             raise
 
 
-def delete_watchlist_item(uid: str, external_id: str, watchlist_name: str) -> int:
+def delete_watchlist_item(uid: str, scheme_external_id: str, watchlist_name: str) -> int:
     """Delete a watchlist item for a user. Returns rows deleted."""
     with get_session() as session:
         try:
+            row = (
+                session.query(SchemeMetaORM.id)
+                .filter(SchemeMetaORM.external_id == scheme_external_id)
+                .first()
+            )
+            if row is None:
+                return 0
             deleted = (
                 session.query(UserWatchlistORM)
                 .filter(
                     UserWatchlistORM.uid == uid,
                     UserWatchlistORM.watchlist_name == watchlist_name,
-                    UserWatchlistORM.external_id == external_id,
+                    UserWatchlistORM.scheme_id == row.id,
                 )
                 .delete(synchronize_session=False)
             )
@@ -123,7 +140,7 @@ def add_user_filters(
             }
             external_id = None
             while external_id is None:
-                candidate = uuid4().hex
+                candidate = generate_external_id()
                 exists = (
                     session.query(UserFilterORM.id)
                     .filter(UserFilterORM.external_id == candidate)

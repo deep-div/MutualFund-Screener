@@ -42,7 +42,7 @@ class UserWatchlistORM(Base):
         index=True,
         nullable=False
     )
-    external_id = Column(String(8), index=True, nullable=False)
+    external_id = Column(String(32), index=True, nullable=False, unique=True)
     scheme_code = Column(BigInteger, index=True, nullable=False)
     watchlist_name = Column(String, nullable=False)
 
@@ -53,7 +53,7 @@ class UserWatchlistORM(Base):
         UniqueConstraint(
             "uid",
             "watchlist_name",
-            "external_id",
+            "scheme_id",
         ),
     )
 

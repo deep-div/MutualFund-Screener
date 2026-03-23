@@ -73,7 +73,7 @@ def add_to_watchlist(
 ):
     try:
         token_uid = _get_uid_from_token(token)
-        add_watchlist_item(uid=token_uid, external_id=external_id, watchlist_name=watchlist_name)
+        add_watchlist_item(uid=token_uid, scheme_external_id=external_id, watchlist_name=watchlist_name)
         return {"status": "ok"}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to add watchlist item: {exc}")
@@ -100,7 +100,7 @@ def delete_from_watchlist(
     try:
         token_uid = _get_uid_from_token(token)
         deleted = delete_watchlist_item(
-            uid=token_uid, external_id=external_id, watchlist_name=watchlist_name
+            uid=token_uid, scheme_external_id=external_id, watchlist_name=watchlist_name
         )
         if not deleted:
             raise HTTPException(status_code=404, detail="Watchlist item not found")
