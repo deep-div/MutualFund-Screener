@@ -840,23 +840,28 @@ class MFAPIFetcher:
                 for code in scheme_codes
             ]
 
-            try:
-                results = await asyncio.gather(*tasks, return_exceptions=True)
-            except Exception as e:
-                logger.error(f"Unexpected async execution error: {e}")
-                return []
-
             final_results = []
             failed_count = 0
+            processed_count = 0
 
-            for result in results:
-                if isinstance(result, Exception):
+            for task in asyncio.as_completed(tasks):
+                try:
+                    result = await task
+                except Exception:
                     failed_count += 1
+                    processed_count += 1
+                    if processed_count % 500 == 0:
+                        logger.info(f"Processed {processed_count} schemes so far")
                     continue
+
                 if result is not None:
                     final_results.append(result)
                 else:
                     failed_count += 1
+
+                processed_count += 1
+                if processed_count % 500 == 0:
+                    logger.info(f"Processed {processed_count} schemes so far")
 
             logger.info(
                 f"NAV fetch completed | Success: {len(final_results)} | Failed/Skipped: {failed_count}"
