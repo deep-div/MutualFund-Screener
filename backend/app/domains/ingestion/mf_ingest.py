@@ -36,7 +36,7 @@ class MFAPIFetcher:
         logger.info(f"Fetching latest schemes (last {days} days)")
 
         try:
-            response = requests.get(url, timeout=60)
+            response = requests.get(url, timeout=300)
             response.raise_for_status()
             data = response.json()
         except Exception as e:
