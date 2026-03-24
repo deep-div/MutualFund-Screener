@@ -765,7 +765,7 @@ class MFAPIFetcher:
     async def fetch_scheme(self, session, semaphore, scheme_code):
         """Fetch NAV data, enrich meta from raw, then validate full response."""
         async with semaphore:
-            max_retries = 2
+            max_retries = 4
             for attempt in range(1, max_retries + 1):
                 try:
                     async with session.get(f"{self.base_url}/{scheme_code}", timeout=60) as response:
