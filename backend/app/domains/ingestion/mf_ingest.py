@@ -31,16 +31,18 @@ class MFAPIFetcher:
         logger.info("MFAPIFetcher initialized")
 
     def fetch_recent_active_schemes(self, days: int) -> List[Dict[str, Any]]:
-        """Return Direct Growth Open Ended funds updated within given days."""
-        url = f"{self.base_url}/latest"
+        """Return Direct Growth Open Ended funds updated within given days, with AMFI fallback."""
         logger.info(f"Fetching latest schemes (last {days} days)")
 
-        try:
-            response = requests.get(url, timeout=300)
-            response.raise_for_status()
-            data = response.json()
-        except Exception as e:
-            logger.error(f"Failed to fetch latest schemes: {e}")
+        data = self._fetch_latest_schemes_from_mfapi()
+        source = "mfapi"
+        if not data:
+            logger.warning("Primary latest-schemes source unavailable. Falling back to AMFI NAVAll.txt")
+            data = self._fetch_latest_schemes_from_amfi()
+            source = "amfi"
+
+        if not data:
+            logger.error("Failed to fetch latest schemes from both primary and fallback sources")
             return []
 
         funds = []
@@ -53,6 +55,7 @@ class MFAPIFetcher:
                 scheme_category = item.get("schemeCategory", "")
                 scheme_code = item.get("schemeCode")
                 date_str = item.get("date", "")
+                isin_code = self._extract_isin_from_latest_item(item)
 
                 if scheme_type != "Open Ended Schemes":
                     continue
@@ -70,25 +73,170 @@ class MFAPIFetcher:
                 ]):
                     continue
 
-                try:
-                    parsed_date = datetime.strptime(date_str, "%d-%m-%Y")
-                except ValueError:
+                parsed_date = self._parse_latest_date(date_str)
+                if parsed_date is None:
                     logger.warning(f"Invalid date format for scheme_code={scheme_code}")
                     continue
 
                 if parsed_date >= cutoff_date:
-                    funds.append({
-                        "scheme_code": scheme_code,
-                        "scheme_name": scheme_name,
-                        "scheme_category": scheme_category
-                    })
+                    row = self._build_scheme_list_row(
+                        scheme_code=scheme_code,
+                        scheme_name=scheme_name,
+                        scheme_category=scheme_category,
+                        isin_code=isin_code,
+                    )
+                    if row:
+                        funds.append(row)
 
             except Exception as e:
                 logger.warning(f"Skipping scheme due to processing error: {e}")
                 continue
 
-        logger.info(f"Filtered {len(funds)} eligible schemes")
+        logger.info(f"Filtered {len(funds)} eligible schemes from {source}")
         return funds
+
+    def _fetch_latest_schemes_from_mfapi(self) -> List[Dict[str, Any]]:
+        """Fetch latest schemes list from MFAPI."""
+        url = f"{self.base_url}/latest"
+
+        try:
+            response = requests.get(url, timeout=300)
+            response.raise_for_status()
+            payload = response.json()
+            if not isinstance(payload, list):
+                logger.error("Unexpected MFAPI latest payload format (expected list)")
+                return []
+            return payload
+        except Exception as e:
+            logger.error(f"Failed to fetch latest schemes: {e}")
+            return []
+
+    def _fetch_latest_schemes_from_amfi(self) -> List[Dict[str, Any]]:
+        """
+        Parse AMFI NAVAll.txt into MFAPI-like rows so downstream filtering remains unchanged.
+        Expected output keys: schemeCode, schemeName, schemeCategory, schemeType, date
+        """
+        url = "https://portal.amfiindia.com/spages/NAVAll.txt"
+        parsed_rows: List[Dict[str, Any]] = []
+        current_category = ""
+
+        try:
+            response = requests.get(url, timeout=300)
+            response.raise_for_status()
+            lines = response.text.splitlines()
+        except Exception as e:
+            logger.error(f"Failed to fetch AMFI NAVAll fallback: {e}")
+            return []
+
+        for raw_line in lines:
+            try:
+                line = raw_line.strip()
+                if not line:
+                    continue
+
+                # Skip the tabular header line.
+                if line.lower().startswith("scheme code;"):
+                    continue
+
+                # Section headers like:
+                # Open Ended Schemes(Debt Scheme - Banking and PSU Fund)
+                if ";" not in line:
+                    if line.lower().startswith("open ended schemes"):
+                        current_category = line
+                    continue
+
+                parts = line.split(";")
+                if len(parts) < 6:
+                    continue
+
+                scheme_code_raw = parts[0].strip()
+                isin_primary = parts[1].strip() if len(parts) > 1 else ""
+                isin_div_reinvestment = parts[2].strip() if len(parts) > 2 else ""
+                scheme_name = parts[3].strip()
+                date_str = parts[5].strip()
+
+                if not scheme_code_raw.isdigit() or not scheme_name:
+                    continue
+
+                # AMFI file also contains close-ended/interval rows depending on section.
+                if not current_category.lower().startswith("open ended schemes"):
+                    continue
+
+                parsed_rows.append({
+                    "schemeCode": int(scheme_code_raw),
+                    "schemeName": scheme_name,
+                    "schemeCategory": current_category,
+                    "schemeType": "Open Ended Schemes",
+                    "date": date_str,
+                    "isin_growth": isin_primary,
+                    "isin_div_reinvestment": isin_div_reinvestment,
+                })
+
+            except Exception as e:
+                logger.warning(f"Skipping AMFI line due to parsing error: {e}")
+                continue
+
+        logger.info(f"Parsed {len(parsed_rows)} rows from AMFI NAVAll fallback")
+        return parsed_rows
+
+    @staticmethod
+    def _parse_latest_date(date_str: str) -> Optional[datetime]:
+        """Parse latest list date from multiple known formats."""
+        for fmt in ("%d-%m-%Y", "%d-%b-%Y"):
+            try:
+                return datetime.strptime(date_str, fmt)
+            except ValueError:
+                continue
+        return None
+
+    @staticmethod
+    def _extract_isin_from_latest_item(item: Dict[str, Any]) -> Optional[str]:
+        """
+        Extract ISIN from latest-scheme row using source-of-truth key.
+        """
+        for key in ("isin_growth", "isinGrowth"):
+            value = item.get(key)
+            if value is None:
+                continue
+            v = str(value).strip()
+            if v and v != "-":
+                return v
+        return None
+
+    @staticmethod
+    def _build_scheme_list_row(
+        scheme_code: Any,
+        scheme_name: Any,
+        scheme_category: Any,
+        isin_code: Any,
+    ) -> Dict[str, Any]:
+        """
+        Return only present fields for scheme list output.
+        If a field is missing/blank/'-', it is omitted.
+        """
+        out: Dict[str, Any] = {}
+
+        if isinstance(scheme_code, int):
+            out["scheme_code"] = scheme_code
+        elif isinstance(scheme_code, str) and scheme_code.strip().isdigit():
+            out["scheme_code"] = int(scheme_code.strip())
+
+        if isinstance(scheme_name, str):
+            v = scheme_name.strip()
+            if v and v != "-":
+                out["scheme_name"] = v
+
+        if isinstance(scheme_category, str):
+            v = scheme_category.strip()
+            if v and v != "-":
+                out["scheme_category"] = v
+
+        if isinstance(isin_code, str):
+            v = isin_code.strip()
+            if v and v != "-":
+                out["isin_code"] = v
+
+        return out
     
     ## Normalizing Hard codes so new Fund houses are not affected 
     @staticmethod
@@ -617,7 +765,7 @@ class MFAPIFetcher:
     async def fetch_scheme(self, session, semaphore, scheme_code):
         """Fetch NAV data, enrich meta from raw, then validate full response."""
         async with semaphore:
-            max_retries = 4
+            max_retries = 2
             for attempt in range(1, max_retries + 1):
                 try:
                     async with session.get(f"{self.base_url}/{scheme_code}", timeout=60) as response:
