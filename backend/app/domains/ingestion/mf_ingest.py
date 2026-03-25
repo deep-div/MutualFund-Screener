@@ -186,7 +186,6 @@ class MFAPIFetcher:
                 logger.warning(f"Skipping AMFI line due to parsing error: {e}")
                 continue
 
-        logger.info(f"Parsed {len(parsed_rows)} rows from AMFI NAVAll fallback")
         return parsed_rows
 
     @staticmethod
@@ -533,73 +532,6 @@ class MFAPIFetcher:
 
         return filtered, removed_dates
 
-    def _normalize_nav_splits(
-        self,
-        nav_data: List[Dict[str, Any]],
-        ratio_threshold: float = 20.0
-    ):
-        """
-        Detect abnormal NAV ratio jumps (> ratio_threshold) between consecutive entries and
-        adjust historical NAVs using a cumulative scaling factor to normalize split events.
-        """
-        if not nav_data or len(nav_data) < 2:
-            return nav_data, []
-
-        indexed = []
-        for idx, item in enumerate(nav_data):
-            date_str = item.get("date", "")
-            nav_raw = item.get("nav")
-            try:
-                parsed_date = self._parse_nav_date(date_str)
-                nav_val = float(nav_raw)
-            except Exception:
-                indexed.append((idx, None, None))
-                continue
-            indexed.append((idx, parsed_date, nav_val))
-
-        valid = [row for row in indexed if row[1] is not None and row[2] is not None and row[2] > 0]
-        if len(valid) < 2:
-            return nav_data, []
-
-        valid_sorted = sorted(valid, key=lambda x: x[1])
-
-        cumulative_scale = 1.0
-        last_nav_raw = None
-        adjustments = []
-        normalized_values = {}
-
-        # Walk backwards so we scale historical NAVs to the latest scale.
-        for idx, date, nav_val in reversed(valid_sorted):
-            if last_nav_raw is None:
-                normalized_values[idx] = nav_val / cumulative_scale
-                last_nav_raw = nav_val
-                continue
-
-            # Detect split-like jumps where older NAV is abnormally larger than newer NAV.
-            if nav_val > last_nav_raw:
-                jump_ratio = nav_val / last_nav_raw
-                if jump_ratio > ratio_threshold:
-                    cumulative_scale *= jump_ratio
-                    adjustments.append({
-                        "date": date.strftime("%Y-%m-%d"),
-                        "factor": round(jump_ratio, 6),
-                        "cumulative_factor": round(cumulative_scale, 6)
-                    })
-
-            normalized_values[idx] = nav_val / cumulative_scale
-            last_nav_raw = nav_val
-
-        normalized_data = []
-        for idx, item in enumerate(nav_data):
-            if idx in normalized_values:
-                new_item = dict(item)
-                new_item["nav"] = f"{normalized_values[idx]:.4f}"
-                normalized_data.append(new_item)
-            else:
-                normalized_data.append(item)
-
-        return normalized_data, adjustments
-
     @staticmethod
     def _extract_scheme_sub_name(scheme_name: str) -> str:
         """Return base scheme name in title case by removing brackets, plan words and hyphen."""
@@ -858,18 +790,12 @@ class MFAPIFetcher:
             payload = await response.json()
             return self._build_captnemo_raw(payload, scheme_item)
 
-    def _finalize_raw_scheme_response(self, raw: Dict[str, Any], scheme_code_for_log: Any):
+    def _finalize_raw_scheme_response(self, raw: Dict[str, Any]):
         """Run post-processing, enrich meta, validate, and return schema-compatible dict."""
         nav_data = raw.get("data", [])
         filtered_nav, removed_dates = self._filter_weekend_nav(nav_data)
-        normalized_nav, split_adjustments = self._normalize_nav_splits(filtered_nav)
-        raw["data"] = normalized_nav
+        raw["data"] = filtered_nav
         raw["removed_weekend_dates"] = [d.strftime("%Y-%m-%d") for d in removed_dates]
-        if split_adjustments:
-            logger.info(
-                f"Normalized {len(split_adjustments)} split-like NAV jumps "
-                f"for scheme_code={scheme_code_for_log}"
-            )
 
         enriched_meta = self._build_scheme_meta(raw)
         if enriched_meta is None:
@@ -913,7 +839,7 @@ class MFAPIFetcher:
                         meta.setdefault("fund_house", scheme_item.get("fund_house"))
                         raw["meta"] = meta
 
-                    return self._finalize_raw_scheme_response(raw, scheme_code)
+                    return self._finalize_raw_scheme_response(raw)
 
                 except Exception as e:
                     logger.warning(
