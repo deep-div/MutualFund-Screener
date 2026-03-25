@@ -944,27 +944,31 @@ class MFAPIFetcher:
             semaphore = asyncio.Semaphore(self.max_concurrent)
 
             tasks = [
-                self.fetch_scheme(session, semaphore, item)
+                asyncio.create_task(self.fetch_scheme(session, semaphore, item))
                 for item in scheme_items
             ]
 
+            final_results = []
+            failed_count = 0
+            processed_count = 0
+
             try:
-                results = await asyncio.gather(*tasks, return_exceptions=True)
+                for done_task in asyncio.as_completed(tasks):
+                    result = await done_task
+                    processed_count += 1
+
+                    if processed_count % 500 == 0:
+                        logger.info(
+                            f"NAV fetch progress: completed processing for {processed_count} schemes"
+                        )
+
+                    if result is not None:
+                        final_results.append(result)
+                    else:
+                        failed_count += 1
             except Exception as e:
                 logger.error(f"Unexpected async execution error: {e}")
                 return []
-
-            final_results = []
-            failed_count = 0
-
-            for result in results:
-                if isinstance(result, Exception):
-                    failed_count += 1
-                    continue
-                if result is not None:
-                    final_results.append(result)
-                else:
-                    failed_count += 1
 
             logger.info(
                 f"NAV fetch completed | Success: {len(final_results)} | Failed/Skipped: {failed_count}"
