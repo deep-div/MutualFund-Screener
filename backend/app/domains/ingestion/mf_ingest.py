@@ -54,6 +54,8 @@ class MFAPIFetcher:
                 scheme_name = item.get("schemeName", "")
                 scheme_category = item.get("schemeCategory", "")
                 scheme_code = item.get("schemeCode")
+                fund_house = item.get("fundHouse") or item.get("fund_house")
+                isin_div_reinvestment = item.get("isin_div_reinvestment") or item.get("isinDivReinvestment")
                 date_str = item.get("date", "")
                 isin_code = self._extract_isin_from_latest_item(item)
 
@@ -84,6 +86,9 @@ class MFAPIFetcher:
                         scheme_name=scheme_name,
                         scheme_category=scheme_category,
                         isin_code=isin_code,
+                        fund_house=fund_house,
+                        scheme_type=scheme_type,
+                        isin_div_reinvestment=isin_div_reinvestment,
                     )
                     if row:
                         funds.append(row)
@@ -119,6 +124,7 @@ class MFAPIFetcher:
         url = "https://portal.amfiindia.com/spages/NAVAll.txt"
         parsed_rows: List[Dict[str, Any]] = []
         current_category = ""
+        current_fund_house = ""
 
         try:
             response = requests.get(url, timeout=300)
@@ -143,6 +149,9 @@ class MFAPIFetcher:
                 if ";" not in line:
                     if line.lower().startswith("open ended schemes"):
                         current_category = line
+                        current_fund_house = ""
+                    else:
+                        current_fund_house = line
                     continue
 
                 parts = line.split(";")
@@ -170,6 +179,7 @@ class MFAPIFetcher:
                     "date": date_str,
                     "isin_growth": isin_primary,
                     "isin_div_reinvestment": isin_div_reinvestment,
+                    "fund_house": current_fund_house,
                 })
 
             except Exception as e:
@@ -209,6 +219,9 @@ class MFAPIFetcher:
         scheme_name: Any,
         scheme_category: Any,
         isin_code: Any,
+        fund_house: Any = None,
+        scheme_type: Any = None,
+        isin_div_reinvestment: Any = None,
     ) -> Dict[str, Any]:
         """
         Return only present fields for scheme list output.
@@ -235,6 +248,21 @@ class MFAPIFetcher:
             v = isin_code.strip()
             if v and v != "-":
                 out["isin_code"] = v
+
+        if isinstance(fund_house, str):
+            v = fund_house.strip()
+            if v and v != "-":
+                out["fund_house"] = v
+
+        if isinstance(scheme_type, str):
+            v = scheme_type.strip()
+            if v and v != "-":
+                out["scheme_type"] = v
+
+        if isinstance(isin_div_reinvestment, str):
+            v = isin_div_reinvestment.strip()
+            if v and v != "-":
+                out["isin_div_reinvestment"] = v
 
         return out
     
@@ -761,54 +789,131 @@ class MFAPIFetcher:
         if isinstance(value, str) and value.strip() == "":
             return None
         return value
-    
-    async def fetch_scheme(self, session, semaphore, scheme_code):
-        """Fetch NAV data, enrich meta from raw, then validate full response."""
+
+    @staticmethod
+    def _derive_fund_house_from_scheme_name(scheme_name: str) -> Optional[str]:
+        """Best-effort fund house derivation when API meta is unavailable."""
+        if not scheme_name:
+            return None
+        m = re.match(r"^\s*(.+?\bMutual Fund)\b", scheme_name, flags=re.IGNORECASE)
+        if m:
+            return m.group(1).strip()
+        return None
+
+    def _build_captnemo_raw(self, captnemo_payload: Dict[str, Any], scheme_item: Dict[str, Any]) -> Dict[str, Any]:
+        """Convert captnemo payload into MFAPI-like raw shape expected downstream."""
+        hist = captnemo_payload.get("historical_nav") or []
+        nav_rows = []
+        for entry in hist:
+            if not isinstance(entry, (list, tuple)) or len(entry) < 2:
+                continue
+            dt, nav = entry[0], entry[1]
+            nav_rows.append({
+                "date": str(dt),
+                "nav": str(nav),
+            })
+        if not nav_rows and captnemo_payload.get("date") is not None and captnemo_payload.get("nav") is not None:
+            nav_rows.append({
+                "date": str(captnemo_payload.get("date")),
+                "nav": str(captnemo_payload.get("nav")),
+            })
+
+        scheme_name = scheme_item.get("scheme_name") or captnemo_payload.get("name")
+        fund_house = (
+            scheme_item.get("fund_house")
+            or self._derive_fund_house_from_scheme_name(scheme_name or "")
+        )
+
+        return {
+            "meta": {
+                "scheme_name": scheme_name,
+                "scheme_category": scheme_item.get("scheme_category"),
+                "fund_house": fund_house,
+                "scheme_code": scheme_item.get("scheme_code"),
+                "scheme_type": scheme_item.get("scheme_type") or "Open Ended Schemes",
+                "isin_growth": scheme_item.get("isin_code") or captnemo_payload.get("ISIN"),
+                "isin_div_reinvestment": scheme_item.get("isin_div_reinvestment"),
+            },
+            "data": nav_rows,
+        }
+
+    async def _fetch_scheme_raw_from_mfapi(self, session, scheme_code: Optional[int]):
+        """Primary NAV source: MFAPI scheme endpoint."""
+        if not isinstance(scheme_code, int) or scheme_code <= 0:
+            return None
+        async with session.get(f"{self.base_url}/{scheme_code}", timeout=60) as response:
+            if response.status != 200:
+                return None
+            return await response.json()
+
+    async def _fetch_scheme_raw_from_captnemo(self, session, isin_code: Optional[str], scheme_item: Dict[str, Any]):
+        """Fallback NAV source: captnemo endpoint by ISIN."""
+        if not isinstance(isin_code, str) or not isin_code.strip():
+            return None
+
+        isin = isin_code.strip()
+        async with session.get(f"https://mf.captnemo.in/nav/{isin}", timeout=60) as response:
+            if response.status != 200:
+                return None
+            payload = await response.json()
+            return self._build_captnemo_raw(payload, scheme_item)
+
+    def _finalize_raw_scheme_response(self, raw: Dict[str, Any], scheme_code_for_log: Any):
+        """Run post-processing, enrich meta, validate, and return schema-compatible dict."""
+        nav_data = raw.get("data", [])
+        filtered_nav, removed_dates = self._filter_weekend_nav(nav_data)
+        normalized_nav, split_adjustments = self._normalize_nav_splits(filtered_nav)
+        raw["data"] = normalized_nav
+        raw["removed_weekend_dates"] = [d.strftime("%Y-%m-%d") for d in removed_dates]
+        if split_adjustments:
+            logger.info(
+                f"Normalized {len(split_adjustments)} split-like NAV jumps "
+                f"for scheme_code={scheme_code_for_log}"
+            )
+
+        enriched_meta = self._build_scheme_meta(raw)
+        if enriched_meta is None:
+            return None
+
+        raw["meta"] = enriched_meta.model_dump(mode="json")
+        validated = MutualFundNavResponse.model_validate(raw)
+        return validated.model_dump(mode="json")
+
+    async def fetch_scheme(self, session, semaphore, scheme_item):
+        """Fetch NAV data with MFAPI primary and captnemo(ISIN) fallback, then validate."""
         async with semaphore:
             max_retries = 4
+            scheme_code = scheme_item.get("scheme_code")
+            isin_code = scheme_item.get("isin_code")
+
             for attempt in range(1, max_retries + 1):
                 try:
-                    async with session.get(f"{self.base_url}/{scheme_code}", timeout=60) as response:
-                        if response.status != 200:
+                    raw = await self._fetch_scheme_raw_from_mfapi(session, scheme_code)
+                    if raw is None:
+                        raw = await self._fetch_scheme_raw_from_captnemo(session, isin_code, scheme_item)
+                        if raw is None:
                             logger.warning(
-                                f"Non-200 response for scheme_code={scheme_code} "
-                                f"on attempt {attempt}/{max_retries} (status={response.status})"
+                                f"Both NAV sources failed for scheme_code={scheme_code}, isin={isin_code} "
+                                f"on attempt {attempt}/{max_retries}"
                             )
                             if attempt < max_retries:
                                 await asyncio.sleep(min(0.5 * attempt, 3))
                                 continue
                             return None
 
-                        raw = await response.json()
+                    # Ensure key meta fields are present for fallback-built raws too.
+                    meta = raw.get("meta", {}) if isinstance(raw, dict) else {}
+                    if isinstance(meta, dict):
+                        meta.setdefault("scheme_code", scheme_item.get("scheme_code"))
+                        meta.setdefault("scheme_name", scheme_item.get("scheme_name"))
+                        meta.setdefault("scheme_category", scheme_item.get("scheme_category"))
+                        meta.setdefault("scheme_type", scheme_item.get("scheme_type") or "Open Ended Schemes")
+                        meta.setdefault("isin_growth", scheme_item.get("isin_code"))
+                        meta.setdefault("isin_div_reinvestment", scheme_item.get("isin_div_reinvestment"))
+                        meta.setdefault("fund_house", scheme_item.get("fund_house"))
+                        raw["meta"] = meta
 
-                        try:
-                            nav_data = raw.get("data", [])
-                            filtered_nav, removed_dates = self._filter_weekend_nav(nav_data)
-                            normalized_nav, split_adjustments = self._normalize_nav_splits(filtered_nav)
-                            raw["data"] = normalized_nav
-                            raw["removed_weekend_dates"] = [d.strftime("%Y-%m-%d") for d in removed_dates]
-                            if split_adjustments:
-                                logger.info(
-                                    f"Normalized {len(split_adjustments)} split-like NAV jumps "
-                                    f"for scheme_code={scheme_code}"
-                                )
-
-                            # STEP 1: Enrich meta directly from raw
-                            enriched_meta = self._build_scheme_meta(raw)
-                            if enriched_meta is None:
-                                return None
-
-                            # STEP 2: Inject enriched meta
-                            raw["meta"] = enriched_meta.model_dump(mode="json")
-
-                            # STEP 3: Final validation (only once)
-                            validated = MutualFundNavResponse.model_validate(raw)
-
-                            return validated.model_dump(mode="json")
-
-                        except Exception as e:
-                            logger.warning(f"Validation failed for scheme_code={scheme_code}: {e}")
-                            return None
+                    return self._finalize_raw_scheme_response(raw, scheme_code)
 
                 except Exception as e:
                     logger.warning(
@@ -821,47 +926,45 @@ class MFAPIFetcher:
                     return None
 
     async def fetch_schemes_from_list(self, schemes_list):
-        """Extract scheme_code from dict list and fetch NAV data."""
+        """Fetch NAV data for schemes list with MFAPI primary and captnemo fallback."""
         connector = aiohttp.TCPConnector(limit=100)
         timeout = aiohttp.ClientTimeout(total=30)
 
-        scheme_codes = [
-            item["scheme_code"]
+        scheme_items = [
+            item
             for item in schemes_list
-            if isinstance(item.get("scheme_code"), int) and item["scheme_code"] > 0
+            if (
+                (isinstance(item.get("scheme_code"), int) and item["scheme_code"] > 0)
+                or (isinstance(item.get("isin_code"), str) and item["isin_code"].strip())
+            )
         ]
-        logger.info(f"Starting NAV fetch for {len(scheme_codes)} schemes")
+        logger.info(f"Starting NAV fetch for {len(scheme_items)} schemes")
 
         async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
             semaphore = asyncio.Semaphore(self.max_concurrent)
 
             tasks = [
-                self.fetch_scheme(session, semaphore, code)
-                for code in scheme_codes
+                self.fetch_scheme(session, semaphore, item)
+                for item in scheme_items
             ]
+
+            try:
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+            except Exception as e:
+                logger.error(f"Unexpected async execution error: {e}")
+                return []
 
             final_results = []
             failed_count = 0
-            processed_count = 0
 
-            for task in asyncio.as_completed(tasks):
-                try:
-                    result = await task
-                except Exception:
+            for result in results:
+                if isinstance(result, Exception):
                     failed_count += 1
-                    processed_count += 1
-                    if processed_count % 500 == 0:
-                        logger.info(f"Processed {processed_count} schemes so far")
                     continue
-
                 if result is not None:
                     final_results.append(result)
                 else:
                     failed_count += 1
-
-                processed_count += 1
-                if processed_count % 500 == 0:
-                    logger.info(f"Processed {processed_count} schemes so far")
 
             logger.info(
                 f"NAV fetch completed | Success: {len(final_results)} | Failed/Skipped: {failed_count}"
