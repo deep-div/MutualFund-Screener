@@ -348,6 +348,33 @@ class MFAPIFetcher:
 
         return v
 
+    def _match_scheme_sub_category(self, value: Any) -> Optional[SchemeSubCategory]:
+        """Best-effort match from raw API text to SchemeSubCategory enum."""
+        if not isinstance(value, str):
+            return None
+        raw = value.strip()
+        if not raw or raw == "-":
+            return None
+
+        api_value_normalized = self.normalize_scheme_sub_category(raw, is_enum=False)
+
+        # 1) Exact normalized match
+        for enum_member in SchemeSubCategory:
+            enum_value_normalized = self.normalize_scheme_sub_category(enum_member.value, is_enum=True)
+            if enum_value_normalized == api_value_normalized:
+                return enum_member
+
+        # 2) Contains match in either direction for loose API strings
+        for enum_member in SchemeSubCategory:
+            enum_value_normalized = self.normalize_scheme_sub_category(enum_member.value, is_enum=True)
+            if (
+                enum_value_normalized in api_value_normalized
+                or api_value_normalized in enum_value_normalized
+            ):
+                return enum_member
+
+        return None
+
     def _build_scheme_meta(self, raw: dict) -> Optional[SchemeMeta]:
         """Derive and construct SchemeMeta from raw meta dictionary."""
 
@@ -393,29 +420,19 @@ class MFAPIFetcher:
         scheme_class = SchemeClass.OTHER
         scheme_sub_category = scheme_category
 
-        if scheme_category and "-" in scheme_category:
-            left, right = scheme_category.split("-", 1)
+        if scheme_category:
+            normalized_scheme_category = (
+                scheme_category.replace("–", "-").replace("—", "-")
+                if isinstance(scheme_category, str)
+                else scheme_category
+            )
+        else:
+            normalized_scheme_category = scheme_category
+
+        if normalized_scheme_category and "-" in normalized_scheme_category:
+            left, right = normalized_scheme_category.split("-", 1)
             scheme_sub_category_str = right.strip()
-
-            # Normalize API value
-            api_value_normalized = self.normalize_scheme_sub_category(scheme_sub_category_str, is_enum=False)
-
-            matched_enum = None
-
-            # 1. Exact match FIRST (highest priority)
-            for enum_member in SchemeSubCategory:
-                enum_value_normalized = self.normalize_scheme_sub_category(enum_member.value, is_enum=True)
-                if enum_value_normalized == api_value_normalized:
-                    matched_enum = enum_member
-                    break
-
-            # 2. Contains match (only if exact not found)
-            if not matched_enum:
-                for enum_member in SchemeSubCategory:
-                    enum_value_normalized = self.normalize_scheme_sub_category(enum_member.value, is_enum=True)
-                    if enum_value_normalized in api_value_normalized:
-                        matched_enum = enum_member
-                        break
+            matched_enum = self._match_scheme_sub_category(scheme_sub_category_str)
 
             # 3. Assign result
             if matched_enum:
@@ -438,6 +455,10 @@ class MFAPIFetcher:
                 scheme_class = SchemeClass.OTHER
             else:
                 scheme_class = None
+        elif normalized_scheme_category:
+            matched_enum = self._match_scheme_sub_category(normalized_scheme_category)
+            if matched_enum:
+                scheme_sub_category = matched_enum
 
         # Fix: If class is OTHER but sub-category is INDEX, treat as EQUITY
         if (
