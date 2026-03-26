@@ -1,5 +1,6 @@
 import json
 import bisect
+import math
 from datetime import timedelta
 from app.core.logging import logger
 from datetime import datetime
@@ -17,16 +18,116 @@ class NavMetrics:
             parsed_data = []
             for entry in nav_data:
                 parsed_data.append({
-                    "date": datetime.strptime(entry["date"], "%Y-%m-%d").date(),
+                    "date": self._parse_nav_date(entry["date"]),
                     "nav": float(entry["nav"])
                 })
 
-            self.nav_data = sorted(parsed_data, key=lambda x: x['date'])
+            sorted_data = sorted(parsed_data, key=lambda x: x['date'])
+            self.nav_data, split_events = self._normalize_nav_scale(sorted_data)
             self._dates = [e["date"] for e in self.nav_data]
+            self._normalization_events = split_events
+
+            if split_events:
+                logger.warning(
+                    "NAV split normalization applied | split_count=%s | latest_split_date=%s",
+                    len(split_events),
+                    split_events[-1]["date"]
+                )
 
         except Exception as e:
             logger.error(f"Initialization failed: {str(e)}")
             raise
+
+    @staticmethod
+    def _parse_nav_date(date_value):
+        """Parse NAV date from either YYYY-MM-DD or DD-MM-YYYY."""
+        if isinstance(date_value, datetime):
+            return date_value.date()
+
+        if not isinstance(date_value, str):
+            raise ValueError(f"Unsupported date format: {date_value}")
+
+        for fmt in ("%Y-%m-%d", "%d-%m-%Y"):
+            try:
+                return datetime.strptime(date_value, fmt).date()
+            except ValueError:
+                continue
+
+        raise ValueError(f"Unsupported date format: {date_value}")
+
+    @staticmethod
+    def _normalize_nav_scale(nav_data):
+        """
+        Normalize scale breaks in NAV history.
+
+        Detects large adjacent jumps (typically x10/x100/x1000) and rescales older
+        observations so the full series remains on one consistent NAV scale.
+        """
+        if len(nav_data) < 2:
+            return nav_data, []
+
+        split_threshold = 20.0
+        min_improvement_factor = 5.0
+        max_remaining_gap = 3.0
+
+        scales = [1.0] * len(nav_data)
+        split_events = []
+
+        for i in range(len(nav_data) - 2, -1, -1):
+            next_scale = scales[i + 1]
+            next_nav_adj = nav_data[i + 1]["nav"] * next_scale
+            curr_nav_base = nav_data[i]["nav"] * next_scale
+
+            if next_nav_adj <= 0 or curr_nav_base <= 0:
+                scales[i] = next_scale
+                continue
+
+            ratio = next_nav_adj / curr_nav_base
+            abs_ratio = ratio if ratio >= 1 else (1 / ratio)
+
+            if abs_ratio < split_threshold:
+                scales[i] = next_scale
+                continue
+
+            scale_power = int(round(math.log10(ratio)))
+            if scale_power == 0:
+                scales[i] = next_scale
+                continue
+
+            candidate_scale = next_scale * (10 ** scale_power)
+            candidate_nav_adj = nav_data[i]["nav"] * candidate_scale
+            if candidate_nav_adj <= 0:
+                scales[i] = next_scale
+                continue
+
+            pre_gap = abs(math.log10(next_nav_adj / curr_nav_base))
+            post_gap = abs(math.log10(next_nav_adj / candidate_nav_adj))
+
+            if (pre_gap - post_gap) < math.log10(min_improvement_factor):
+                scales[i] = next_scale
+                continue
+
+            if post_gap > math.log10(max_remaining_gap):
+                scales[i] = next_scale
+                continue
+
+            scales[i] = candidate_scale
+            split_events.append({
+                "date": nav_data[i]["date"].isoformat(),
+                "raw_nav": nav_data[i]["nav"],
+                "normalized_nav": round(candidate_nav_adj, 8),
+                "scale_factor": round(candidate_scale, 12),
+            })
+
+        normalized = []
+        for idx, row in enumerate(nav_data):
+            normalized.append({
+                "date": row["date"],
+                "nav": row["nav"] * scales[idx]
+            })
+
+        split_events.reverse()
+        return normalized, split_events
 
     def _get_nav_for_period(self, days):
         """Get NAV on/before target lookback date if full lookback history exists."""
