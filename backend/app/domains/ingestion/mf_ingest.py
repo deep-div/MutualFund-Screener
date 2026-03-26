@@ -337,6 +337,7 @@ class MFAPIFetcher:
                 "elss": "elss fund",
                 "dynamic bond": "dynamic bond fund",
                 "equity savings": "equity savings fund",
+                "money market": "money market fund",
                 "fund of funds domestic": "fofs domestic",
                 "fof domestic": "fofs domestic",
                 "fund of funds overseas": "fofs overseas",
