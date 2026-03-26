@@ -11,6 +11,7 @@ from app.domains.ingestion.schemas import (
     InstrumentType,
     MutualFundNavResponse,
     SchemeMeta,
+    SchemeType,
     SchemeClass,
     OptionType,
     PlanType,
@@ -50,7 +51,7 @@ class MFAPIFetcher:
 
         for item in data:
             try:
-                scheme_type = item.get("schemeType", "")
+                scheme_type = self._normalize_scheme_type(item.get("schemeType", ""))
                 scheme_name = item.get("schemeName", "")
                 scheme_category = item.get("schemeCategory", "")
                 scheme_code = item.get("schemeCode")
@@ -59,7 +60,7 @@ class MFAPIFetcher:
                 date_str = item.get("date", "")
                 isin_code = self._extract_isin_from_latest_item(item)
 
-                if scheme_type != "Open Ended Schemes":
+                if scheme_type != SchemeType.OPEN_ENDED.value:
                     continue
 
                 name_lower = scheme_name.lower()
@@ -264,6 +265,27 @@ class MFAPIFetcher:
                 out["isin_div_reinvestment"] = v
 
         return out
+
+    @staticmethod
+    def _normalize_scheme_type(value: Any, default: Optional[str] = None) -> Optional[str]:
+        """Normalize arbitrary scheme type strings to supported enum values."""
+        if isinstance(value, SchemeType):
+            return value.value
+        if not isinstance(value, str):
+            return default
+
+        v = value.strip().lower()
+        if not v or v == "-":
+            return default
+
+        if "open ended" in v:
+            return SchemeType.OPEN_ENDED.value
+        if "close ended" in v or "closed ended" in v:
+            return SchemeType.CLOSE_ENDED.value
+        if "interval" in v:
+            return SchemeType.INTERVAL.value
+
+        return default
     
     ## Normalizing Hard codes so new Fund houses are not affected 
     @staticmethod
@@ -495,7 +517,10 @@ class MFAPIFetcher:
             nav_record_count=nav_record_count,
             option_type=option_type,
             plan_type=plan_type,
-            scheme_type=self._none_if_missing(meta_raw.get("scheme_type") or meta_raw.get("schemeType")),
+            scheme_type=self._normalize_scheme_type(
+                meta_raw.get("scheme_type") or meta_raw.get("schemeType"),
+                default=SchemeType.CLOSE_ENDED.value,
+            ),
             isin_growth=self._none_if_missing(meta_raw.get("isin_growth") or meta_raw.get("isinGrowth")),
             isin_div_reinvestment=self._none_if_missing(
                 meta_raw.get("isin_div_reinvestment") or meta_raw.get("isinDivReinvestment")
@@ -762,7 +787,10 @@ class MFAPIFetcher:
                 "scheme_category": scheme_item.get("scheme_category"),
                 "fund_house": fund_house,
                 "scheme_code": scheme_item.get("scheme_code"),
-                "scheme_type": scheme_item.get("scheme_type") or "Open Ended Schemes",
+                "scheme_type": self._normalize_scheme_type(
+                    scheme_item.get("scheme_type"),
+                    default=SchemeType.CLOSE_ENDED.value,
+                ),
                 "isin_growth": scheme_item.get("isin_code") or captnemo_payload.get("ISIN"),
                 "isin_div_reinvestment": scheme_item.get("isin_div_reinvestment"),
             },
@@ -833,7 +861,11 @@ class MFAPIFetcher:
                         meta.setdefault("scheme_code", scheme_item.get("scheme_code"))
                         meta.setdefault("scheme_name", scheme_item.get("scheme_name"))
                         meta.setdefault("scheme_category", scheme_item.get("scheme_category"))
-                        meta.setdefault("scheme_type", scheme_item.get("scheme_type") or "Open Ended Schemes")
+                        meta.setdefault("scheme_type", scheme_item.get("scheme_type"))
+                        meta["scheme_type"] = self._normalize_scheme_type(
+                            meta.get("scheme_type"),
+                            default=SchemeType.CLOSE_ENDED.value,
+                        )
                         meta.setdefault("isin_growth", scheme_item.get("isin_code"))
                         meta.setdefault("isin_div_reinvestment", scheme_item.get("isin_div_reinvestment"))
                         meta.setdefault("fund_house", scheme_item.get("fund_house"))
