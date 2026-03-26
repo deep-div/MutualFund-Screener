@@ -112,7 +112,19 @@ class MFAPIFetcher:
             if not isinstance(payload, list):
                 logger.error("Unexpected MFAPI latest payload format (expected list)")
                 return []
-            return payload
+
+            # Keep only Open Ended rows from source payload.
+            open_ended_payload = []
+            for item in payload:
+                if not isinstance(item, dict):
+                    continue
+                normalized_type = self._normalize_scheme_type(
+                    item.get("schemeType") or item.get("scheme_type")
+                )
+                if normalized_type == SchemeType.OPEN_ENDED.value:
+                    open_ended_payload.append(item)
+
+            return open_ended_payload
         except Exception as e:
             logger.error(f"Failed to fetch latest schemes: {e}")
             return []
@@ -861,6 +873,14 @@ class MFAPIFetcher:
             max_retries = 4
             scheme_code = scheme_item.get("scheme_code")
             isin_code = scheme_item.get("isin_code")
+            scheme_type = self._normalize_scheme_type(
+                scheme_item.get("scheme_type"),
+                default=SchemeType.CLOSE_ENDED.value,
+            )
+
+            if scheme_type != SchemeType.OPEN_ENDED.value:
+                logger.info(f"Skipping non-open-ended scheme_code={scheme_code} | scheme_type={scheme_type}")
+                return None
 
             for attempt in range(1, max_retries + 1):
                 try:
@@ -883,11 +903,8 @@ class MFAPIFetcher:
                         meta.setdefault("scheme_code", scheme_item.get("scheme_code"))
                         meta.setdefault("scheme_name", scheme_item.get("scheme_name"))
                         meta.setdefault("scheme_category", scheme_item.get("scheme_category"))
-                        meta.setdefault("scheme_type", scheme_item.get("scheme_type"))
-                        meta["scheme_type"] = self._normalize_scheme_type(
-                            meta.get("scheme_type"),
-                            default=SchemeType.CLOSE_ENDED.value,
-                        )
+                        # Enforce open-ended scheme type for this ingestion flow.
+                        meta["scheme_type"] = SchemeType.OPEN_ENDED.value
                         meta.setdefault("isin_growth", scheme_item.get("isin_code"))
                         meta.setdefault("isin_div_reinvestment", scheme_item.get("isin_div_reinvestment"))
                         meta.setdefault("fund_house", scheme_item.get("fund_house"))
@@ -917,6 +934,10 @@ class MFAPIFetcher:
                 (isinstance(item.get("scheme_code"), int) and item["scheme_code"] > 0)
                 or (isinstance(item.get("isin_code"), str) and item["isin_code"].strip())
             )
+            and self._normalize_scheme_type(
+                item.get("scheme_type"),
+                default=SchemeType.CLOSE_ENDED.value,
+            ) == SchemeType.OPEN_ENDED.value
         ]
         logger.info(f"Starting NAV fetch for {len(scheme_items)} schemes")
 
