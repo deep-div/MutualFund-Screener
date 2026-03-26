@@ -27,13 +27,6 @@ class NavMetrics:
             self._dates = [e["date"] for e in self.nav_data]
             self._normalization_events = split_events
 
-            if split_events:
-                logger.warning(
-                    "NAV split normalization applied | split_count=%s | latest_split_date=%s",
-                    len(split_events),
-                    split_events[-1]["date"]
-                )
-
         except Exception as e:
             logger.error(f"Initialization failed: {str(e)}")
             raise
@@ -1219,10 +1212,13 @@ class NavMetrics:
         except Exception as e:
             logger.error(f"Metric calculation failed: {str(e)}")
             raise
+        
 def run_metrics(raw_data):
     """Run NAV metrics on raw scheme data and return structured response"""
     final_response = []
     failed_count = 0
+    normalization_scheme_codes = []
+    normalization_seen = set()
 
     for scheme in raw_data:
         try:
@@ -1231,6 +1227,12 @@ def run_metrics(raw_data):
 
             metrics = NavMetrics(nav_data)
             metrics_output = metrics.get_all_metrics()
+            if metrics._normalization_events:
+                scheme_code = meta.get("scheme_code")
+                scheme_code_key = str(scheme_code) if scheme_code is not None else "unknown"
+                if scheme_code_key not in normalization_seen:
+                    normalization_seen.add(scheme_code_key)
+                    normalization_scheme_codes.append(scheme_code_key)
 
             final_response.append({
                 "meta": meta,
@@ -1241,6 +1243,13 @@ def run_metrics(raw_data):
             failed_count += 1
             logger.error(f"NAV Metrics failed for scheme {scheme.get('meta', {}).get('scheme_code')} | Error: {str(e)}")
             continue
+
+    if normalization_scheme_codes:
+        logger.warning(
+            "NAV split normalization applied | schemes_count=%s | scheme_codes=%s",
+            len(normalization_scheme_codes),
+            normalization_scheme_codes,
+        )
 
     logger.info(f"NAV Metrics completed | Success: {len(final_response)} | Failed/Skipped: {failed_count}")
 
