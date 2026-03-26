@@ -66,7 +66,7 @@ class NavMetrics:
         if len(nav_data) < 2:
             return nav_data, []
 
-        split_threshold = 20.0
+        split_threshold = 10.0
         min_improvement_factor = 5.0
         max_remaining_gap = 3.0
 
