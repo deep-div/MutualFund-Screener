@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import TickerTape from "@/components/TickerTape";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Shield, KeyRound, User, Clock3 } from "lucide-react";
+import { Mail, Shield, KeyRound, User, Clock3, Pencil, Check, X } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 
 const Profile = () => {
@@ -16,6 +16,7 @@ const Profile = () => {
   const [resetLastSentAt, setResetLastSentAt] = useState<Date | null>(null);
   const [displayNameInput, setDisplayNameInput] = useState("");
   const [savingDisplayName, setSavingDisplayName] = useState(false);
+  const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -26,6 +27,7 @@ const Profile = () => {
   useEffect(() => {
     if (!user) return;
     setDisplayNameInput(user.displayName || "");
+    setIsEditingDisplayName(false);
   }, [user]);
 
   useEffect(() => {
@@ -89,19 +91,38 @@ const Profile = () => {
                     <User className="w-4 h-4 text-muted-foreground" />
                     <div className="w-full">
                       <p className="text-[11px] text-muted-foreground">Display Name</p>
-                      <div className="mt-2 flex flex-col gap-2">
-                        <Input
-                          value={displayNameInput}
-                          onChange={(e) => setDisplayNameInput(e.target.value)}
-                          placeholder="Enter display name"
-                          maxLength={60}
-                          className="h-8 text-[13px]"
-                        />
-                        <div>
+                      {!isEditingDisplayName ? (
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                          <p className="text-[13px] text-foreground font-medium">
+                            {user.displayName || "Not set"}
+                          </p>
                           <Button
-                            size="sm"
-                            className="h-8"
+                            size="icon"
+                            variant="outline"
+                            className="h-8 w-8 shrink-0 rounded-full border-border/60 bg-background/70 shadow-sm hover:shadow-md"
+                            aria-label="Edit display name"
+                            title="Edit display name"
+                            onClick={() => setIsEditingDisplayName(true)}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="mt-2 flex items-center gap-2">
+                          <Input
+                            value={displayNameInput}
+                            onChange={(e) => setDisplayNameInput(e.target.value)}
+                            placeholder="Enter display name"
+                            maxLength={60}
+                            className="h-8 text-[13px]"
+                            autoFocus
+                          />
+                          <Button
+                            size="icon"
+                            className="h-8 w-8 shrink-0 rounded-full"
                             disabled={savingDisplayName}
+                            aria-label="Save display name"
+                            title="Save display name"
                             onClick={async () => {
                               const nextName = displayNameInput.trim();
                               if (!nextName) {
@@ -111,6 +132,7 @@ const Profile = () => {
                                 return;
                               }
                               if (nextName === (user.displayName || "").trim()) {
+                                setIsEditingDisplayName(false);
                                 toast("No changes", {
                                   description: "Your display name is already up to date.",
                                 });
@@ -119,6 +141,7 @@ const Profile = () => {
                               try {
                                 setSavingDisplayName(true);
                                 await updateDisplayName(nextName);
+                                setIsEditingDisplayName(false);
                                 toast("Display name updated", {
                                   description: "Your profile name was updated successfully.",
                                 });
@@ -132,10 +155,24 @@ const Profile = () => {
                               }
                             }}
                           >
-                            {savingDisplayName ? "Saving..." : "Save Name"}
+                            <Check className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-8 w-8 shrink-0 rounded-full"
+                            disabled={savingDisplayName}
+                            aria-label="Cancel edit display name"
+                            title="Cancel"
+                            onClick={() => {
+                              setDisplayNameInput(user.displayName || "");
+                              setIsEditingDisplayName(false);
+                            }}
+                          >
+                            <X className="h-3.5 w-3.5" />
                           </Button>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
