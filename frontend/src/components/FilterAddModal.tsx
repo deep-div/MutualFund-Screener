@@ -48,19 +48,19 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
     >
       <div className="absolute inset-0 bg-transparent" />
       <motion.div
-        initial={{ x: -420 }}
+        initial={{ x: "-100%" }}
         animate={{ x: 0 }}
-        exit={{ x: -420 }}
+        exit={{ x: "-100%" }}
         transition={{ type: "spring", stiffness: 280, damping: 30 }}
         onClick={(e) => e.stopPropagation()}
-        className="absolute left-72 top-0 bottom-0 w-[640px] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+        className="absolute inset-y-0 left-0 w-full bg-background border border-border shadow-2xl overflow-hidden flex flex-col md:left-72 md:w-[640px] md:rounded-2xl"
       >
-        <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+        <div className="flex flex-col gap-3 px-4 py-3 border-b border-border sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div>
             <h2 className="text-[15px] font-semibold text-foreground">Add Filters</h2>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-background border border-border rounded-md px-3 py-1.5 w-52 hover:bg-[#f1f1f1] transition-colors">
+            <div className="flex w-full items-center gap-2 bg-background border border-border rounded-md px-3 py-1.5 hover:bg-[#f1f1f1] transition-colors sm:w-52">
               <Search className="w-3.5 h-3.5 text-muted-foreground" />
               <input
                 type="text"
@@ -74,13 +74,13 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
           </div>
         </div>
 
-        <div className="flex flex-1 min-h-0">
-          <div className="w-52 border-r border-border py-2">
+        <div className="flex flex-1 min-h-0 flex-col md:flex-row">
+          <div className="border-b border-border py-2 md:w-52 md:border-b-0 md:border-r">
             {FILTER_CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`w-full text-left px-4 py-2.5 text-[13px] font-medium transition-colors flex items-center justify-between ${
+                className={`w-full text-left px-4 py-2.5 text-[13px] font-medium transition-colors flex items-center justify-between md:w-full ${
                   activeCategory === cat.id
                     ? "text-foreground bg-surface-hover"
                     : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
