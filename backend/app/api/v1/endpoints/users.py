@@ -151,9 +151,15 @@ def add_filters(payload: UserFilterCreate, token: str = Query(...)):
 def get_filters(token: str = Query(...)):
     try:
         token_uid = _get_uid_from_token(token)
+        filters = get_user_filters(token_uid)
+        sanitized_filters = []
+        for item in filters:
+            cleaned = dict(item)
+            cleaned.pop("uid", None)
+            cleaned.pop("id", None)
+            sanitized_filters.append(cleaned)
         return {
-            "uid": token_uid,
-            "filters": get_user_filters(token_uid),
+            "filters": sanitized_filters,
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to fetch filters: {exc}")
