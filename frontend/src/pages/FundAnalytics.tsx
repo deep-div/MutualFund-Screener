@@ -701,7 +701,7 @@ const FundAnalytics = () => {
                             typeof meta?.nav_change_1d === "number" && meta?.nav_change_1d >= 0 ? "text-positive" : "text-negative"
                           }`}
                         >
-                          1D {typeof meta?.nav_change_1d === "number" ? `${meta.nav_change_1d >= 0 ? "+" : ""}${meta.nav_change_1d.toFixed(4)}%` : "-"}
+                          1D {typeof meta?.nav_change_1d === "number" ? `${meta.nav_change_1d >= 0 ? "+" : ""}${meta.nav_change_1d.toFixed(2)}%` : "-"}
                         </div>
                       </div>
                     </div>

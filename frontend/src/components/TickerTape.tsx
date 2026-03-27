@@ -88,8 +88,8 @@ const TickerTape = () => {
         const gainers = data.items?.top_gainers ?? [];
         const losers = data.items?.top_losers ?? [];
         const mapped = [
-          ...gainers.map((item) => mapLeaderboardItem(item, true)),
-          ...losers.map((item) => mapLeaderboardItem(item, false)),
+          ...gainers.map((item) => mapLeaderboardItem(item)),
+          ...losers.map((item) => mapLeaderboardItem(item)),
         ];
 
         setTickerItems(mapped);
@@ -265,12 +265,16 @@ const getSchemePath = (schemeId: string | number, name: string) => {
   return `/${schemeSlug}/${schemeId}`;
 };
 
-const mapLeaderboardItem = (item: LeaderboardItem, isPositive: boolean): TickerItem => ({
-  name: item.scheme_sub_name,
-  price: item.current_nav,
-  change: Math.abs(item.nav_change_1d ?? 0),
-  isPositive,
-  schemeId: item.external_id ?? item.scheme_code,
-});
+const mapLeaderboardItem = (item: LeaderboardItem): TickerItem => {
+  const change = item.nav_change_1d ?? 0;
+
+  return {
+    name: item.scheme_sub_name,
+    price: item.current_nav,
+    change: Math.abs(change),
+    isPositive: change >= 0,
+    schemeId: item.external_id ?? item.scheme_code,
+  };
+};
 
 export default TickerTape;
