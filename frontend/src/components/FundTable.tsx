@@ -69,6 +69,7 @@ const FundTable = ({
   const [saveAction, setSaveAction] = useState<"save" | "update" | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [activeSavedFilterId, setActiveSavedFilterId] = useState<string | null>(routeSavedFilterId ?? null);
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
 
@@ -319,35 +320,46 @@ const FundTable = ({
         </div>
       )}
       <div className="px-6 py-4 border-b border-border">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h1 className="text-[18px] font-semibold text-foreground tracking-tight">
-              {displayTitle}
-            </h1>
-            <p className="text-[13px] text-muted-foreground mt-1 leading-relaxed">
-              {displayDescription}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 ml-4">
-            <button
-              className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={openEditor}
-              disabled={!user || saving}
-              title={!user ? "Sign in to edit this screen" : "Edit screen"}
-            >
-              <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-            </button>
-            <button
-              className="px-4 py-2 bg-[#0f1729] text-white rounded-md text-[13px] font-medium hover:bg-[#0b1322] transition-colors disabled:opacity-60"
-              onClick={handleSave}
-              disabled={!user || saving || !canSaveScreen}
-              title={!user ? "Sign in to save this screen" : undefined}
-            >
-              {saving ? (saveAction === "update" ? "Updating..." : "Saving...") : hasSavedScreen ? "Update" : "Save"}
-            </button>
+        <div
+          className={`overflow-hidden transition-all duration-300 ${
+            isHeaderCollapsed ? "max-h-0 opacity-0" : "max-h-24 opacity-100"
+          }`}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-[18px] font-semibold text-foreground tracking-tight">
+                {displayTitle}
+              </h1>
+              <p className="text-[13px] text-muted-foreground mt-1 leading-relaxed">
+                {displayDescription}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 ml-4 shrink-0">
+              <button
+                className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={openEditor}
+                disabled={!user || saving}
+                title={!user ? "Sign in to edit this screen" : "Edit screen"}
+              >
+                <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+              <button
+                className="px-4 py-2 bg-[#0f1729] text-white rounded-md text-[13px] font-medium hover:bg-[#0b1322] transition-colors disabled:opacity-60"
+                onClick={handleSave}
+                disabled={!user || saving || !canSaveScreen}
+                title={!user ? "Sign in to save this screen" : undefined}
+              >
+                {saving
+                  ? saveAction === "update"
+                    ? "Updating..."
+                    : "Saving..."
+                  : hasSavedScreen
+                    ? "Update"
+                    : "Save"}
+              </button>
+            </div>
           </div>
         </div>
-        {saveError && <div className="mt-2 text-xs text-negative">{saveError}</div>}
         <div className="flex items-center justify-between mt-3">
           <p className="text-[13px]">
             <span className="text-muted-foreground">Showing </span>
@@ -357,11 +369,19 @@ const FundTable = ({
             <span className="text-muted-foreground"> results</span>
           </p>
         </div>
-
+        {saveError && <div className="mt-2 text-xs text-negative">{saveError}</div>}
       </div>
 
       <div className="flex-1 min-h-0">
-        <div className="h-full w-full overflow-auto scrollbar-thin">
+        <div
+          className="h-full w-full overflow-auto scrollbar-thin"
+          onScroll={(event) => {
+            const nextCollapsed = event.currentTarget.scrollTop > 24;
+            setIsHeaderCollapsed((previous) =>
+              previous === nextCollapsed ? previous : nextCollapsed
+            );
+          }}
+        >
           <table className="w-full min-w-max table-fixed border-separate border-spacing-0">
           <colgroup>
             {columns.map((col) => (
