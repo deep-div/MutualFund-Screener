@@ -92,7 +92,7 @@ def get_watchlist(token: str = Query(...)):
         raise HTTPException(status_code=500, detail=f"Failed to fetch watchlist: {exc}")
 
 
-@router.put("/users/watchlist/rename", status_code=200)
+@router.put("/users/watchlist", status_code=200)
 def rename_watchlist(
     token: str = Query(...),
     old_name: str = Query(...),
