@@ -536,7 +536,7 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex items-center">
+            <div className="flex items-center mr-3">
               <button
                 onClick={() => setShowAuthModal(true)}
                 className="text-[13px] bg-primary text-white px-4 py-1.5 rounded-md hover:opacity-90 disabled:opacity-60"
