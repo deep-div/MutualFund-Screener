@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
 import { FILTER_DEFINITIONS_BY_ID } from "@/data/filters";
-import { MoveUp, MoveDown, Pencil, Lock } from "lucide-react";
+import { MoveUp, MoveDown, Pencil } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -256,10 +256,10 @@ const FundTable = ({
       <div className="px-6 py-4 border-b border-border">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h1 className="text-[15px] font-semibold text-foreground tracking-tight">
+            <h1 className="text-[18px] font-semibold text-foreground tracking-tight">
               {displayTitle}
             </h1>
-            <p className="text-[12px] text-muted-foreground mt-1 leading-relaxed">
+            <p className="text-[13px] text-muted-foreground mt-1 leading-relaxed">
               {displayDescription}
             </p>
           </div>
@@ -325,13 +325,6 @@ const FundTable = ({
             <span className="text-primary font-medium">{total}</span>
             <span className="text-muted-foreground"> results</span>
           </p>
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] text-muted-foreground">last updated at 8:00 AM IST</span>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 border border-border rounded-md text-[12px] font-medium text-foreground hover:bg-surface-hover transition-colors">
-              <Lock className="w-3 h-3" />
-              Export
-            </button>
-          </div>
         </div>
 
       </div>
