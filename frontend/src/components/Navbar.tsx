@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, ChevronDown, LogOut, User, Bookmark } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,10 +27,10 @@ const SAVED_FILTERS_BATCH_SIZE = 10;
 type NavItem = "All Screens" | "New Screen";
 
 const formatNav = (value?: number | null) =>
-  typeof value === "number" ? `₹${NAV_FORMATTER.format(value)}` : "—";
+  typeof value === "number" ? `â‚¹${NAV_FORMATTER.format(value)}` : "â€”";
  
 const formatChange = (value?: number | null) =>
-  typeof value === "number" ? `${NAV_FORMATTER.format(Math.abs(value))}%` : "—";
+  typeof value === "number" ? `${NAV_FORMATTER.format(Math.abs(value))}%` : "â€”";
 
 const toSchemeSlug = (value: string) =>
   value
@@ -625,7 +625,7 @@ const Navbar = () => {
                                     {formatChange(changeValue)}
                                   </span>
                                 ) : (
-                                  <span className="text-[12px] text-slate-400">—</span>
+                                  <span className="text-[12px] text-slate-400">â€”</span>
                                 )}
                               </div>
                             </div>
@@ -715,7 +715,7 @@ const Navbar = () => {
                   >
                     <span className="inline-flex items-center gap-2">
                       <Bookmark className="w-4 h-4 text-[hsl(var(--nav))] fill-[hsl(var(--nav))]" />
-                      <span>Saved</span>
+                      <span className="text-[15px] font-medium">Saved</span>
                     </span>
                   </button>
 
@@ -857,3 +857,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
