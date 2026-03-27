@@ -256,8 +256,7 @@ const Profile = () => {
                     <Clock3 className="w-4 h-4" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-sm font-semibold text-foreground">Active Session</h2>
-                    <p className="text-[13px] text-muted-foreground mt-1">
+                    <p className="text-[13px] text-muted-foreground">
                       Signed in via <span className="text-foreground font-medium">{providerLabel}</span>
                     </p>
                     <p className="text-[13px] text-muted-foreground mt-1">
