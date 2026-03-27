@@ -33,6 +33,7 @@ interface FundTableProps {
   resetToken?: number;
   initialTitle?: string;
   initialDescription?: string;
+  initialUpdatedAt?: string | null;
   initialSortField?: string | null;
   initialSortOrder?: "asc" | "desc" | null;
   restoredFilterExternalId?: string | null;
@@ -46,6 +47,7 @@ const FundTable = ({
   resetToken,
   initialTitle,
   initialDescription,
+  initialUpdatedAt,
   initialSortField,
   initialSortOrder,
   restoredFilterExternalId,
@@ -69,12 +71,21 @@ const FundTable = ({
   const [saveAction, setSaveAction] = useState<"save" | "update" | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [activeSavedFilterId, setActiveSavedFilterId] = useState<string | null>(routeSavedFilterId ?? null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
 
   const formatNumber = (val: number) => {
     return val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+  const formatLastUpdated = (value: string) => {
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return new Intl.DateTimeFormat("en-IN", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(parsed);
   };
 
   const columns = useMemo(() => {
@@ -178,6 +189,7 @@ const FundTable = ({
     setSaveAction(null);
     setSaveError(null);
     setActiveSavedFilterId(null);
+    setLastUpdatedAt(null);
   }, [resetToken]);
 
   useEffect(() => {
@@ -189,6 +201,7 @@ const FundTable = ({
     if (typeof initialDescription === "string") {
       setDescription(initialDescription.trim());
     }
+    setLastUpdatedAt(initialUpdatedAt ?? null);
     if (initialSortField) {
       setSortKey(initialSortField as keyof SchemeListItem);
       setSortDir(initialSortOrder ?? "desc");
@@ -201,6 +214,7 @@ const FundTable = ({
     restoredFilterExternalId,
     initialTitle,
     initialDescription,
+    initialUpdatedAt,
     initialSortField,
     initialSortOrder,
   ]);
@@ -252,9 +266,20 @@ const FundTable = ({
         payload.sort_order = sortDir;
       }
       if (savedFilterExternalId) {
-        await updateUserFilters(token, savedFilterExternalId, payload);
+        const response = (await updateUserFilters(token, savedFilterExternalId, payload)) as {
+          updated_at?: string;
+        };
+        if (typeof response?.updated_at === "string") {
+          setLastUpdatedAt(response.updated_at);
+        }
       } else {
-        const response = (await saveUserFilters(token, payload)) as { external_id?: string };
+        const response = (await saveUserFilters(token, payload)) as {
+          external_id?: string;
+          updated_at?: string;
+        };
+        if (typeof response?.updated_at === "string") {
+          setLastUpdatedAt(response.updated_at);
+        }
         if (response?.external_id) {
           setActiveSavedFilterId(response.external_id);
           navigate(`/filters/${response.external_id}`, { replace: true });
@@ -268,6 +293,8 @@ const FundTable = ({
       setSaveAction(null);
     }
   };
+
+  const formattedLastUpdated = lastUpdatedAt ? formatLastUpdated(lastUpdatedAt) : null;
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
@@ -334,29 +361,36 @@ const FundTable = ({
                 {displayDescription}
               </p>
             </div>
-            <div className="flex items-center gap-2 ml-4 shrink-0">
-              <button
-                className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={openEditor}
-                disabled={!user || saving}
-                title={!user ? "Sign in to edit this screen" : "Edit screen"}
-              >
-                <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-              </button>
-              <button
-                className="px-4 py-2 bg-[#0f1729] text-white rounded-md text-[13px] font-medium hover:bg-[#0b1322] transition-colors disabled:opacity-60"
-                onClick={handleSave}
-                disabled={!user || saving || !canSaveScreen}
-                title={!user ? "Sign in to save this screen" : undefined}
-              >
-                {saving
-                  ? saveAction === "update"
-                    ? "Updating..."
-                    : "Saving..."
-                  : hasSavedScreen
-                    ? "Update"
-                    : "Save"}
-              </button>
+            <div className="ml-4 shrink-0">
+              <div className="flex items-center gap-2 justify-end">
+                <button
+                  className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={openEditor}
+                  disabled={!user || saving}
+                  title={!user ? "Sign in to edit this screen" : "Edit screen"}
+                >
+                  <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                </button>
+                <button
+                  className="px-4 py-2 bg-[#0f1729] text-white rounded-md text-[13px] font-medium hover:bg-[#0b1322] transition-colors disabled:opacity-60"
+                  onClick={handleSave}
+                  disabled={!user || saving || !canSaveScreen}
+                  title={!user ? "Sign in to save this screen" : undefined}
+                >
+                  {saving
+                    ? saveAction === "update"
+                      ? "Updating..."
+                      : "Saving..."
+                    : hasSavedScreen
+                      ? "Update"
+                      : "Save"}
+                </button>
+              </div>
+              {formattedLastUpdated && (
+                <p className="mt-1 text-right text-[11px] text-muted-foreground">
+                  Last updated {formattedLastUpdated}
+                </p>
+              )}
             </div>
           </div>
         </div>

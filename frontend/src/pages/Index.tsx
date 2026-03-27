@@ -24,6 +24,7 @@ const Index = () => {
   const [screenResetToken, setScreenResetToken] = useState(0);
   const [initialScreenTitle, setInitialScreenTitle] = useState("");
   const [initialScreenDescription, setInitialScreenDescription] = useState("");
+  const [initialScreenUpdatedAt, setInitialScreenUpdatedAt] = useState<string | null>(null);
   const [initialSortField, setInitialSortField] = useState<string | null>(null);
   const [initialSortOrder, setInitialSortOrder] = useState<"asc" | "desc" | null>(null);
   const [restoredFilterExternalId, setRestoredFilterExternalId] = useState<string | null>(null);
@@ -141,6 +142,7 @@ const Index = () => {
       setRestoredFilterExternalId(null);
       setInitialScreenTitle("");
       setInitialScreenDescription("");
+      setInitialScreenUpdatedAt(null);
       setInitialSortField(null);
       setInitialSortOrder(null);
     }
@@ -178,6 +180,7 @@ const Index = () => {
         setFilterValues(restoredValues);
         setInitialScreenTitle(selected.name ?? "");
         setInitialScreenDescription(selected.description ?? "");
+        setInitialScreenUpdatedAt(selected.updated_at ?? null);
         setInitialSortField(selected.filters?.sort_field ?? null);
         setInitialSortOrder(selected.filters?.sort_order ?? null);
         setRestoredFilterExternalId(selected.external_id);
@@ -249,6 +252,7 @@ const Index = () => {
           resetToken={screenResetToken}
           initialTitle={initialScreenTitle}
           initialDescription={initialScreenDescription}
+          initialUpdatedAt={initialScreenUpdatedAt}
           initialSortField={initialSortField}
           initialSortOrder={initialSortOrder}
           restoredFilterExternalId={restoredFilterExternalId}
