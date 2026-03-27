@@ -24,12 +24,14 @@ const Profile = () => {
     <div className="flex flex-col min-h-screen bg-background">
       <TickerTape />
       <Navbar />
-      <div className="flex-1 p-6">
+      <div className="flex-1 px-4 py-6 sm:px-6">
         <div className="mx-auto w-full max-w-5xl">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-xl font-semibold text-foreground">Profile</h1>
-              <p className="text-sm text-muted-foreground">Manage your personal information and security</p>
+              <p className="text-sm text-muted-foreground">
+                Manage your personal information and account security
+              </p>
             </div>
           </div>
 
@@ -83,7 +85,7 @@ const Profile = () => {
                   <div className="flex-1">
                     <h2 className="text-sm font-semibold text-foreground">Change Password</h2>
                     <p className="text-[13px] text-muted-foreground mt-1">
-                      For security, we’ll send a password reset link to your email.
+                      For security, we'll send a password reset link to your email.
                     </p>
                     <div className="mt-4">
                       <Button
@@ -110,19 +112,6 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                    <Shield className="w-4 h-4" />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-sm font-semibold text-foreground">Security Tips</h2>
-                    <p className="text-[13px] text-muted-foreground mt-1">
-                      Keep your account secure by using a strong password and enabling 2-step verification.
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -132,3 +121,4 @@ const Profile = () => {
 };
 
 export default Profile;
+
