@@ -19,6 +19,7 @@ const NAV_FORMATTER = new Intl.NumberFormat("en-IN", {
 });
 
 const LEADERBOARDS_SESSION_KEY = "mf_leaderboards_cache";
+const LEADERBOARDS_LOADING_EVENT = "mf_leaderboards_loading";
 
 const formatNav = (value?: number | null) =>
   typeof value === "number" ? `₹${NAV_FORMATTER.format(value)}` : "—";
@@ -34,6 +35,7 @@ const toSchemeSlug = (value: string) =>
     .replace(/^-+|-+$/g, "");
 
 const SEARCH_SKELETON_ROWS = 6;
+const LEADERBOARD_SKELETON_ROWS = 6;
 
 type BestPerformerItem = {
   external_id?: string | number;
@@ -72,6 +74,7 @@ const Navbar = () => {
   const [bestPerformers, setBestPerformers] = useState<BestPerformerItem[]>([]);
   const [topGainers, setTopGainers] = useState<TopGainerItem[]>([]);
   const [topLosers, setTopLosers] = useState<TopLoserItem[]>([]);
+  const [leaderboardsLoading, setLeaderboardsLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const isSearchActive = searchOpen || searchFocused;
 
@@ -80,6 +83,7 @@ const Navbar = () => {
       try {
         const raw = sessionStorage.getItem(LEADERBOARDS_SESSION_KEY);
         if (!raw) {
+          setLeaderboardsLoading(true);
           setBestPerformers([]);
           setTopGainers([]);
           setTopLosers([]);
@@ -93,17 +97,29 @@ const Navbar = () => {
         setBestPerformers(Array.isArray(parsed?.best_performers) ? parsed.best_performers : []);
         setTopGainers(Array.isArray(parsed?.top_gainers) ? parsed.top_gainers : []);
         setTopLosers(Array.isArray(parsed?.top_losers) ? parsed.top_losers : []);
+        setLeaderboardsLoading(false);
       } catch {
         setBestPerformers([]);
         setTopGainers([]);
         setTopLosers([]);
+        setLeaderboardsLoading(false);
       }
     };
 
     readBestPerformers();
     const handleUpdate = () => readBestPerformers();
+    const handleLeaderboardsLoading = (event: Event) => {
+      const { detail } = event as CustomEvent<{ loading?: boolean }>;
+      if (typeof detail?.loading === "boolean") {
+        setLeaderboardsLoading(detail.loading);
+      }
+    };
     window.addEventListener("mf_leaderboards_updated", handleUpdate);
-    return () => window.removeEventListener("mf_leaderboards_updated", handleUpdate);
+    window.addEventListener(LEADERBOARDS_LOADING_EVENT, handleLeaderboardsLoading as EventListener);
+    return () => {
+      window.removeEventListener("mf_leaderboards_updated", handleUpdate);
+      window.removeEventListener(LEADERBOARDS_LOADING_EVENT, handleLeaderboardsLoading as EventListener);
+    };
   }, []);
 
   useEffect(() => {
@@ -235,7 +251,22 @@ const Navbar = () => {
             {searchOpen && (
               <div className="absolute left-0 right-0 top-full -mt-px bg-white border border-slate-200 border-t-0 rounded-b-xl shadow-2xl overflow-hidden z-[90] antialiased">
                 {searchQuery.trim().length === 0 ? (
-                  bestPerformers.length === 0 && topGainers.length === 0 && topLosers.length === 0 ? (
+                  leaderboardsLoading ? (
+                    <div className="px-4 py-3 space-y-3">
+                      {Array.from({ length: LEADERBOARD_SKELETON_ROWS }).map((_, index) => (
+                        <div key={`leaderboard-skel-${index}`} className="flex items-center justify-between gap-4">
+                          <div className="min-w-0 flex-1 space-y-2">
+                            <Skeleton className="h-3 w-56" />
+                            <Skeleton className="h-2.5 w-28" />
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <Skeleton className="h-3 w-16" />
+                            <Skeleton className="h-2.5 w-12" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : bestPerformers.length === 0 && topGainers.length === 0 && topLosers.length === 0 ? (
                     <div className="px-4 py-3 text-[13px] text-slate-500">Leaderboards not available yet.</div>
                   ) : (
                     <div className="max-h-[450px] overflow-y-auto">
