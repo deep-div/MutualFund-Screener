@@ -26,12 +26,12 @@ export type FilterValueMap = Record<string, FilterValue>;
 export type FilterRangeMeta = Record<string, { min: number | null; max: number | null }>;
 
 export const FILTER_CATEGORIES: FilterCategory[] = [
-  { id: "scheme", label: "Scheme Info" },
   { id: "returns", label: "Returns" },
   { id: "rolling", label: "Rolling Returns" },
+  { id: "drawdown", label: "Drawdown" },
   { id: "risk", label: "Risk" },
   { id: "ratios", label: "Ratios" },
-  { id: "drawdown", label: "Drawdown" },
+  { id: "scheme", label: "Scheme Info" },
 ];
 
 export const SCHEME_CLASS_OPTIONS = ["Equity", "Debt", "Hybrid", "Commodity", "Other"] as const;
@@ -146,12 +146,17 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
   { id: "cagr_10y", label: "CAGR 10Y", type: "range", category: "returns" },
 
   { id: "rolling_avg_1y", label: "Rolling Avg 1Y", type: "range", category: "rolling" },
-  { id: "rolling_avg_2y", label: "Rolling Avg 2Y", type: "range", category: "rolling" },
   { id: "rolling_avg_3y", label: "Rolling Avg 3Y", type: "range", category: "rolling" },
-  { id: "rolling_avg_4y", label: "Rolling Avg 4Y", type: "range", category: "rolling" },
   { id: "rolling_avg_5y", label: "Rolling Avg 5Y", type: "range", category: "rolling" },
-  { id: "rolling_avg_7y", label: "Rolling Avg 7Y", type: "range", category: "rolling" },
   { id: "rolling_avg_10y", label: "Rolling Avg 10Y", type: "range", category: "rolling" },
+  { id: "rolling_min_1y", label: "Rolling Min 1Y", type: "range", category: "rolling" },
+  { id: "rolling_min_3y", label: "Rolling Min 3Y", type: "range", category: "rolling" },
+  { id: "rolling_min_5y", label: "Rolling Min 5Y", type: "range", category: "rolling" },
+  { id: "rolling_min_10y", label: "Rolling Min 10Y", type: "range", category: "rolling" },
+  { id: "rolling_max_1y", label: "Rolling Max 1Y", type: "range", category: "rolling" },
+  { id: "rolling_max_3y", label: "Rolling Max 3Y", type: "range", category: "rolling" },
+  { id: "rolling_max_5y", label: "Rolling Max 5Y", type: "range", category: "rolling" },
+  { id: "rolling_max_10y", label: "Rolling Max 10Y", type: "range", category: "rolling" },
 
   { id: "volatility_max", label: "Volatility", type: "range", category: "risk" },
   { id: "downside_deviation_max", label: "Downside Deviation", type: "range", category: "risk" },

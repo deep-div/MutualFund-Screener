@@ -111,6 +111,14 @@ export interface SchemeListItem {
   rolling_avg_5y?: number | null;
   rolling_avg_7y?: number | null;
   rolling_avg_10y?: number | null;
+  rolling_min_1y?: number | null;
+  rolling_max_1y?: number | null;
+  rolling_min_3y?: number | null;
+  rolling_max_3y?: number | null;
+  rolling_min_5y?: number | null;
+  rolling_max_5y?: number | null;
+  rolling_min_10y?: number | null;
+  rolling_max_10y?: number | null;
   volatility_max?: number | null;
   downside_deviation_max?: number | null;
   skewness_max?: number | null;

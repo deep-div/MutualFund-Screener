@@ -10,7 +10,7 @@ interface FilterAddModalProps {
 }
 
 const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddModalProps) => {
-  const [activeCategory, setActiveCategory] = useState("scheme");
+  const [activeCategory, setActiveCategory] = useState("returns");
   const [searchQuery, setSearchQuery] = useState("");
 
   const selectableFilters = useMemo(
