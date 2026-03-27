@@ -642,7 +642,7 @@ const Navbar = () => {
         </div>
 
         {/* RIGHT: Auth / Account */}
-        <div className="ml-6 min-w-[140px] flex justify-end">
+        <div className="ml-6 min-w-[140px] flex justify-end pr-4">
           {loading ? (
             <div className="h-7 w-24 rounded-md bg-nav-hover/70 animate-pulse" />
           ) : isLoggedIn ? (
