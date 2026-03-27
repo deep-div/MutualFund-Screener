@@ -182,11 +182,11 @@ def update_filters(external_id: str, payload: UserFilterCreate, token: str = Que
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to update user filters: {exc}")
 
-@router.delete("/users/filters/{filter_id}", status_code=200)
-def delete_filter(filter_id: int, token: str = Query(...)):
+@router.delete("/users/filters/{external_id}", status_code=200)
+def delete_filter(external_id: str, token: str = Query(...)):
     try:
         token_uid = _get_uid_from_token(token)
-        deleted = delete_user_filter(uid=token_uid, filter_id=filter_id)
+        deleted = delete_user_filter(uid=token_uid, external_id=external_id)
         if not deleted:
             raise HTTPException(status_code=404, detail="Filter not found")
         return {"status": "ok"}

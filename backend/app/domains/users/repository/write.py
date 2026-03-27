@@ -212,15 +212,15 @@ def update_user_filters(
             raise
 
 
-def delete_user_filter(uid: str, filter_id: int) -> int:
-    """Delete a saved filter for a user. Returns rows deleted."""
+def delete_user_filter(uid: str, external_id: str) -> int:
+    """Delete a saved filter for a user by external_id. Returns rows deleted."""
     with get_session() as session:
         try:
             deleted = (
                 session.query(UserFilterORM)
                 .filter(
                     UserFilterORM.uid == uid,
-                    UserFilterORM.id == filter_id,
+                    UserFilterORM.external_id == external_id,
                 )
                 .delete(synchronize_session=False)
             )
