@@ -3,10 +3,13 @@ import type { User } from "firebase/auth";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  reload,
+  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updateProfile,
 } from "firebase/auth";
 import { auth, googleProvider } from "@/core/firebase";
 import { syncUser } from "@/services/userService";
@@ -19,6 +22,9 @@ interface AuthContextType {
   signupWithEmail: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  updateDisplayName: (displayName: string) => Promise<void>;
+  sendVerificationEmail: () => Promise<void>;
+  reloadUser: () => Promise<User | null>;
   logout: () => Promise<void>;
 }
 
@@ -30,6 +36,9 @@ const AuthContext = createContext<AuthContextType>({
   signupWithEmail: async () => {},
   loginWithGoogle: async () => {},
   resetPassword: async () => {},
+  updateDisplayName: async () => {},
+  sendVerificationEmail: async () => {},
+  reloadUser: async () => null,
   logout: async () => {},
 });
 
@@ -78,6 +87,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       },
       resetPassword: async (email: string) => {
         await sendPasswordResetEmail(auth, email);
+      },
+      updateDisplayName: async (displayName: string) => {
+        if (!auth.currentUser) throw new Error("No active user");
+        await updateProfile(auth.currentUser, { displayName: displayName.trim() });
+      },
+      sendVerificationEmail: async () => {
+        if (!auth.currentUser) throw new Error("No active user");
+        await sendEmailVerification(auth.currentUser);
+      },
+      reloadUser: async () => {
+        if (!auth.currentUser) return null;
+        await reload(auth.currentUser);
+        return auth.currentUser;
       },
       logout: async () => {
         await signOut(auth);
