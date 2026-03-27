@@ -468,7 +468,8 @@ const FilterSidebar = ({
                                                 );
                                               }
                                             }}
-                                            className="w-full flex items-center gap-2 px-1 py-1 text-[12px] text-foreground hover:bg-surface-hover transition-colors"
+                                            className="w-full min-w-0 flex items-center justify-start gap-2 px-1 py-1 text-[12px] text-foreground text-left hover:bg-surface-hover transition-colors"
+                                            title={option}
                                           >
                                             <div
                                               className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
@@ -479,7 +480,9 @@ const FilterSidebar = ({
                                             >
                                               {isSelected && <Check className="w-3 h-3" />}
                                             </div>
-                                            <span className="text-foreground">{option}</span>
+                                            <span className="flex-1 min-w-0 truncate text-foreground text-[12px]">
+                                              {option}
+                                            </span>
                                           </button>
                                         );
                                       })}
@@ -501,13 +504,14 @@ const FilterSidebar = ({
                                   <button
                                     key={option}
                                     onClick={() => updateSingle(filter.id, option)}
-                                    className={`px-3 py-1.5 text-[12px] font-medium rounded border transition-colors ${
+                                    title={option}
+                                    className={`px-3 py-1.5 text-[12px] font-medium rounded border transition-colors text-left ${
                                       isSelected
                                         ? "border-primary bg-primary text-primary-foreground"
                                         : "border-border text-foreground hover:bg-surface-hover"
                                     }`}
                                   >
-                                    {option}
+                                    <span className="block max-w-[11rem] truncate text-[12px] text-left">{option}</span>
                                   </button>
                                 );
                               })}
