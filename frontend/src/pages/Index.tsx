@@ -8,17 +8,30 @@ import {
   FilterValueMap,
   FilterRangeMeta,
 } from "@/data/filters";
+import { useAuth } from "@/contexts/AuthContext";
+import { getUserFilters } from "@/services/userService";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
+const SAVED_FILTER_QUERY_KEY = "saved_filter_id";
 
 const Index = () => {
+  const { user, loading: authLoading } = useAuth();
+  const [searchParams] = useSearchParams();
+  const savedFilterId = searchParams.get(SAVED_FILTER_QUERY_KEY);
   const sessionKey = "mfs:filters:temp";
   const [enabledFilters, setEnabledFilters] = useState<string[]>(DEFAULT_ENABLED_FILTERS);
   const [filterValues, setFilterValues] = useState<FilterValueMap>({});
   const [rangeMeta, setRangeMeta] = useState<FilterRangeMeta>({});
   const [screenResetToken, setScreenResetToken] = useState(0);
+  const [initialScreenTitle, setInitialScreenTitle] = useState("");
+  const [initialScreenDescription, setInitialScreenDescription] = useState("");
+  const [initialSortField, setInitialSortField] = useState<string | null>(null);
+  const [initialSortOrder, setInitialSortOrder] = useState<"asc" | "desc" | null>(null);
+  const [restoredFilterExternalId, setRestoredFilterExternalId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (savedFilterId) return;
     try {
       const raw = localStorage.getItem(sessionKey);
       if (!raw) return;
@@ -35,7 +48,7 @@ const Index = () => {
     } catch {
       // Ignore corrupted session data.
     }
-  }, []);
+  }, [savedFilterId]);
 
   useEffect(() => {
     try {
@@ -124,6 +137,64 @@ const Index = () => {
     return () => window.removeEventListener(NEW_SCREEN_EVENT, handleNewScreen);
   }, []);
 
+  useEffect(() => {
+    if (!savedFilterId) {
+      setRestoredFilterExternalId(null);
+      setInitialScreenTitle("");
+      setInitialScreenDescription("");
+      setInitialSortField(null);
+      setInitialSortOrder(null);
+    }
+  }, [savedFilterId]);
+
+  useEffect(() => {
+    if (!savedFilterId || authLoading || !user) return;
+    const applySavedScreen = async () => {
+      try {
+        const token = await user.getIdToken();
+        const response = await getUserFilters(token);
+        const selected = response.filters.find((item) => item.external_id === savedFilterId);
+        if (!selected) {
+          setRestoredFilterExternalId(null);
+          return;
+        }
+
+        const savedFilterMap = selected.filters?.filters ?? {};
+        const restoredValues: FilterValueMap = {};
+        Object.entries(savedFilterMap).forEach(([key, condition]) => {
+          if (!condition || typeof condition !== "object") return;
+          const nextValue: { gte?: number | ""; lte?: number | ""; value?: string | string[] } = {};
+          if ("gte" in condition) nextValue.gte = Number(condition.gte as number);
+          if ("lte" in condition) nextValue.lte = Number(condition.lte as number);
+          if ("eq" in condition) nextValue.value = String(condition.eq);
+          if ("in" in condition && Array.isArray(condition.in)) {
+            nextValue.value = condition.in.map((entry) => String(entry));
+          }
+          if (Object.keys(nextValue).length > 0) restoredValues[key] = nextValue;
+        });
+
+        const savedEnabledFilters = Array.isArray(selected.filters?.enabled_filters)
+          ? selected.filters.enabled_filters.filter((id) => Boolean(FILTER_DEFINITIONS_BY_ID[id]))
+          : [];
+        const derivedEnabledFilters = Array.from(
+          new Set([...DEFAULT_ENABLED_FILTERS, ...Object.keys(savedFilterMap)])
+        );
+
+        setEnabledFilters(savedEnabledFilters.length > 0 ? savedEnabledFilters : derivedEnabledFilters);
+        setFilterValues(restoredValues);
+        setInitialScreenTitle(selected.name ?? "");
+        setInitialScreenDescription(selected.description ?? "");
+        setInitialSortField(selected.filters?.sort_field ?? null);
+        setInitialSortOrder(selected.filters?.sort_order ?? null);
+        setRestoredFilterExternalId(selected.external_id);
+      } catch {
+        // If restore fails, keep current in-memory/local state.
+      }
+    };
+
+    void applySavedScreen();
+  }, [savedFilterId, authLoading, user]);
+
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       <TickerTape />
@@ -142,6 +213,11 @@ const Index = () => {
           filters={filtersPayload}
           enabledFilters={enabledFilters}
           resetToken={screenResetToken}
+          initialTitle={initialScreenTitle}
+          initialDescription={initialScreenDescription}
+          initialSortField={initialSortField}
+          initialSortOrder={initialSortOrder}
+          restoredFilterExternalId={restoredFilterExternalId}
           onMetaChange={(meta) =>
             setRangeMeta((prev) => (Object.keys(prev).length > 0 ? prev : meta ?? {}))
           }

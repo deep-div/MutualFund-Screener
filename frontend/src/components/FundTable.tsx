@@ -36,9 +36,24 @@ interface FundTableProps {
   enabledFilters: string[];
   onMetaChange?: (meta: Record<string, { min: number | null; max: number | null }> | undefined) => void;
   resetToken?: number;
+  initialTitle?: string;
+  initialDescription?: string;
+  initialSortField?: string | null;
+  initialSortOrder?: "asc" | "desc" | null;
+  restoredFilterExternalId?: string | null;
 }
 
-const FundTable = ({ filters, enabledFilters, onMetaChange, resetToken }: FundTableProps) => {
+const FundTable = ({
+  filters,
+  enabledFilters,
+  onMetaChange,
+  resetToken,
+  initialTitle,
+  initialDescription,
+  initialSortField,
+  initialSortOrder,
+  restoredFilterExternalId,
+}: FundTableProps) => {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [sortKey, setSortKey] = useState<keyof SchemeListItem | null>(null);
@@ -54,6 +69,9 @@ const FundTable = ({ filters, enabledFilters, onMetaChange, resetToken }: FundTa
   const [editorOpen, setEditorOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [activeSavedFilterId, setActiveSavedFilterId] = useState<string | null>(
+    searchParams.get(SAVED_FILTER_QUERY_KEY)
+  );
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
 
@@ -132,8 +150,12 @@ const FundTable = ({ filters, enabledFilters, onMetaChange, resetToken }: FundTa
   const displayTitle = title.trim() || DEFAULT_TITLE;
   const displayDescription = description.trim() || DEFAULT_DESCRIPTION;
   const canSaveScreen = title.trim().length > 0 && description.trim().length > 0;
-  const savedFilterExternalId = searchParams.get(SAVED_FILTER_QUERY_KEY);
+  const savedFilterExternalId = activeSavedFilterId ?? searchParams.get(SAVED_FILTER_QUERY_KEY);
   const hasSavedScreen = Boolean(savedFilterExternalId);
+
+  useEffect(() => {
+    setActiveSavedFilterId(searchParams.get(SAVED_FILTER_QUERY_KEY));
+  }, [searchParams]);
 
   useEffect(() => {
     setTitle("");
@@ -143,10 +165,33 @@ const FundTable = ({ filters, enabledFilters, onMetaChange, resetToken }: FundTa
     setEditorOpen(false);
     setSaving(false);
     setSaveError(null);
-    const next = new URLSearchParams(searchParams);
-    next.delete(SAVED_FILTER_QUERY_KEY);
-    setSearchParams(next, { replace: true });
-  }, [resetToken, searchParams, setSearchParams]);
+    setActiveSavedFilterId(null);
+  }, [resetToken]);
+
+  useEffect(() => {
+    if (!savedFilterExternalId) return;
+    if (restoredFilterExternalId !== savedFilterExternalId) return;
+    if (typeof initialTitle === "string") {
+      setTitle(initialTitle.trim());
+    }
+    if (typeof initialDescription === "string") {
+      setDescription(initialDescription.trim());
+    }
+    if (initialSortField) {
+      setSortKey(initialSortField as keyof SchemeListItem);
+      setSortDir(initialSortOrder ?? "desc");
+    } else {
+      setSortKey(null);
+      setSortDir("desc");
+    }
+  }, [
+    savedFilterExternalId,
+    restoredFilterExternalId,
+    initialTitle,
+    initialDescription,
+    initialSortField,
+    initialSortOrder,
+  ]);
 
   const handleOpenChange = (open: boolean) => {
     setEditorOpen(open);
@@ -194,6 +239,7 @@ const FundTable = ({ filters, enabledFilters, onMetaChange, resetToken }: FundTa
       } else {
         const response = (await saveUserFilters(token, payload)) as { external_id?: string };
         if (response?.external_id) {
+          setActiveSavedFilterId(response.external_id);
           const next = new URLSearchParams(searchParams);
           next.set(SAVED_FILTER_QUERY_KEY, response.external_id);
           setSearchParams(next, { replace: true });
