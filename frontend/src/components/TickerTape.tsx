@@ -17,7 +17,7 @@ const TickerTape = () => {
 
     const loadFromSession = () => {
       try {
-        const raw = localStorage.getItem(SESSION_KEY);
+        const raw = sessionStorage.getItem(SESSION_KEY);
         if (!raw) return null;
         const parsed = JSON.parse(raw) as TickerItem[];
         if (!Array.isArray(parsed)) return null;
@@ -29,7 +29,7 @@ const TickerTape = () => {
 
     const saveToSession = (items: TickerItem[]) => {
       try {
-        localStorage.setItem(SESSION_KEY, JSON.stringify(items));
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(items));
       } catch {
         // Ignore storage errors
       }
@@ -37,7 +37,7 @@ const TickerTape = () => {
 
     const saveLeaderboards = (items: LeaderboardResponse["items"]) => {
       try {
-        localStorage.setItem(LEADERBOARDS_SESSION_KEY, JSON.stringify(items));
+        sessionStorage.setItem(LEADERBOARDS_SESSION_KEY, JSON.stringify(items));
         window.dispatchEvent(new Event("mf_leaderboards_updated"));
       } catch {
         // Ignore storage errors
@@ -46,7 +46,7 @@ const TickerTape = () => {
 
     const loadLeaderboards = () => {
       try {
-        const raw = localStorage.getItem(LEADERBOARDS_SESSION_KEY);
+        const raw = sessionStorage.getItem(LEADERBOARDS_SESSION_KEY);
         if (!raw) return null;
         const parsed = JSON.parse(raw) as LeaderboardResponse["items"];
         if (!parsed || typeof parsed !== "object") return null;

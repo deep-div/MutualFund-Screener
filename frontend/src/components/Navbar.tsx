@@ -78,7 +78,7 @@ const Navbar = () => {
   useEffect(() => {
     const readBestPerformers = () => {
       try {
-        const raw = localStorage.getItem(LEADERBOARDS_SESSION_KEY);
+        const raw = sessionStorage.getItem(LEADERBOARDS_SESSION_KEY);
         if (!raw) {
           setBestPerformers([]);
           setTopGainers([]);
