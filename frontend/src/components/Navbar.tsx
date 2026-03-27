@@ -326,8 +326,8 @@ const Navbar = () => {
             <div
               className={`flex items-center gap-2 w-full border transition-all ${
                 searchOpen || searchFocused
-                  ? "bg-white border-slate-200 border-b-0 shadow-lg rounded-t-xl rounded-b-none px-4 py-2"
-                  : "bg-nav-hover border-nav-foreground/10 rounded-md px-3 py-1.5"
+                  ? "bg-white border-slate-200 border-b-0 shadow-lg rounded-t-xl rounded-b-none px-4 py-2.5"
+                  : "bg-nav-hover border-nav-foreground/10 rounded-md px-3 py-2"
               }`}
             >
               <Search className="w-3.5 h-3.5 text-nav-foreground/50" />
