@@ -16,11 +16,29 @@ class NavMetrics:
                 raise ValueError("NAV data is empty")
 
             parsed_data = []
+            skipped_invalid_nav = 0
             for entry in nav_data:
+                try:
+                    nav_value = float(entry["nav"])
+                except (TypeError, ValueError):
+                    skipped_invalid_nav += 1
+                    continue
+
+                # AMC feeds sometimes contain placeholder NAVs like 0.00000.
+                if nav_value <= 0:
+                    skipped_invalid_nav += 1
+                    continue
+
                 parsed_data.append({
                     "date": self._parse_nav_date(entry["date"]),
-                    "nav": float(entry["nav"])
+                    "nav": nav_value
                 })
+
+            if not parsed_data:
+                raise ValueError("No valid NAV data after filtering non-positive/invalid entries")
+
+            # if skipped_invalid_nav > 0:
+                # logger.warning("Skipped invalid NAV entries: %s", skipped_invalid_nav)
 
             sorted_data = sorted(parsed_data, key=lambda x: x['date'])
             self.nav_data, split_events = self._normalize_nav_scale(sorted_data)
