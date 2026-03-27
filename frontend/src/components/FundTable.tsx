@@ -5,11 +5,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
 import { FILTER_DEFINITIONS_BY_ID } from "@/data/filters";
 import { MoveUp, MoveDown, Pencil } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
@@ -146,6 +141,17 @@ const FundTable = ({
     fetchPage(0, false);
   }, [filterKey, sortKey, sortDir]);
 
+  useEffect(() => {
+    if (!editorOpen) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setEditorOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [editorOpen]);
+
   const canLoadMore = items.length < total;
   const displayTitle = title.trim() || DEFAULT_TITLE;
   const displayDescription = description.trim() || DEFAULT_DESCRIPTION;
@@ -193,12 +199,10 @@ const FundTable = ({
     initialSortOrder,
   ]);
 
-  const handleOpenChange = (open: boolean) => {
-    setEditorOpen(open);
-    if (open) {
-      setDraftTitle(title);
-      setDraftDescription(description);
-    }
+  const openEditor = () => {
+    setDraftTitle(title);
+    setDraftDescription(description);
+    setEditorOpen(true);
   };
 
   const applyDraft = () => {
@@ -253,6 +257,54 @@ const FundTable = ({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+      {editorOpen && (
+        <div
+          className="fixed inset-0 z-[120] bg-black/45 flex items-center justify-center px-4"
+          onClick={() => setEditorOpen(false)}
+        >
+          <div
+            className="w-[min(92vw,520px)] h-[min(92vw,520px)] max-h-[90vh] overflow-auto rounded-md border border-border bg-background shadow-2xl p-5 flex flex-col"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="grid gap-4 flex-1">
+              <div className="grid gap-1">
+                <Label htmlFor="screen-title">Name</Label>
+                <Input
+                  id="screen-title"
+                  value={draftTitle}
+                  placeholder={DEFAULT_TITLE}
+                  onChange={(event) => setDraftTitle(event.target.value)}
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label htmlFor="screen-description">Description</Label>
+                <textarea
+                  id="screen-description"
+                  value={draftDescription}
+                  placeholder={DEFAULT_DESCRIPTION}
+                  rows={8}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                  onChange={(event) => setDraftDescription(event.target.value)}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2 mt-auto">
+                <button
+                  className="px-3 py-1.5 text-[12px] border border-border rounded-md hover:bg-surface-hover transition-colors"
+                  onClick={() => setEditorOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-3 py-1.5 text-[12px] bg-foreground text-background rounded-md font-medium hover:bg-foreground/90 transition-colors"
+                  onClick={applyDraft}
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="px-6 py-4 border-b border-border">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -264,49 +316,12 @@ const FundTable = ({
             </p>
           </div>
           <div className="flex items-center gap-2 ml-4">
-            <DropdownMenu open={editorOpen} onOpenChange={handleOpenChange}>
-              <DropdownMenuTrigger asChild>
-                <button className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors">
-                  <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-80 p-3" sideOffset={8} align="end">
-                <div className="grid gap-3">
-                  <div className="grid gap-1">
-                    <Label htmlFor="screen-title">Name</Label>
-                    <Input
-                      id="screen-title"
-                      value={draftTitle}
-                      placeholder={DEFAULT_TITLE}
-                      onChange={(event) => setDraftTitle(event.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-1">
-                    <Label htmlFor="screen-description">Description</Label>
-                    <Input
-                      id="screen-description"
-                      value={draftDescription}
-                      placeholder={DEFAULT_DESCRIPTION}
-                      onChange={(event) => setDraftDescription(event.target.value)}
-                    />
-                  </div>
-                  <div className="flex justify-end gap-2 pt-1">
-                    <button
-                      className="px-3 py-1.5 text-[12px] border border-border rounded-md hover:bg-surface-hover transition-colors"
-                      onClick={() => setEditorOpen(false)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="px-3 py-1.5 text-[12px] bg-foreground text-background rounded-md font-medium hover:bg-foreground/90 transition-colors"
-                      onClick={applyDraft}
-                    >
-                      OK
-                    </button>
-                  </div>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <button
+              className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors"
+              onClick={openEditor}
+            >
+              <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
             <button
               className="px-4 py-2 bg-foreground text-background rounded-md text-[13px] font-medium hover:bg-foreground/90 transition-colors disabled:opacity-60"
               onClick={handleSave}
