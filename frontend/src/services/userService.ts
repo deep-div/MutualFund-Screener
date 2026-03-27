@@ -47,6 +47,20 @@ export interface SavedUserFilter {
   updated_at?: string;
 }
 
-export const getUserFilters = async (token: string) => {
-  return apiGet<{ filters: SavedUserFilter[] }>("/api/v1/users/filters", { token });
+export interface UserFiltersResponse {
+  filters: SavedUserFilter[];
+  total?: number;
+  limit?: number | null;
+  offset?: number;
+}
+
+export const getUserFilters = async (
+  token: string,
+  options?: { limit?: number; offset?: number }
+) => {
+  return apiGet<UserFiltersResponse>("/api/v1/users/filters", {
+    token,
+    limit: options?.limit,
+    offset: options?.offset,
+  });
 };

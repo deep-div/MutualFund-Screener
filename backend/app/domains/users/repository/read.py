@@ -30,3 +30,25 @@ def get_user_filters(uid: str):
             .all()
         )
         return [orm_to_dict(row) for row in rows]
+
+
+def get_user_filters_paginated(uid: str, limit: int | None = None, offset: int = 0):
+    """Fetch filter records for a user with optional pagination."""
+    with get_session() as db:
+        query = (
+            db.query(UserFilterORM)
+            .filter(UserFilterORM.uid == uid)
+            .order_by(UserFilterORM.created_at.desc())
+        )
+        if offset > 0:
+            query = query.offset(offset)
+        if limit is not None:
+            query = query.limit(limit)
+        rows = query.all()
+        return [orm_to_dict(row) for row in rows]
+
+
+def count_user_filters(uid: str) -> int:
+    """Count filter records for a user."""
+    with get_session() as db:
+        return db.query(UserFilterORM).filter(UserFilterORM.uid == uid).count()

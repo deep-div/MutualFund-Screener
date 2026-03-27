@@ -4,6 +4,7 @@ import { Search, ChevronDown, LogOut, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
+import { SavedUserFilter, getUserFilters } from "@/services/userService";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
@@ -21,6 +22,7 @@ const NAV_FORMATTER = new Intl.NumberFormat("en-IN", {
 const LEADERBOARDS_SESSION_KEY = "mf_leaderboards_cache";
 const LEADERBOARDS_LOADING_EVENT = "mf_leaderboards_loading";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
+const SAVED_FILTERS_BATCH_SIZE = 8;
 
 const formatNav = (value?: number | null) =>
   typeof value === "number" ? `₹${NAV_FORMATTER.format(value)}` : "—";
@@ -76,6 +78,15 @@ const Navbar = () => {
   const [topGainers, setTopGainers] = useState<TopGainerItem[]>([]);
   const [topLosers, setTopLosers] = useState<TopLoserItem[]>([]);
   const [leaderboardsLoading, setLeaderboardsLoading] = useState(false);
+  const [screenExplorerOpen, setScreenExplorerOpen] = useState(false);
+  const [savedFiltersLoading, setSavedFiltersLoading] = useState(false);
+  const [savedFiltersLoadingMore, setSavedFiltersLoadingMore] = useState(false);
+  const [savedFiltersError, setSavedFiltersError] = useState<string | null>(null);
+  const [savedFilters, setSavedFilters] = useState<SavedUserFilter[]>([]);
+  const [savedFiltersTotal, setSavedFiltersTotal] = useState(0);
+  const [savedListScrollable, setSavedListScrollable] = useState(false);
+  const [bodyTopOffset, setBodyTopOffset] = useState(56);
+  const navRef = useRef<HTMLElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const isSearchActive = searchOpen || searchFocused;
 
@@ -184,15 +195,94 @@ const Navbar = () => {
     return () => document.body.classList.remove("search-dim");
   }, [isSearchActive]);
 
+  useEffect(() => {
+    if (!screenExplorerOpen || !isLoggedIn || !user) return;
+    const loadSavedFilters = async () => {
+      setSavedFiltersLoading(true);
+      setSavedFiltersError(null);
+      try {
+        const token = await user.getIdToken();
+        const response = await getUserFilters(token, {
+          limit: SAVED_FILTERS_BATCH_SIZE,
+          offset: 0,
+        });
+        const filters = Array.isArray(response?.filters) ? response.filters : [];
+        setSavedFilters(filters);
+        setSavedFiltersTotal(typeof response?.total === "number" ? response.total : filters.length);
+        setSavedListScrollable(false);
+      } catch (error) {
+        setSavedFilters([]);
+        setSavedFiltersTotal(0);
+        setSavedFiltersError(error instanceof Error ? error.message : "Failed to load saved screens.");
+      } finally {
+        setSavedFiltersLoading(false);
+      }
+    };
+    void loadSavedFilters();
+  }, [screenExplorerOpen, isLoggedIn, user]);
+
+  useEffect(() => {
+    const syncBodyTopOffset = () => {
+      const navBottom = navRef.current?.getBoundingClientRect().bottom;
+      if (typeof navBottom === "number" && Number.isFinite(navBottom)) {
+        setBodyTopOffset(Math.max(0, Math.round(navBottom)));
+      }
+    };
+    syncBodyTopOffset();
+    window.addEventListener("resize", syncBodyTopOffset);
+    return () => window.removeEventListener("resize", syncBodyTopOffset);
+  }, []);
+
   const handleNavClick = (item: "All Screens" | "New Screen") => {
     navigate("/");
+    if (item === "All Screens") {
+      setScreenExplorerOpen(true);
+      return;
+    }
     if (item === "New Screen") {
       window.dispatchEvent(new CustomEvent(NEW_SCREEN_EVENT));
     }
   };
 
+  const handleLoadMoreSavedFilters = async () => {
+    if (!user || savedFiltersLoadingMore) return;
+    const currentOffset = savedFilters.length;
+    if (savedFiltersTotal > 0 && currentOffset >= savedFiltersTotal) return;
+    setSavedListScrollable(true);
+    setSavedFiltersLoadingMore(true);
+    try {
+      const token = await user.getIdToken();
+      const response = await getUserFilters(token, {
+        limit: SAVED_FILTERS_BATCH_SIZE,
+        offset: currentOffset,
+      });
+      const incoming = Array.isArray(response?.filters) ? response.filters : [];
+      setSavedFilters((prev) => {
+        const seen = new Set(prev.map((item) => item.external_id));
+        const dedupedIncoming = incoming.filter((item) => !seen.has(item.external_id));
+        return prev.concat(dedupedIncoming);
+      });
+      if (typeof response?.total === "number") {
+        setSavedFiltersTotal(response.total);
+      } else if (incoming.length === 0) {
+        setSavedFiltersTotal(currentOffset);
+      }
+    } catch (error) {
+      setSavedFiltersError(error instanceof Error ? error.message : "Failed to load more screens.");
+    } finally {
+      setSavedFiltersLoadingMore(false);
+    }
+  };
+
   return (
     <>
+      {screenExplorerOpen && (
+        <div
+          className="fixed left-0 right-0 bottom-0 bg-black/40 z-[58]"
+          style={{ top: `${bodyTopOffset}px` }}
+          onClick={() => setScreenExplorerOpen(false)}
+        />
+      )}
       {isSearchActive && (
         <div
           className="fixed inset-0 bg-black/60 z-[55]"
@@ -203,7 +293,7 @@ const Navbar = () => {
         />
       )}
 
-      <nav className="h-14 bg-nav border-b border-nav-hover flex items-center pl-6 pr-0 relative z-[70]">
+      <nav ref={navRef} className="h-14 bg-nav border-b border-nav-hover flex items-center pl-6 pr-0 relative z-[70]">
 
         {/* LEFT: Logo */}
         <Link
@@ -558,6 +648,92 @@ const Navbar = () => {
         </div>
 
       </nav>
+
+      {screenExplorerOpen && (
+        <div
+          className="fixed left-0 right-0 bottom-0 z-[75] flex items-center justify-center p-3 pointer-events-none"
+          style={{ top: `${bodyTopOffset}px` }}
+        >
+          <div className="w-full max-w-[1100px] h-full bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto">
+            <div className="grid grid-cols-[240px_1fr] h-full">
+              <div className="bg-slate-100 border-r border-slate-200 p-4">
+                <p className="text-[11px] uppercase tracking-wide text-slate-500 mb-4">Explore Screens</p>
+                <button className="w-full text-left px-3 py-2 rounded-md bg-white text-slate-900 text-[14px] font-medium border border-slate-200">
+                  Saved
+                </button>
+              </div>
+
+              <div className="p-5 flex flex-col h-full min-h-0">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-[18px] font-semibold text-slate-900">Saved Screens</h3>
+                  <button
+                    className="text-[12px] text-slate-500 hover:text-slate-700"
+                    onClick={() => setScreenExplorerOpen(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+
+                {!isLoggedIn ? (
+                  <div className="text-[13px] text-slate-600">Sign in to view saved screens.</div>
+                ) : savedFiltersLoading ? (
+                  <div className="space-y-3">
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <div key={`saved-filters-skel-${index}`} className="rounded-lg border border-slate-200 p-3">
+                        <Skeleton className="h-4 w-48 mb-2" />
+                        <Skeleton className="h-3 w-full" />
+                      </div>
+                    ))}
+                  </div>
+                ) : savedFiltersError ? (
+                  <div className="text-[13px] text-red-500">{savedFiltersError}</div>
+                ) : savedFilters.length === 0 ? (
+                  <div className="text-[13px] text-slate-600">No saved screens found.</div>
+                ) : (
+                  <>
+                    <div
+                      className={`flex-1 min-h-0 pr-1 ${
+                        savedListScrollable ? "overflow-y-auto" : "overflow-y-hidden"
+                      }`}
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {savedFilters.map((item) => (
+                        <button
+                          key={item.external_id}
+                          className="w-full text-left rounded-xl border border-slate-200 p-3 hover:bg-slate-50 transition-colors"
+                          onClick={() => {
+                            navigate(`/filters/${item.external_id}`);
+                            setScreenExplorerOpen(false);
+                          }}
+                        >
+                          <div className="text-[14px] font-semibold text-slate-900">
+                            {item.name?.trim() || "Untitled Screen"}
+                          </div>
+                          <div className="text-[12px] text-slate-600 mt-1 line-clamp-2">
+                            {item.description?.trim() || "No description"}
+                          </div>
+                        </button>
+                      ))}
+                      </div>
+                    </div>
+                    {savedFilters.length < savedFiltersTotal && (
+                      <div className="mt-4 pt-3 border-t border-slate-200 flex justify-center">
+                        <button
+                          className="w-full max-w-[260px] px-4 py-2.5 text-[13px] rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-colors font-medium shadow-sm"
+                          onClick={() => void handleLoadMoreSavedFilters()}
+                          disabled={savedFiltersLoadingMore}
+                        >
+                          {savedFiltersLoadingMore ? "Loading..." : "Load more"}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AuthModal
         isOpen={showAuthModal}

@@ -3,7 +3,11 @@ import jwt
 from jwt import PyJWTError
 
 from app.api.v1.schemas import UserFilterCreate
-from app.domains.users.repository.read import get_user_filters, get_user_watchlist
+from app.domains.users.repository.read import (
+    count_user_filters,
+    get_user_filters_paginated,
+    get_user_watchlist,
+)
 from app.domains.users.repository.write import (
     add_user_filters,
     add_watchlist_item,
@@ -148,10 +152,15 @@ def add_filters(payload: UserFilterCreate, token: str = Query(...)):
 
 
 @router.get("/users/filters")
-def get_filters(token: str = Query(...)):
+def get_filters(
+    token: str = Query(...),
+    limit: int | None = Query(None, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
     try:
         token_uid = _get_uid_from_token(token)
-        filters = get_user_filters(token_uid)
+        filters = get_user_filters_paginated(token_uid, limit=limit, offset=offset)
+        total = count_user_filters(token_uid)
         sanitized_filters = []
         for item in filters:
             cleaned = dict(item)
@@ -160,6 +169,9 @@ def get_filters(token: str = Query(...)):
             sanitized_filters.append(cleaned)
         return {
             "filters": sanitized_filters,
+            "total": total,
+            "limit": limit,
+            "offset": offset,
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to fetch filters: {exc}")
