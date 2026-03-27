@@ -252,7 +252,7 @@ const Index = () => {
           />
         </div>
         {mobileFiltersOpen && (
-          <div className="fixed inset-0 z-[115] lg:hidden">
+          <div className="absolute inset-0 z-[115] lg:hidden">
             <button
               type="button"
               className="absolute inset-0 bg-black/45"
