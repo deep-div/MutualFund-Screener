@@ -651,10 +651,10 @@ const Navbar = () => {
 
       {screenExplorerOpen && (
         <div
-          className="fixed left-0 right-0 bottom-0 z-[75] flex items-center justify-center p-3 pointer-events-none"
+          className="fixed left-0 right-0 bottom-0 z-[75] flex items-center justify-center px-3 py-0 pointer-events-none"
           style={{ top: `${bodyTopOffset}px` }}
         >
-          <div className="w-full max-w-[1100px] h-full bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto">
+          <div className="w-full max-w-[920px] h-full bg-background border border-slate-200 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto">
             <div className="grid grid-cols-[240px_1fr] h-full">
               <div className="bg-slate-100 border-r border-slate-200 p-4">
                 <p className="text-[11px] uppercase tracking-wide text-slate-500 mb-4">Explore Screens</p>
