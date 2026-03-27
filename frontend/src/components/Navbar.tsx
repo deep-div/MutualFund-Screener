@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, ChevronDown, LogOut, User, Bookmark } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
-import { SavedUserFilter, getUserFilters } from "@/services/userService";
+import { DefaultFilterGroup, SavedUserFilter, getDefaultFilters, getUserFilters } from "@/services/userService";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
@@ -85,11 +85,19 @@ const Navbar = () => {
   const [savedFiltersError, setSavedFiltersError] = useState<string | null>(null);
   const [savedFilters, setSavedFilters] = useState<SavedUserFilter[]>([]);
   const [savedFiltersTotal, setSavedFiltersTotal] = useState(0);
+  const [defaultFilterGroups, setDefaultFilterGroups] = useState<DefaultFilterGroup[]>([]);
+  const [defaultFiltersLoading, setDefaultFiltersLoading] = useState(false);
+  const [defaultFiltersError, setDefaultFiltersError] = useState<string | null>(null);
+  const [activeScreenGroup, setActiveScreenGroup] = useState<string>("saved");
   const [savedListScrollable, setSavedListScrollable] = useState(false);
   const [bodyTopOffset, setBodyTopOffset] = useState(56);
   const navRef = useRef<HTMLElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const isSearchActive = searchOpen || searchFocused;
+  const selectedDefaultGroup = useMemo(
+    () => defaultFilterGroups.find((group) => group.key === activeScreenGroup) ?? null,
+    [defaultFilterGroups, activeScreenGroup]
+  );
 
   useEffect(() => {
     const readBestPerformers = () => {
@@ -197,6 +205,29 @@ const Navbar = () => {
   }, [isSearchActive]);
 
   useEffect(() => {
+    if (!screenExplorerOpen) return;
+    const loadDefaultFilters = async () => {
+      setDefaultFiltersLoading(true);
+      setDefaultFiltersError(null);
+      try {
+        const response = await getDefaultFilters();
+        const groups = Array.isArray(response?.groups) ? response.groups : [];
+        setDefaultFilterGroups(groups);
+        setActiveScreenGroup((prev) => {
+          if (prev === "saved" || groups.some((group) => group.key === prev)) return prev;
+          return isLoggedIn ? "saved" : groups[0]?.key ?? "saved";
+        });
+      } catch (error) {
+        setDefaultFilterGroups([]);
+        setDefaultFiltersError(error instanceof Error ? error.message : "Failed to load default screens.");
+      } finally {
+        setDefaultFiltersLoading(false);
+      }
+    };
+    void loadDefaultFilters();
+  }, [screenExplorerOpen, isLoggedIn]);
+
+  useEffect(() => {
     if (!screenExplorerOpen || !isLoggedIn || !user) return;
     const loadSavedFilters = async () => {
       setSavedFiltersLoading(true);
@@ -237,6 +268,7 @@ const Navbar = () => {
   const handleNavClick = (item: NavItem) => {
     navigate("/");
     if (item === "All Screens") {
+      setActiveScreenGroup(isLoggedIn ? "saved" : defaultFilterGroups[0]?.key ?? "saved");
       setScreenExplorerOpen(true);
       return;
     }
@@ -659,15 +691,42 @@ const Navbar = () => {
             <div className="grid grid-cols-[240px_1fr] h-full">
               <div className="bg-[#f1f1f1] border-r border-slate-200 p-4">
                 <p className="text-[11px] uppercase tracking-wide text-slate-500 mb-4">Explore Screens</p>
-                <button className="w-full text-left px-3 py-2 rounded-md bg-white text-slate-900 text-[14px] font-medium border border-slate-200 inline-flex items-center gap-2">
-                  <Bookmark className="w-4 h-4 text-[hsl(var(--nav))] fill-[hsl(var(--nav))]" />
-                  <span>Saved</span>
-                </button>
+                <div className="space-y-2">
+                  <button
+                    className={`w-full text-left px-3 py-2 rounded-md text-[14px] font-medium border inline-flex items-center gap-2 transition-colors ${
+                      activeScreenGroup === "saved"
+                        ? "bg-white text-slate-900 border-slate-200"
+                        : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"
+                    }`}
+                    onClick={() => setActiveScreenGroup("saved")}
+                  >
+                    <Bookmark className="w-4 h-4 text-[hsl(var(--nav))] fill-[hsl(var(--nav))]" />
+                    <span>Saved</span>
+                  </button>
+
+                  {defaultFilterGroups.map((group) => (
+                    <button
+                      key={group.key}
+                      className={`w-full text-left px-3 py-2 rounded-md text-[14px] font-medium border transition-colors ${
+                        activeScreenGroup === group.key
+                          ? "bg-white text-slate-900 border-slate-200"
+                          : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"
+                      }`}
+                      onClick={() => setActiveScreenGroup(group.key)}
+                    >
+                      {group.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="p-5 flex flex-col h-full min-h-0">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-[18px] font-semibold text-slate-900">Saved Screens</h3>
+                  <h3 className="text-[18px] font-semibold text-slate-900">
+                    {activeScreenGroup === "saved"
+                      ? "Saved Screens"
+                      : selectedDefaultGroup?.label ?? "Default Screens"}
+                  </h3>
                   <button
                     className="text-[12px] text-slate-500 hover:text-slate-700"
                     onClick={() => setScreenExplorerOpen(false)}
@@ -676,30 +735,79 @@ const Navbar = () => {
                   </button>
                 </div>
 
-                {!isLoggedIn ? (
-                  <div className="text-[13px] text-slate-600">Sign in to view saved screens.</div>
-                ) : savedFiltersLoading ? (
+                {defaultFiltersError && activeScreenGroup !== "saved" ? (
+                  <div className="text-[13px] text-red-500">{defaultFiltersError}</div>
+                ) : defaultFiltersLoading && activeScreenGroup !== "saved" ? (
                   <div className="space-y-3">
                     {Array.from({ length: 6 }).map((_, index) => (
-                      <div key={`saved-filters-skel-${index}`} className="rounded-lg border border-slate-200 p-3">
+                      <div key={`default-filters-skel-${index}`} className="rounded-lg border border-slate-200 p-3">
                         <Skeleton className="h-4 w-48 mb-2" />
                         <Skeleton className="h-3 w-full" />
                       </div>
                     ))}
                   </div>
-                ) : savedFiltersError ? (
-                  <div className="text-[13px] text-red-500">{savedFiltersError}</div>
-                ) : savedFilters.length === 0 ? (
-                  <div className="text-[13px] text-slate-600">No saved screens found.</div>
+                ) : activeScreenGroup === "saved" ? (
+                  !isLoggedIn ? (
+                    <div className="text-[13px] text-slate-600">Sign in to view your saved screens.</div>
+                  ) : savedFiltersLoading ? (
+                    <div className="space-y-3">
+                      {Array.from({ length: 6 }).map((_, index) => (
+                        <div key={`saved-filters-skel-${index}`} className="rounded-lg border border-slate-200 p-3">
+                          <Skeleton className="h-4 w-48 mb-2" />
+                          <Skeleton className="h-3 w-full" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : savedFiltersError ? (
+                    <div className="text-[13px] text-red-500">{savedFiltersError}</div>
+                  ) : savedFilters.length === 0 ? (
+                    <div className="text-[13px] text-slate-600">No saved screens found.</div>
+                  ) : (
+                    <>
+                      <div
+                        className={`flex-1 min-h-0 pr-1 scrollbar-thin ${
+                          savedListScrollable ? "overflow-y-auto" : "overflow-y-hidden"
+                        }`}
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
+                          {savedFilters.map((item) => (
+                            <button
+                              key={item.external_id}
+                              className="w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 hover:bg-slate-50 transition-colors"
+                              onClick={() => {
+                                navigate(`/filters/${item.external_id}`);
+                                setScreenExplorerOpen(false);
+                              }}
+                            >
+                              <div className="text-[14px] font-semibold text-slate-900">
+                                {item.name?.trim() || "Untitled Screen"}
+                              </div>
+                              <div className="text-[12px] text-slate-600 mt-1 line-clamp-2">
+                                {item.description?.trim() || "No description"}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {savedFilters.length < savedFiltersTotal && (
+                        <div className="mt-4 pt-3 border-t border-slate-200 flex justify-center">
+                          <button
+                            className="px-4 py-2 bg-[#0f1729] text-white rounded-md text-[13px] font-medium hover:bg-[#0b1322] transition-colors disabled:opacity-50"
+                            onClick={() => void handleLoadMoreSavedFilters()}
+                            disabled={savedFiltersLoadingMore}
+                          >
+                            {savedFiltersLoadingMore ? "Loading..." : "Load more"}
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )
+                ) : !selectedDefaultGroup || selectedDefaultGroup.filters.length === 0 ? (
+                  <div className="text-[13px] text-slate-600">No screens available in this category.</div>
                 ) : (
-                  <>
-                    <div
-                      className={`flex-1 min-h-0 pr-1 scrollbar-thin ${
-                        savedListScrollable ? "overflow-y-auto" : "overflow-y-hidden"
-                      }`}
-                    >
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
-                      {savedFilters.map((item) => (
+                  <div className="flex-1 min-h-0 pr-1 overflow-y-auto scrollbar-thin">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
+                      {selectedDefaultGroup.filters.map((item) => (
                         <button
                           key={item.external_id}
                           className="w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 hover:bg-slate-50 transition-colors"
@@ -716,20 +824,8 @@ const Navbar = () => {
                           </div>
                         </button>
                       ))}
-                      </div>
                     </div>
-                    {savedFilters.length < savedFiltersTotal && (
-                      <div className="mt-4 pt-3 border-t border-slate-200 flex justify-center">
-                        <button
-                          className="px-4 py-2 bg-[#0f1729] text-white rounded-md text-[13px] font-medium hover:bg-[#0b1322] transition-colors disabled:opacity-50"
-                          onClick={() => void handleLoadMoreSavedFilters()}
-                          disabled={savedFiltersLoadingMore}
-                        >
-                          {savedFiltersLoadingMore ? "Loading..." : "Load more"}
-                        </button>
-                      </div>
-                    )}
-                  </>
+                  </div>
                 )}
               </div>
             </div>

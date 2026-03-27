@@ -14,6 +14,7 @@ const SKELETON_ROWS = 10;
 const DEFAULT_TITLE = "Mutual Fund Screener";
 const DEFAULT_DESCRIPTION =
   "Describe the purpose of this screen (e.g., tax-saving, growth, or tracking)";
+const USER_FILTER_ID_REGEX = /^[0-9A-Za-z]{8}$/;
 
 const baseColumns: Array<{
   key: keyof SchemeListItem;
@@ -158,7 +159,9 @@ const FundTable = ({
   const displayDescription = description.trim() || DEFAULT_DESCRIPTION;
   const canSaveScreen = title.trim().length > 0 && description.trim().length > 0;
   const savedFilterExternalId = activeSavedFilterId ?? routeSavedFilterId ?? null;
-  const hasSavedScreen = Boolean(savedFilterExternalId);
+  const hasSavedScreen = Boolean(
+    savedFilterExternalId && USER_FILTER_ID_REGEX.test(savedFilterExternalId.trim())
+  );
 
   useEffect(() => {
     setActiveSavedFilterId(routeSavedFilterId ?? null);

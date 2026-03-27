@@ -54,6 +54,18 @@ export interface UserFiltersResponse {
   offset?: number;
 }
 
+export interface DefaultFilterGroup {
+  key: string;
+  label: string;
+  filters: SavedUserFilter[];
+}
+
+export interface DefaultFiltersResponse {
+  groups: DefaultFilterGroup[];
+  group_count?: number;
+  total?: number;
+}
+
 export const getUserFilters = async (
   token: string,
   options?: { limit?: number; offset?: number }
@@ -63,4 +75,8 @@ export const getUserFilters = async (
     limit: options?.limit,
     offset: options?.offset,
   });
+};
+
+export const getDefaultFilters = async () => {
+  return apiGet<DefaultFiltersResponse>("/api/v1/users/filters/defaults");
 };

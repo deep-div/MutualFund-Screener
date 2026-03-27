@@ -9,7 +9,7 @@ import {
   FilterRangeMeta,
 } from "@/data/filters";
 import { useAuth } from "@/contexts/AuthContext";
-import { getUserFilters } from "@/services/userService";
+import { getDefaultFilters, getUserFilters, SavedUserFilter } from "@/services/userService";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
@@ -148,21 +148,11 @@ const Index = () => {
 
   const applySavedScreenByExternalId = useCallback(
     async (externalId: string) => {
-      if (authLoading || !user || !externalId) return;
+      if (!externalId) return;
       const normalizedExternalId = externalId.trim().toLowerCase();
       if (!normalizedExternalId) return;
-      try {
-        setRestoringSavedFilter(true);
-        const token = await user.getIdToken();
-        const response = await getUserFilters(token);
-        const selected = response.filters.find(
-          (item) => item.external_id?.trim().toLowerCase() === normalizedExternalId
-        );
-        if (!selected) {
-          setRestoredFilterExternalId(null);
-          return;
-        }
 
+      const applySelectedFilter = (selected: SavedUserFilter) => {
         const savedFilterMap = selected.filters?.filters ?? {};
         const restoredValues: FilterValueMap = {};
         Object.entries(savedFilterMap).forEach(([key, condition]) => {
@@ -191,6 +181,31 @@ const Index = () => {
         setInitialSortField(selected.filters?.sort_field ?? null);
         setInitialSortOrder(selected.filters?.sort_order ?? null);
         setRestoredFilterExternalId(selected.external_id);
+      };
+
+      try {
+        setRestoringSavedFilter(true);
+        const defaultsResponse = await getDefaultFilters();
+        const defaultFilters = (defaultsResponse.groups ?? []).flatMap((group) => group.filters ?? []);
+        const defaultSelected = defaultFilters.find(
+          (item) => item.external_id?.trim().toLowerCase() === normalizedExternalId
+        );
+        if (defaultSelected) {
+          applySelectedFilter(defaultSelected);
+          return;
+        }
+
+        if (authLoading || !user) return;
+        const token = await user.getIdToken();
+        const response = await getUserFilters(token);
+        const selected = response.filters.find(
+          (item) => item.external_id?.trim().toLowerCase() === normalizedExternalId
+        );
+        if (!selected) {
+          setRestoredFilterExternalId(null);
+          return;
+        }
+        applySelectedFilter(selected);
       } catch {
         // If restore fails, keep current in-memory/local state.
       } finally {
@@ -201,7 +216,8 @@ const Index = () => {
   );
 
   useEffect(() => {
-    if (!savedFilterId || authLoading || !user || restoringSavedFilter) return;
+    if (!savedFilterId || restoringSavedFilter) return;
+    if (authLoading) return;
     if (restoredFilterExternalId?.trim().toLowerCase() === savedFilterId.trim().toLowerCase()) return;
     void applySavedScreenByExternalId(savedFilterId);
   }, [

@@ -8,6 +8,7 @@ from app.domains.users.repository.read import (
     get_user_filters_paginated,
     get_user_watchlist,
 )
+from app.domains.users.default_screens import DEFAULT_SCREEN_GROUPS, DEFAULT_SCREENS
 from app.domains.users.repository.write import (
     add_user_filters,
     add_watchlist_item,
@@ -175,6 +176,18 @@ def get_filters(
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to fetch filters: {exc}")
+
+
+@router.get("/users/filters/defaults")
+def get_default_filters():
+    try:
+        return {
+            "groups": DEFAULT_SCREEN_GROUPS,
+            "group_count": len(DEFAULT_SCREEN_GROUPS),
+            "total": len(DEFAULT_SCREENS),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch default filters: {exc}")
 
 
 
