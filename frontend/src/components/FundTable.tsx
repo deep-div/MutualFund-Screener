@@ -387,7 +387,7 @@ const FundTable = ({
                 </button>
               </div>
               {formattedLastUpdated && (
-                <p className="Last updated 27 Mar 2026, 9:24 pm text-right text-[11px] text-muted-foreground">
+                <p className="mt-2 text-right text-[11px] text-muted-foreground">
                   Last updated {formattedLastUpdated}
                 </p>
               )}
