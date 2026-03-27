@@ -656,7 +656,7 @@ const Navbar = () => {
         >
           <div className="w-full max-w-[920px] h-full bg-background border border-slate-200 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto">
             <div className="grid grid-cols-[240px_1fr] h-full">
-              <div className="bg-slate-100 border-r border-slate-200 p-4">
+              <div className="bg-[#f1f1f1] border-r border-slate-200 p-4">
                 <p className="text-[11px] uppercase tracking-wide text-slate-500 mb-4">Explore Screens</p>
                 <button className="w-full text-left px-3 py-2 rounded-md bg-white text-slate-900 text-[14px] font-medium border border-slate-200">
                   Saved
