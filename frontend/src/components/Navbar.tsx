@@ -704,7 +704,7 @@ const Navbar = () => {
           className="fixed left-0 right-0 bottom-0 z-[75] flex items-center justify-center px-3 py-0 pointer-events-none"
           style={{ top: `${bodyTopOffset}px` }}
         >
-          <div className="pointer-events-auto h-full w-full max-w-[920px] overflow-hidden rounded-xl border border-slate-200 bg-background shadow-2xl md:rounded-2xl">
+          <div className="pointer-events-auto h-full w-full max-w-[860px] overflow-hidden rounded-xl border border-slate-200 bg-background shadow-2xl md:rounded-2xl">
             <div className="grid h-full grid-cols-1 md:grid-cols-[220px_1fr]">
               <div className="border-b border-slate-200 bg-[#f1f1f1] p-4 md:border-b-0 md:border-r">
                 <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-600 mb-5">Screen Categories</p>
