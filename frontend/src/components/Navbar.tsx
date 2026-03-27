@@ -690,24 +690,26 @@ const Navbar = () => {
           <div className="w-full max-w-[920px] h-full bg-background border border-slate-200 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto">
             <div className="grid grid-cols-[240px_1fr] h-full">
               <div className="bg-[#f1f1f1] border-r border-slate-200 p-4">
-                <p className="text-[12px] font-semibold uppercase tracking-wider text-slate-600 mb-5">Screen Categories</p>
+                <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-600 mb-5">Screen Categories</p>
                 <div className="space-y-3">
                   <button
-                    className={`w-full text-left px-3 py-2.5 rounded-md text-[14px] font-medium border inline-flex items-center gap-2 transition-colors ${
+                    className={`w-full text-left px-3 py-2.5 rounded-md text-[15px] font-medium border transition-colors ${
                       activeScreenGroup === "saved"
                         ? "bg-white text-slate-900 border-slate-200"
                         : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"
                     }`}
                     onClick={() => setActiveScreenGroup("saved")}
                   >
-                    <Bookmark className="w-4 h-4 text-[hsl(var(--nav))] fill-[hsl(var(--nav))]" />
-                    <span>Saved</span>
+                    <span className="inline-flex items-center gap-2">
+                      <Bookmark className="w-4 h-4 text-[hsl(var(--nav))] fill-[hsl(var(--nav))]" />
+                      <span>Saved</span>
+                    </span>
                   </button>
 
                   {defaultFilterGroups.map((group) => (
                     <button
                       key={group.key}
-                      className={`w-full text-left px-3 py-2.5 rounded-md text-[14px] font-medium border transition-colors ${
+                      className={`w-full text-left px-3 py-2.5 rounded-md text-[15px] font-medium border transition-colors ${
                         activeScreenGroup === group.key
                           ? "bg-white text-slate-900 border-slate-200"
                           : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"
