@@ -1,6 +1,6 @@
 EQUITY_DEFAULT_SCREENS = [
     {
-        "external_id": "default-equity-large-cap-core",
+        "external_id": "equity-large-cap-core",
         "name": "Equity Large Cap Core",
         "description": "Core large-cap oriented funds with steadier risk and dependable medium-term growth.",
         "filters": {
@@ -24,7 +24,7 @@ EQUITY_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-equity-large-mid-blend",
+        "external_id": "equity-large-mid-blend",
         "name": "Equity Large & Mid Blend",
         "description": "Large and mid-cap blend funds balancing growth with controlled downside.",
         "filters": {
@@ -47,7 +47,7 @@ EQUITY_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-equity-mid-cap-momentum",
+        "external_id": "equity-mid-cap-momentum",
         "name": "Equity Mid Cap Momentum",
         "description": "Mid-cap funds with stronger growth trend while keeping risk metrics in check.",
         "filters": {
@@ -71,7 +71,7 @@ EQUITY_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-equity-small-cap-growth",
+        "external_id": "equity-small-cap-growth",
         "name": "Equity Small Cap Growth",
         "description": "Small-cap funds with high return potential and acceptable drawdown profile.",
         "filters": {
@@ -96,7 +96,7 @@ EQUITY_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-equity-flexi-cap-all-weather",
+        "external_id": "equity-flexi-cap-all-weather",
         "name": "Equity Flexi Cap All Weather",
         "description": "Flexi-cap funds with strong consistency and moderate downside behavior.",
         "filters": {
@@ -121,7 +121,7 @@ EQUITY_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-equity-multi-cap-diversified",
+        "external_id": "equity-multi-cap-diversified",
         "name": "Equity Multi Cap Diversified",
         "description": "Multi-cap funds focused on diversified long-term performance with balanced risk.",
         "filters": {
@@ -145,7 +145,7 @@ EQUITY_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-equity-value-contra",
+        "external_id": "equity-value-contra",
         "name": "Equity Value & Contra",
         "description": "Value and contra styles filtered for favorable medium-term risk-adjusted returns.",
         "filters": {
@@ -169,7 +169,7 @@ EQUITY_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-equity-index-core",
+        "external_id": "equity-index-core",
         "name": "Equity Index Core",
         "description": "Index-oriented equity funds with decent long-term returns and lower volatility preference.",
         "filters": {
@@ -196,7 +196,7 @@ EQUITY_DEFAULT_SCREENS = [
 
 DEBT_DEFAULT_SCREENS = [
     {
-        "external_id": "default-debt-liquid-safety",
+        "external_id": "debt-liquid-safety",
         "name": "Debt Liquid Safety",
         "description": "Liquid and overnight funds for short-horizon parking with lower drawdown.",
         "filters": {
@@ -219,7 +219,7 @@ DEBT_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-debt-short-duration",
+        "external_id": "debt-short-duration",
         "name": "Debt Short Duration",
         "description": "Short-duration debt funds with balanced accrual and manageable risk.",
         "filters": {
@@ -244,7 +244,7 @@ DEBT_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-debt-money-market-stable",
+        "external_id": "debt-money-market-stable",
         "name": "Debt Money Market Stable",
         "description": "Money market focused debt funds with lower volatility and stable outcomes.",
         "filters": {
@@ -267,7 +267,7 @@ DEBT_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-debt-corporate-bond-quality",
+        "external_id": "debt-corporate-bond-quality",
         "name": "Debt Corporate Bond Quality",
         "description": "Corporate bond funds screened for consistency and improved risk-adjusted returns.",
         "filters": {
@@ -290,7 +290,7 @@ DEBT_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-debt-banking-psu-accrual",
+        "external_id": "debt-banking-psu-accrual",
         "name": "Debt Banking & PSU Accrual",
         "description": "Banking and PSU debt funds targeting accrual with limited downside.",
         "filters": {
@@ -313,7 +313,7 @@ DEBT_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-debt-gilt-defensive",
+        "external_id": "debt-gilt-defensive",
         "name": "Debt Gilt Defensive",
         "description": "Gilt funds with a defensive tilt using drawdown and volatility controls.",
         "filters": {
@@ -336,7 +336,7 @@ DEBT_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-debt-dynamic-bond-all-weather",
+        "external_id": "debt-dynamic-bond-all-weather",
         "name": "Debt Dynamic Bond All Weather",
         "description": "Dynamic bond funds filtered for balanced return and downside management.",
         "filters": {
@@ -362,7 +362,7 @@ DEBT_DEFAULT_SCREENS = [
 
 HYBRID_DEFAULT_SCREENS = [
     {
-        "external_id": "default-hybrid-aggressive-growth",
+        "external_id": "hybrid-aggressive-growth",
         "name": "Hybrid Aggressive Growth",
         "description": "Aggressive hybrid funds with stronger growth and acceptable downside control.",
         "filters": {
@@ -386,7 +386,7 @@ HYBRID_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-hybrid-balanced-consistency",
+        "external_id": "hybrid-balanced-consistency",
         "name": "Hybrid Balanced Consistency",
         "description": "Balanced hybrid funds screened for steadier performance and lower volatility.",
         "filters": {
@@ -410,7 +410,7 @@ HYBRID_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-hybrid-conservative-defense",
+        "external_id": "hybrid-conservative-defense",
         "name": "Hybrid Conservative Defense",
         "description": "Conservative hybrid allocation with focus on lower risk and drawdown.",
         "filters": {
@@ -434,7 +434,7 @@ HYBRID_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-hybrid-dynamic-allocation",
+        "external_id": "hybrid-dynamic-allocation",
         "name": "Hybrid Dynamic Allocation",
         "description": "Dynamic asset allocation funds with balanced return-to-risk profile.",
         "filters": {
@@ -458,7 +458,7 @@ HYBRID_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-hybrid-equity-savings",
+        "external_id": "hybrid-equity-savings",
         "name": "Hybrid Equity Savings",
         "description": "Equity savings funds with relatively lower drawdown and stable medium-term returns.",
         "filters": {
@@ -482,7 +482,7 @@ HYBRID_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-hybrid-multi-asset",
+        "external_id": "hybrid-multi-asset",
         "name": "Hybrid Multi Asset",
         "description": "Multi-asset allocation funds targeting diversification and smoother risk-adjusted returns.",
         "filters": {
@@ -506,7 +506,7 @@ HYBRID_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-hybrid-arbitrage-stable",
+        "external_id": "hybrid-arbitrage-stable",
         "name": "Hybrid Arbitrage Stable",
         "description": "Arbitrage funds prioritizing capital stability and lower volatility.",
         "filters": {
@@ -532,7 +532,7 @@ HYBRID_DEFAULT_SCREENS = [
 
 GOLD_DEFAULT_SCREENS = [
     {
-        "external_id": "default-gold-low-drawdown",
+        "external_id": "gold-low-drawdown",
         "name": "Gold Low Drawdown",
         "description": "Gold commodity funds filtered for lower drawdown behavior over 1Y and 3Y.",
         "filters": {
@@ -554,7 +554,7 @@ GOLD_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-gold-risk-adjusted",
+        "external_id": "gold-risk-adjusted",
         "name": "Gold Risk Adjusted",
         "description": "Gold-focused screens balancing returns with risk-adjusted ratios.",
         "filters": {
@@ -578,7 +578,7 @@ GOLD_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-silver-core",
+        "external_id": "silver-core",
         "name": "Silver Core Allocation",
         "description": "Silver commodity funds for growth-oriented satellite commodity exposure.",
         "filters": {
@@ -599,7 +599,7 @@ GOLD_DEFAULT_SCREENS = [
         },
     },
     {
-        "external_id": "default-commodity-diversified",
+        "external_id": "commodity-diversified",
         "name": "Commodity Diversified",
         "description": "Commodity basket across gold and silver with focus on balanced risk-return.",
         "filters": {
