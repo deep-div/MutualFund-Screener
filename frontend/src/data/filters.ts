@@ -171,13 +171,13 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
 
   { id: "current_drawdown_percent", label: "Current Drawdown", type: "range", category: "drawdown" },
   { id: "mdd_max_drawdown_percent", label: "Max Drawdown", type: "range", category: "drawdown" },
-  { id: "mdd_one_year_pct", label: "MDD 1Y", type: "range", category: "drawdown" },
-  { id: "mdd_two_year_pct", label: "MDD 2Y", type: "range", category: "drawdown" },
-  { id: "mdd_three_year_pct", label: "MDD 3Y", type: "range", category: "drawdown" },
-  { id: "mdd_four_year_pct", label: "MDD 4Y", type: "range", category: "drawdown" },
-  { id: "mdd_five_year_pct", label: "MDD 5Y", type: "range", category: "drawdown" },
-  { id: "mdd_seven_year_pct", label: "MDD 7Y", type: "range", category: "drawdown" },
-  { id: "mdd_ten_year_pct", label: "MDD 10Y", type: "range", category: "drawdown" },
+  { id: "mdd_one_year_pct", label: "Max Drawdown 1Y", type: "range", category: "drawdown" },
+  { id: "mdd_two_year_pct", label: "Max Drawdown 2Y", type: "range", category: "drawdown" },
+  { id: "mdd_three_year_pct", label: "Max Drawdown 3Y", type: "range", category: "drawdown" },
+  { id: "mdd_four_year_pct", label: "Max Drawdown 4Y", type: "range", category: "drawdown" },
+  { id: "mdd_five_year_pct", label: "Max Drawdown 5Y", type: "range", category: "drawdown" },
+  { id: "mdd_seven_year_pct", label: "Max Drawdown 7Y", type: "range", category: "drawdown" },
+  { id: "mdd_ten_year_pct", label: "Max Drawdown 10Y", type: "range", category: "drawdown" },
 ];
 
 export const PINNED_FILTERS = FILTER_DEFINITIONS.filter((filter) => filter.pinned).map((filter) => filter.id);
