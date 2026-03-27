@@ -54,18 +54,18 @@ FIELD_MAP = {
     "rolling_max_7y": ("returns", "rolling_cagr_percent", "7_year", "summary", "maximum"),
     "rolling_max_10y": ("returns", "rolling_cagr_percent", "10_year", "summary", "maximum"),
 
-    # Risk metrics
-    "volatility_max": ("risk_metrics", "volatility_annualized_percent", "max"),
-    "downside_deviation_max": ("risk_metrics", "downside_deviation_percent", "max"),
-    "skewness_max": ("risk_metrics", "skewness", "max"),
-    "kurtosis_max": ("risk_metrics", "kurtosis", "max"),
+    # Risk metrics (3Y)
+    "volatility": ("risk_metrics", "volatility_annualized_percent", "three_year"),
+    "downside_deviation": ("risk_metrics", "downside_deviation_percent", "three_year"),
+    "skewness": ("risk_metrics", "skewness", "three_year"),
+    "kurtosis": ("risk_metrics", "kurtosis", "three_year"),
 
-    # Risk adjusted
-    "sharpe_max": ("risk_adjusted_returns", "sharpe_ratio", "max"),
-    "sortino_max": ("risk_adjusted_returns", "sortino_ratio", "max"),
-    "calmar_max": ("risk_adjusted_returns", "calmar_ratio", "max"),
-    "pain_index_max": ("risk_adjusted_returns", "pain_index", "max"),
-    "ulcer_index_max": ("risk_adjusted_returns", "ulcer_index", "max"),
+    # Risk adjusted returns (3Y)
+    "sharpe": ("risk_adjusted_returns", "sharpe_ratio", "three_year"),
+    "sortino": ("risk_adjusted_returns", "sortino_ratio", "three_year"),
+    "calmar": ("risk_adjusted_returns", "calmar_ratio", "three_year"),
+    "pain_index": ("risk_adjusted_returns", "pain_index", "three_year"),
+    "ulcer_index": ("risk_adjusted_returns", "ulcer_index", "three_year"),
 
     # Drawdown
     "current_drawdown_percent": ("drawdown", "current_drawdown", "max_drawdown_percent"),
