@@ -9,6 +9,7 @@ from app.domains.users.repository.write import (
     add_watchlist_item,
     delete_user_filter,
     delete_watchlist_item,
+    update_user_filters,
     update_watchlist_name,
     upsert_user,
 )
@@ -91,6 +92,24 @@ def get_watchlist(token: str = Query(...)):
         raise HTTPException(status_code=500, detail=f"Failed to fetch watchlist: {exc}")
 
 
+@router.put("/users/watchlist/rename", status_code=200)
+def rename_watchlist(
+    token: str = Query(...),
+    old_name: str = Query(...),
+    new_name: str = Query(...),
+):
+    try:
+        token_uid = _get_uid_from_token(token)
+        updated = update_watchlist_name(uid=token_uid, old_name=old_name, new_name=new_name)
+        if not updated:
+            raise HTTPException(status_code=404, detail="Watchlist not found")
+        return {"status": "ok"}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to rename watchlist: {exc}")
+
+
 @router.delete("/users/watchlist", status_code=200)
 def delete_from_watchlist(
     token: str = Query(...),
@@ -110,25 +129,6 @@ def delete_from_watchlist(
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to delete watchlist item: {exc}")
 
-
-@router.put("/users/watchlist/rename", status_code=200)
-def rename_watchlist(
-    token: str = Query(...),
-    old_name: str = Query(...),
-    new_name: str = Query(...),
-):
-    try:
-        token_uid = _get_uid_from_token(token)
-        updated = update_watchlist_name(uid=token_uid, old_name=old_name, new_name=new_name)
-        if not updated:
-            raise HTTPException(status_code=404, detail="Watchlist not found")
-        return {"status": "ok"}
-    except HTTPException:
-        raise
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to rename watchlist: {exc}")
-
-
 @router.post("/users/filters", status_code=201)
 def add_filters(payload: UserFilterCreate, token: str = Query(...)):
     try:
@@ -145,7 +145,8 @@ def add_filters(payload: UserFilterCreate, token: str = Query(...)):
         return {"status": "ok", "external_id": external_id}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to add user filters: {exc}")
-    
+
+
 @router.get("/users/filters")
 def get_filters(token: str = Query(...)):
     try:
@@ -157,6 +158,29 @@ def get_filters(token: str = Query(...)):
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to fetch filters: {exc}")
 
+
+
+@router.put("/users/filters/{external_id}", status_code=200)
+def update_filters(external_id: str, payload: UserFilterCreate, token: str = Query(...)):
+    try:
+        token_uid = _get_uid_from_token(token)
+        updated = update_user_filters(
+            uid=token_uid,
+            external_id=external_id,
+            filters=payload.filters,
+            name=payload.name,
+            description=payload.description,
+            sort_field=payload.sort_field,
+            sort_order=payload.sort_order,
+            enabled_filters=payload.enabled_filters,
+        )
+        if not updated:
+            raise HTTPException(status_code=404, detail="Filter not found")
+        return {"status": "ok", "external_id": external_id}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to update user filters: {exc}")
 
 @router.delete("/users/filters/{filter_id}", status_code=200)
 def delete_filter(filter_id: int, token: str = Query(...)):

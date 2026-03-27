@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
@@ -13,9 +13,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { saveUserFilters } from "@/services/userService";
+import { saveUserFilters, updateUserFilters } from "@/services/userService";
 const LIMIT = 15;
 const SKELETON_ROWS = 10;
+const SAVED_FILTER_QUERY_KEY = "saved_filter_id";
 const DEFAULT_TITLE = "Mutual Funds Screener";
 const DEFAULT_DESCRIPTION =
   "Add a note explaining the purpose behind creating this - such as \"Top 5 ELSS funds for tax saving,\" \"High-performing mid-cap funds,\" or \"My SIP growth selections.\"";
@@ -39,6 +40,7 @@ interface FundTableProps {
 
 const FundTable = ({ filters, enabledFilters, onMetaChange, resetToken }: FundTableProps) => {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [sortKey, setSortKey] = useState<keyof SchemeListItem | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [items, setItems] = useState<SchemeListItem[]>([]);
@@ -52,7 +54,6 @@ const FundTable = ({ filters, enabledFilters, onMetaChange, resetToken }: FundTa
   const [editorOpen, setEditorOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [hasSavedScreen, setHasSavedScreen] = useState(false);
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
 
@@ -131,6 +132,8 @@ const FundTable = ({ filters, enabledFilters, onMetaChange, resetToken }: FundTa
   const displayTitle = title.trim() || DEFAULT_TITLE;
   const displayDescription = description.trim() || DEFAULT_DESCRIPTION;
   const canSaveScreen = title.trim().length > 0 && description.trim().length > 0;
+  const savedFilterExternalId = searchParams.get(SAVED_FILTER_QUERY_KEY);
+  const hasSavedScreen = Boolean(savedFilterExternalId);
 
   useEffect(() => {
     setTitle("");
@@ -140,8 +143,10 @@ const FundTable = ({ filters, enabledFilters, onMetaChange, resetToken }: FundTa
     setEditorOpen(false);
     setSaving(false);
     setSaveError(null);
-    setHasSavedScreen(false);
-  }, [resetToken]);
+    const next = new URLSearchParams(searchParams);
+    next.delete(SAVED_FILTER_QUERY_KEY);
+    setSearchParams(next, { replace: true });
+  }, [resetToken, searchParams, setSearchParams]);
 
   const handleOpenChange = (open: boolean) => {
     setEditorOpen(open);
@@ -184,8 +189,16 @@ const FundTable = ({ filters, enabledFilters, onMetaChange, resetToken }: FundTa
         payload.sort_field = String(sortKey);
         payload.sort_order = sortDir;
       }
-      await saveUserFilters(token, payload);
-      setHasSavedScreen(true);
+      if (savedFilterExternalId) {
+        await updateUserFilters(token, savedFilterExternalId, payload);
+      } else {
+        const response = (await saveUserFilters(token, payload)) as { external_id?: string };
+        if (response?.external_id) {
+          const next = new URLSearchParams(searchParams);
+          next.set(SAVED_FILTER_QUERY_KEY, response.external_id);
+          setSearchParams(next, { replace: true });
+        }
+      }
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "Failed to save filters.");
     } finally {

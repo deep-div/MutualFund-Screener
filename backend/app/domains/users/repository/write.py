@@ -168,6 +168,50 @@ def add_user_filters(
             raise
 
 
+def update_user_filters(
+    uid: str,
+    external_id: str,
+    filters: dict,
+    name: str | None = None,
+    description: str | None = None,
+    sort_field: str | None = None,
+    sort_order: str | None = None,
+    enabled_filters: list[str] | None = None,
+) -> int:
+    """Update a saved filter for a user by external_id. Returns rows updated."""
+    with get_session() as session:
+        try:
+            filters_payload = {"filters": filters or {}}
+            if sort_field:
+                filters_payload["sort_field"] = sort_field
+            if sort_order:
+                filters_payload["sort_order"] = sort_order
+            if enabled_filters:
+                filters_payload["enabled_filters"] = enabled_filters
+
+            updated = (
+                session.query(UserFilterORM)
+                .filter(
+                    UserFilterORM.uid == uid,
+                    UserFilterORM.external_id == external_id,
+                )
+                .update(
+                    {
+                        "name": name,
+                        "description": description,
+                        "filters": filters_payload,
+                    },
+                    synchronize_session=False,
+                )
+            )
+            session.commit()
+            return updated
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Failed to update user filters | Error: {str(e)}", exc_info=True)
+            raise
+
+
 def delete_user_filter(uid: str, filter_id: int) -> int:
     """Delete a saved filter for a user. Returns rows deleted."""
     with get_session() as session:

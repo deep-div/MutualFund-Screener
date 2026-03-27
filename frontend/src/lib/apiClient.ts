@@ -82,3 +82,9 @@ export const apiPost = <T, B = unknown>(
   body?: B,
   options?: { params?: Record<string, string | number | boolean | undefined>; headers?: HeadersInit; signal?: AbortSignal }
 ) => request<T>("POST", path, { body, ...options });
+
+export const apiPut = <T, B = unknown>(
+  path: string,
+  body?: B,
+  options?: { params?: Record<string, string | number | boolean | undefined>; headers?: HeadersInit; signal?: AbortSignal }
+) => request<T>("PUT", path, { body, ...options });
