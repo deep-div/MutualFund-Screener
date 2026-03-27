@@ -263,11 +263,11 @@ const FundTable = ({
           onClick={() => setEditorOpen(false)}
         >
           <div
-            className="w-[min(92vw,420px)] h-[min(92vw,420px)] max-h-[85vh] overflow-auto rounded-md border border-border bg-[#fafafa] shadow-2xl p-4 flex flex-col"
+            className="w-[min(92vw,396px)] max-h-[85vh] overflow-auto rounded-md border border-border bg-[#fafafa] shadow-2xl p-8"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="grid gap-4 flex-1">
-              <div className="grid gap-1">
+            <div className="grid gap-7">
+              <div className="grid gap-4">
                 <Label htmlFor="screen-title">Name</Label>
                 <Input
                   id="screen-title"
@@ -276,26 +276,26 @@ const FundTable = ({
                   onChange={(event) => setDraftTitle(event.target.value)}
                 />
               </div>
-              <div className="grid gap-1 flex-1 min-h-0">
+              <div className="grid gap-4">
                 <Label htmlFor="screen-description">Description</Label>
                 <textarea
                   id="screen-description"
                   value={draftDescription}
                   placeholder={DEFAULT_DESCRIPTION}
                   rows={4}
-                  className="w-full h-full min-h-[130px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                  className="w-full min-h-[132px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                   onChange={(event) => setDraftDescription(event.target.value)}
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-2 mt-auto">
+              <div className="flex justify-end gap-4 pt-3">
                 <button
-                  className="px-3 py-1.5 text-[12px] border border-border rounded-md hover:bg-surface-hover transition-colors"
+                  className="w-24 px-3 py-2 text-[12px] border border-border rounded-md hover:bg-surface-hover transition-colors"
                   onClick={() => setEditorOpen(false)}
                 >
                   Cancel
                 </button>
                 <button
-                  className="px-3 py-1.5 text-[12px] bg-foreground text-background rounded-md font-medium hover:bg-foreground/90 transition-colors"
+                  className="w-24 px-3 py-2 text-[12px] bg-foreground text-background rounded-md font-medium hover:bg-foreground/90 transition-colors"
                   onClick={applyDraft}
                 >
                   OK
