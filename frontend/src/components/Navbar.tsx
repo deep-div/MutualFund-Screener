@@ -313,7 +313,7 @@ const Navbar = () => {
             {["All Screens", "New Screen"].map((item) => (
               <button
                 key={item}
-                className="px-5 py-2 text-[13px] font-medium rounded-xl transition-colors text-nav-foreground/60 hover:text-nav-foreground hover:bg-nav-hover/80 active:bg-nav-hover active:text-nav-foreground"
+                className="px-5 py-2 text-[13px] font-medium rounded-xl transition-colors text-white hover:text-white hover:bg-nav-hover/80 active:bg-nav-hover active:text-white"
                 onClick={() => handleNavClick(item as NavItem)}
               >
                 {item}
