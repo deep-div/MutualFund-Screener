@@ -23,6 +23,7 @@ const LEADERBOARDS_SESSION_KEY = "mf_leaderboards_cache";
 const LEADERBOARDS_LOADING_EVENT = "mf_leaderboards_loading";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 const SAVED_FILTERS_BATCH_SIZE = 10;
+type NavItem = "All Screens" | "New Screen";
 
 const formatNav = (value?: number | null) =>
   typeof value === "number" ? `₹${NAV_FORMATTER.format(value)}` : "—";
@@ -233,7 +234,7 @@ const Navbar = () => {
     return () => window.removeEventListener("resize", syncBodyTopOffset);
   }, []);
 
-  const handleNavClick = (item: "All Screens" | "New Screen") => {
+  const handleNavClick = (item: NavItem) => {
     navigate("/");
     if (item === "All Screens") {
       setScreenExplorerOpen(true);
@@ -312,8 +313,8 @@ const Navbar = () => {
             {["All Screens", "New Screen"].map((item) => (
               <button
                 key={item}
-                className="px-3 py-1.5 text-[13px] font-medium rounded-md transition-colors text-nav-foreground/60 hover:text-nav-foreground hover:bg-nav-hover"
-                onClick={() => handleNavClick(item as "All Screens" | "New Screen")}
+                className="px-5 py-2 text-[13px] font-medium rounded-xl transition-colors text-nav-foreground/60 hover:text-nav-foreground hover:bg-nav-hover/80 active:bg-nav-hover active:text-nav-foreground"
+                onClick={() => handleNavClick(item as NavItem)}
               >
                 {item}
               </button>
