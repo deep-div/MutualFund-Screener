@@ -346,13 +346,13 @@ const FundTable = ({
           </div>
         </div>
       )}
-      <div className="px-6 py-4 border-b border-border">
+      <div className="border-b border-border px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
         <div
           className={`overflow-hidden transition-all duration-300 ${
-            isHeaderCollapsed ? "max-h-0 opacity-0" : "max-h-24 opacity-100"
+            isHeaderCollapsed ? "max-h-0 opacity-0" : "max-h-40 opacity-100 sm:max-h-28"
           }`}
         >
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
             <div className="flex-1 min-w-0">
               <h1 className="text-[18px] font-semibold text-foreground tracking-tight">
                 {displayTitle}
@@ -361,8 +361,8 @@ const FundTable = ({
                 {displayDescription}
               </p>
             </div>
-            <div className="ml-4 shrink-0">
-              <div className="flex items-center gap-2 justify-end">
+            <div className="shrink-0">
+              <div className="flex items-center gap-2 sm:justify-end">
                 <button
                   className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={openEditor}
@@ -387,14 +387,14 @@ const FundTable = ({
                 </button>
               </div>
               {formattedLastUpdated && (
-                <p className="mt-3 text-right text-[11px] text-muted-foreground">
+                <p className="mt-2 text-[11px] text-muted-foreground sm:mt-3 sm:text-right">
                   Last updated {formattedLastUpdated}
                 </p>
               )}
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between mt-0.1">
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
           <p className="text-[13px]">
             <span className="text-muted-foreground">Showing </span>
             <span className="text-primary font-medium">1 - {items.length}</span>

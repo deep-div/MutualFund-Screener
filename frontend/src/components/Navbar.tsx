@@ -339,26 +339,30 @@ const Navbar = () => {
         />
       )}
 
-      <nav ref={navRef} className="h-14 bg-[#0f1729] border-b border-nav-hover flex items-center pl-6 pr-0 relative z-[70]">
+      <nav
+        ref={navRef}
+        className="relative z-[70] flex min-h-14 flex-wrap items-center gap-y-2 border-b border-nav-hover bg-[#0f1729] px-3 py-2 sm:px-4 lg:flex-nowrap lg:gap-y-0 lg:pl-6 lg:pr-4"
+      >
 
         {/* LEFT: Logo */}
         <Link
           to="/"
-          className="flex items-center gap-2 text-nav-foreground font-bold text-lg tracking-tight"
+          className="flex shrink-0 items-center gap-2 text-base font-bold tracking-tight text-nav-foreground sm:text-lg"
         >
           <img src="/logo.svg" alt="Screener logo" className="w-8 h-8" />
-          MF Screener
+          <span className="hidden sm:inline">MF Screener</span>
+          <span className="sm:hidden">MFS</span>
         </Link>
 
         {/* CENTER: Nav + Search (Centered, no empty space) */}
-        <div className="flex-1 flex items-center justify-center gap-6">
+        <div className="order-3 flex w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3 lg:order-none lg:flex-1 lg:justify-center lg:gap-6">
 
           {/* NAV ITEMS */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hidden">
             {["All Screens", "New Screen"].map((item) => (
               <button
                 key={item}
-                className="px-5 py-2 text-[13px] font-medium rounded-xl transition-colors text-white hover:text-white hover:bg-nav-hover/80 active:bg-nav-hover active:text-white"
+                className="whitespace-nowrap rounded-xl px-3 py-2 text-[12px] font-medium text-white transition-colors hover:bg-nav-hover/80 hover:text-white active:bg-nav-hover active:text-white sm:px-4 sm:text-[13px] lg:px-5"
                 onClick={() => handleNavClick(item as NavItem)}
               >
                 {item}
@@ -367,7 +371,7 @@ const Navbar = () => {
           </div>
 
           {/* SEARCH */}
-          <div ref={searchRef} className="relative w-full max-w-md z-[80]">
+          <div ref={searchRef} className="relative z-[80] w-full lg:max-w-md">
             <div
               className={`flex items-center gap-2 w-full border transition-all ${
                 searchOpen || searchFocused
@@ -642,7 +646,7 @@ const Navbar = () => {
         </div>
 
         {/* RIGHT: Auth / Account */}
-        <div className="ml-6 min-w-[140px] flex justify-end pr-4">
+        <div className="order-2 ml-auto flex min-w-0 justify-end pr-0 lg:order-none lg:ml-6 lg:min-w-[140px]">
           {loading ? (
             <div className="h-7 w-24 rounded-md bg-nav-hover/70 animate-pulse" />
           ) : isLoggedIn ? (
@@ -700,13 +704,13 @@ const Navbar = () => {
           className="fixed left-0 right-0 bottom-0 z-[75] flex items-center justify-center px-3 py-0 pointer-events-none"
           style={{ top: `${bodyTopOffset}px` }}
         >
-          <div className="w-full max-w-[920px] h-full bg-background border border-slate-200 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto">
-            <div className="grid grid-cols-[240px_1fr] h-full">
-              <div className="bg-[#f1f1f1] border-r border-slate-200 p-4">
+          <div className="pointer-events-auto h-full w-full max-w-[920px] overflow-hidden rounded-xl border border-slate-200 bg-background shadow-2xl md:rounded-2xl">
+            <div className="grid h-full grid-cols-1 md:grid-cols-[220px_1fr]">
+              <div className="border-b border-slate-200 bg-[#f1f1f1] p-4 md:border-b-0 md:border-r">
                 <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-600 mb-5">Screen Categories</p>
-                <div className="space-y-3">
+                <div className="flex gap-2 overflow-x-auto pb-1 md:block md:space-y-3 md:overflow-visible md:pb-0">
                   <button
-                    className={`w-full text-left px-3 py-2.5 rounded-md text-[15px] font-medium border transition-colors ${
+                    className={`shrink-0 md:w-full text-left px-3 py-2.5 rounded-md text-[14px] md:text-[15px] font-medium border transition-colors ${
                       activeScreenGroup === "saved"
                         ? "bg-white text-slate-900 border-slate-200"
                         : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"
@@ -722,7 +726,7 @@ const Navbar = () => {
                   {defaultFilterGroups.map((group) => (
                     <button
                       key={group.key}
-                      className={`w-full text-left px-3 py-2.5 rounded-md text-[15px] font-medium border transition-colors ${
+                      className={`shrink-0 md:w-full text-left px-3 py-2.5 rounded-md text-[14px] md:text-[15px] font-medium border transition-colors ${
                         activeScreenGroup === group.key
                           ? "bg-white text-slate-900 border-slate-200"
                           : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"

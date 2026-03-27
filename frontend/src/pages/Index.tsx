@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getDefaultFilters, getUserFilters, SavedUserFilter } from "@/services/userService";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import { SlidersHorizontal, X } from "lucide-react";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 
 const Index = () => {
@@ -29,6 +30,7 @@ const Index = () => {
   const [initialSortOrder, setInitialSortOrder] = useState<"asc" | "desc" | null>(null);
   const [restoredFilterExternalId, setRestoredFilterExternalId] = useState<string | null>(null);
   const [restoringSavedFilter, setRestoringSavedFilter] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
     if (savedFilterId) return;
@@ -132,6 +134,7 @@ const Index = () => {
       handleReset();
       setRangeMeta({});
       setScreenResetToken((prev) => prev + 1);
+      setMobileFiltersOpen(false);
     };
     window.addEventListener(NEW_SCREEN_EVENT, handleNewScreen);
     return () => window.removeEventListener(NEW_SCREEN_EVENT, handleNewScreen);
@@ -236,31 +239,75 @@ const Index = () => {
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       <TickerTape />
       <Navbar />
-      <div className="flex flex-1 overflow-hidden page-dimmable">
-        <FilterSidebar
-          enabledFilters={enabledFilters}
-          values={filterValues}
-          rangeMeta={rangeMeta}
-          activeCount={activeCount}
-          onChangeEnabled={setEnabledFilters}
-          onChangeValue={handleValueChange}
-          onReset={handleReset}
-        />
-        <FundTable
-          filters={filtersPayload}
-          enabledFilters={enabledFilters}
-          resetToken={screenResetToken}
-          initialTitle={initialScreenTitle}
-          initialDescription={initialScreenDescription}
-          initialUpdatedAt={initialScreenUpdatedAt}
-          initialSortField={initialSortField}
-          initialSortOrder={initialSortOrder}
-          restoredFilterExternalId={restoredFilterExternalId}
-          onSavedFilterCreated={applySavedScreenByExternalId}
-          onMetaChange={(meta) =>
-            setRangeMeta((prev) => (Object.keys(prev).length > 0 ? prev : meta ?? {}))
-          }
-        />
+      <div className="relative flex flex-1 overflow-hidden page-dimmable">
+        <div className="hidden lg:block h-full">
+          <FilterSidebar
+            enabledFilters={enabledFilters}
+            values={filterValues}
+            rangeMeta={rangeMeta}
+            activeCount={activeCount}
+            onChangeEnabled={setEnabledFilters}
+            onChangeValue={handleValueChange}
+            onReset={handleReset}
+          />
+        </div>
+        {mobileFiltersOpen && (
+          <div className="fixed inset-0 z-[115] lg:hidden">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/45"
+              onClick={() => setMobileFiltersOpen(false)}
+              aria-label="Close filters"
+            />
+            <div className="absolute inset-y-0 left-0 w-[85vw] max-w-[320px]">
+              <FilterSidebar
+                className="w-full border-r border-border shadow-xl"
+                enabledFilters={enabledFilters}
+                values={filterValues}
+                rangeMeta={rangeMeta}
+                activeCount={activeCount}
+                onChangeEnabled={setEnabledFilters}
+                onChangeValue={handleValueChange}
+                onReset={handleReset}
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-2 inline-flex items-center justify-center rounded-md border border-border bg-background p-1.5 text-muted-foreground"
+                onClick={() => setMobileFiltersOpen(false)}
+                aria-label="Close filters"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="border-b border-border px-3 py-2 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setMobileFiltersOpen(true)}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-[12px] font-medium text-foreground"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              Filters ({activeCount})
+            </button>
+          </div>
+          <FundTable
+            filters={filtersPayload}
+            enabledFilters={enabledFilters}
+            resetToken={screenResetToken}
+            initialTitle={initialScreenTitle}
+            initialDescription={initialScreenDescription}
+            initialUpdatedAt={initialScreenUpdatedAt}
+            initialSortField={initialSortField}
+            initialSortOrder={initialSortOrder}
+            restoredFilterExternalId={restoredFilterExternalId}
+            onSavedFilterCreated={applySavedScreenByExternalId}
+            onMetaChange={(meta) =>
+              setRangeMeta((prev) => (Object.keys(prev).length > 0 ? prev : meta ?? {}))
+            }
+          />
+        </div>
       </div>
     </div>
   );
