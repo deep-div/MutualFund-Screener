@@ -263,7 +263,7 @@ const FundTable = ({
           onClick={() => setEditorOpen(false)}
         >
           <div
-            className="w-[min(92vw,520px)] h-[min(92vw,520px)] max-h-[90vh] overflow-auto rounded-md border border-border bg-background shadow-2xl p-5 flex flex-col"
+            className="w-[min(92vw,420px)] h-[min(92vw,420px)] max-h-[85vh] overflow-auto rounded-md border border-border bg-[#fafafa] shadow-2xl p-4 flex flex-col"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="grid gap-4 flex-1">
@@ -276,14 +276,14 @@ const FundTable = ({
                   onChange={(event) => setDraftTitle(event.target.value)}
                 />
               </div>
-              <div className="grid gap-1">
+              <div className="grid gap-1 flex-1 min-h-0">
                 <Label htmlFor="screen-description">Description</Label>
                 <textarea
                   id="screen-description"
                   value={draftDescription}
                   placeholder={DEFAULT_DESCRIPTION}
-                  rows={8}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                  rows={9}
+                  className="w-full h-full min-h-[190px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                   onChange={(event) => setDraftDescription(event.target.value)}
                 />
               </div>
