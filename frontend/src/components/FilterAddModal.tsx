@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Search, Check, ChevronRight, X } from "lucide-react";
+import { Search, Check, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { FILTER_CATEGORIES, FILTER_DEFINITIONS, PINNED_FILTERS } from "@/data/filters";
 
@@ -46,7 +46,7 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
       className="absolute inset-0 z-50"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/10 md:bg-transparent" />
+      <div className="absolute inset-0 bg-black/10" />
       <motion.div
         initial={{ x: "-100%" }}
         animate={{ x: 0 }}
@@ -81,23 +81,20 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
           </div>
         </div>
 
-        <div className="flex flex-1 min-h-0 flex-col md:flex-row">
-          <div className="border-b border-border md:w-52 md:border-b-0 md:border-r md:py-2">
-            <div className="flex gap-2 overflow-x-auto px-3 py-2 scrollbar-thin md:block md:space-y-0 md:px-0 md:py-0">
+        <div className="flex flex-1 min-h-0 flex-col">
+          <div className="border-b border-border">
+            <div className="flex gap-2 overflow-x-auto px-3 py-2 scrollbar-thin sm:px-4">
               {FILTER_CATEGORIES.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
-                  className={`shrink-0 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors md:flex md:w-full md:items-center md:justify-between md:rounded-none md:border-0 md:px-4 md:py-2.5 md:text-[13px] md:text-left ${
+                  className={`shrink-0 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors sm:text-[13px] ${
                     activeCategory === cat.id
-                      ? "border-primary bg-primary/10 text-foreground md:bg-surface-hover"
+                      ? "border-primary bg-primary/10 text-foreground"
                       : "border-border text-muted-foreground hover:text-foreground hover:bg-surface-hover"
                   }`}
                 >
                   <span>{cat.label}</span>
-                  <span className="hidden md:inline">
-                    {activeCategory === cat.id && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
-                  </span>
                 </button>
               ))}
             </div>
