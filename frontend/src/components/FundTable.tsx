@@ -65,6 +65,7 @@ const FundTable = ({
   const [draftDescription, setDraftDescription] = useState("");
   const [editorOpen, setEditorOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveAction, setSaveAction] = useState<"save" | "update" | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [activeSavedFilterId, setActiveSavedFilterId] = useState<string | null>(routeSavedFilterId ?? null);
 
@@ -170,6 +171,7 @@ const FundTable = ({
     setDraftDescription("");
     setEditorOpen(false);
     setSaving(false);
+    setSaveAction(null);
     setSaveError(null);
     setActiveSavedFilterId(null);
   }, [resetToken]);
@@ -218,6 +220,8 @@ const FundTable = ({
       setSaveError("Please sign in to save your filters.");
       return;
     }
+    const action: "save" | "update" = savedFilterExternalId ? "update" : "save";
+    setSaveAction(action);
     setSaving(true);
     try {
       const token = await user.getIdToken();
@@ -252,6 +256,7 @@ const FundTable = ({
       setSaveError(err instanceof Error ? err.message : "Failed to save filters.");
     } finally {
       setSaving(false);
+      setSaveAction(null);
     }
   };
 
@@ -327,7 +332,7 @@ const FundTable = ({
               onClick={handleSave}
               disabled={saving || !canSaveScreen}
             >
-              {saving ? (hasSavedScreen ? "Updating..." : "Saving...") : hasSavedScreen ? "Update" : "Save"}
+              {saving ? (saveAction === "update" ? "Updating..." : "Saving...") : hasSavedScreen ? "Update" : "Save"}
             </button>
           </div>
         </div>
