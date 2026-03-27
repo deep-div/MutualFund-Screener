@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "@/components/ui/sonner";
 
 const NAV_FORMATTER = new Intl.NumberFormat("en-IN", {
   minimumFractionDigits: 2,
@@ -268,11 +269,23 @@ const Navbar = () => {
   const handleNavClick = (item: NavItem) => {
     navigate("/");
     if (item === "All Screens") {
+      if (!isLoggedIn) {
+        toast("Sign in required", {
+          description: "Please sign in to access your screen library.",
+        });
+        return;
+      }
       setActiveScreenGroup(isLoggedIn ? "saved" : defaultFilterGroups[0]?.key ?? "saved");
       setScreenExplorerOpen(true);
       return;
     }
     if (item === "New Screen") {
+      if (!isLoggedIn) {
+        toast("Sign in required", {
+          description: "Please sign in to create and save a new screener.",
+        });
+        return;
+      }
       window.dispatchEvent(new CustomEvent(NEW_SCREEN_EVENT));
     }
   };
