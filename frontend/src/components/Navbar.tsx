@@ -20,6 +20,7 @@ const NAV_FORMATTER = new Intl.NumberFormat("en-IN", {
 
 const LEADERBOARDS_SESSION_KEY = "mf_leaderboards_cache";
 const LEADERBOARDS_LOADING_EVENT = "mf_leaderboards_loading";
+const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 
 const formatNav = (value?: number | null) =>
   typeof value === "number" ? `₹${NAV_FORMATTER.format(value)}` : "—";
@@ -183,6 +184,13 @@ const Navbar = () => {
     return () => document.body.classList.remove("search-dim");
   }, [isSearchActive]);
 
+  const handleNavClick = (item: "All Screens" | "New Screen") => {
+    navigate("/");
+    if (item === "New Screen") {
+      window.dispatchEvent(new CustomEvent(NEW_SCREEN_EVENT));
+    }
+  };
+
   return (
     <>
       {isSearchActive && (
@@ -215,6 +223,7 @@ const Navbar = () => {
               <button
                 key={item}
                 className="px-3 py-1.5 text-[13px] font-medium rounded-md transition-colors text-nav-foreground/60 hover:text-nav-foreground hover:bg-nav-hover"
+                onClick={() => handleNavClick(item as "All Screens" | "New Screen")}
               >
                 {item}
               </button>

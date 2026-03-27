@@ -9,12 +9,14 @@ import {
   FilterRangeMeta,
 } from "@/data/filters";
 import { useEffect, useMemo, useState } from "react";
+const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 
 const Index = () => {
   const sessionKey = "mfs:filters:temp";
   const [enabledFilters, setEnabledFilters] = useState<string[]>(DEFAULT_ENABLED_FILTERS);
   const [filterValues, setFilterValues] = useState<FilterValueMap>({});
   const [rangeMeta, setRangeMeta] = useState<FilterRangeMeta>({});
+  const [screenResetToken, setScreenResetToken] = useState(0);
 
   useEffect(() => {
     try {
@@ -112,6 +114,16 @@ const Index = () => {
     setFilterValues((prev) => ({ ...prev, [id]: nextValue }));
   };
 
+  useEffect(() => {
+    const handleNewScreen = () => {
+      handleReset();
+      setRangeMeta({});
+      setScreenResetToken((prev) => prev + 1);
+    };
+    window.addEventListener(NEW_SCREEN_EVENT, handleNewScreen);
+    return () => window.removeEventListener(NEW_SCREEN_EVENT, handleNewScreen);
+  }, []);
+
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       <TickerTape />
@@ -129,6 +141,7 @@ const Index = () => {
         <FundTable
           filters={filtersPayload}
           enabledFilters={enabledFilters}
+          resetToken={screenResetToken}
           onMetaChange={(meta) =>
             setRangeMeta((prev) => (Object.keys(prev).length > 0 ? prev : meta ?? {}))
           }

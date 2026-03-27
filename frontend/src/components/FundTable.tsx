@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
 import { FILTER_DEFINITIONS_BY_ID } from "@/data/filters";
-import { MoveUp, MoveDown, Pencil, Share2, Lock } from "lucide-react";
+import { MoveUp, MoveDown, Pencil, Lock } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,9 +34,10 @@ interface FundTableProps {
   filters: Record<string, Record<string, number | string | string[]>>;
   enabledFilters: string[];
   onMetaChange?: (meta: Record<string, { min: number | null; max: number | null }> | undefined) => void;
+  resetToken?: number;
 }
 
-const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) => {
+const FundTable = ({ filters, enabledFilters, onMetaChange, resetToken }: FundTableProps) => {
   const { user } = useAuth();
   const [sortKey, setSortKey] = useState<keyof SchemeListItem | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -51,6 +52,7 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
   const [editorOpen, setEditorOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [hasSavedScreen, setHasSavedScreen] = useState(false);
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
 
@@ -128,6 +130,18 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
   const canLoadMore = items.length < total;
   const displayTitle = title.trim() || DEFAULT_TITLE;
   const displayDescription = description.trim() || DEFAULT_DESCRIPTION;
+  const canSaveScreen = title.trim().length > 0 && description.trim().length > 0;
+
+  useEffect(() => {
+    setTitle("");
+    setDescription("");
+    setDraftTitle("");
+    setDraftDescription("");
+    setEditorOpen(false);
+    setSaving(false);
+    setSaveError(null);
+    setHasSavedScreen(false);
+  }, [resetToken]);
 
   const handleOpenChange = (open: boolean) => {
     setEditorOpen(open);
@@ -140,6 +154,7 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
   const applyDraft = () => {
     setTitle(draftTitle.trim());
     setDescription(draftDescription.trim());
+    setSaveError(null);
     setEditorOpen(false);
   };
 
@@ -168,6 +183,7 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
         payload.sort_order = sortDir;
       }
       await saveUserFilters(token, payload);
+      setHasSavedScreen(true);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "Failed to save filters.");
     } finally {
@@ -231,15 +247,12 @@ const FundTable = ({ filters, enabledFilters, onMetaChange }: FundTableProps) =>
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
-            <button className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors">
-              <Share2 className="w-3.5 h-3.5 text-muted-foreground" />
-            </button>
             <button
               className="px-4 py-2 bg-foreground text-background rounded-md text-[13px] font-medium hover:bg-foreground/90 transition-colors disabled:opacity-60"
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || !canSaveScreen}
             >
-              {saving ? "Saving..." : "Save"}
+              {saving ? (hasSavedScreen ? "Updating..." : "Saving...") : hasSavedScreen ? "Update" : "Save"}
             </button>
           </div>
         </div>
