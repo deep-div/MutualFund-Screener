@@ -99,6 +99,11 @@ const Navbar = () => {
     () => defaultFilterGroups.find((group) => group.key === activeScreenGroup) ?? null,
     [defaultFilterGroups, activeScreenGroup]
   );
+  const closeAndClearSearch = () => {
+    setSearchOpen(false);
+    setSearchFocused(false);
+    setSearchQuery("");
+  };
 
   useEffect(() => {
     const readBestPerformers = () => {
@@ -147,9 +152,7 @@ const Navbar = () => {
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       if (!searchRef.current?.contains(event.target as Node)) {
-        setSearchOpen(false);
-        setSearchFocused(false);
-        setSearchQuery("");
+        closeAndClearSearch();
       }
     };
     document.addEventListener("mousedown", handleOutsideClick);
@@ -332,10 +335,7 @@ const Navbar = () => {
       {isSearchActive && (
         <div
           className="fixed inset-0 bg-black/60 z-[55]"
-          onClick={() => {
-            setSearchOpen(false);
-            setSearchFocused(false);
-          }}
+          onClick={closeAndClearSearch}
         />
       )}
 
@@ -439,9 +439,8 @@ const Navbar = () => {
                                 key={`top-gain-${externalId ?? item.scheme_sub_name}`}
                                 to={`/${schemeSlug}/${externalId}`}
                                 onClick={() => {
+                                  closeAndClearSearch();
                                   if (externalId === undefined || externalId === null) return;
-                                  setSearchOpen(false);
-                                  setSearchFocused(false);
                                 }}
                                 className="block w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors font-normal focus-visible:outline-none"
                               >
@@ -486,9 +485,8 @@ const Navbar = () => {
                                 key={`top-lose-${externalId ?? item.scheme_sub_name}`}
                                 to={`/${schemeSlug}/${externalId}`}
                                 onClick={() => {
+                                  closeAndClearSearch();
                                   if (externalId === undefined || externalId === null) return;
-                                  setSearchOpen(false);
-                                  setSearchFocused(false);
                                 }}
                                 className="block w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors font-normal focus-visible:outline-none"
                               >
@@ -533,9 +531,8 @@ const Navbar = () => {
                                 key={`top-perf-${externalId ?? item.scheme_sub_name}`}
                                 to={`/${schemeSlug}/${externalId}`}
                                 onClick={() => {
+                                  closeAndClearSearch();
                                   if (externalId === undefined || externalId === null) return;
-                                  setSearchOpen(false);
-                                  setSearchFocused(false);
                                 }}
                                 className="block w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors font-normal focus-visible:outline-none"
                               >
@@ -601,9 +598,8 @@ const Navbar = () => {
                           key={externalId ?? item.scheme_sub_name}
                           to={`/${schemeSlug}/${externalId}`}
                           onClick={() => {
+                            closeAndClearSearch();
                             if (externalId === undefined || externalId === null) return;
-                            setSearchOpen(false);
-                            setSearchFocused(false);
                           }}
                           className="block w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors font-normal focus-visible:outline-none"
                         >
