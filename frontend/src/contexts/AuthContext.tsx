@@ -91,6 +91,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       updateDisplayName: async (displayName: string) => {
         if (!auth.currentUser) throw new Error("No active user");
         await updateProfile(auth.currentUser, { displayName: displayName.trim() });
+        const refreshedToken = await auth.currentUser.getIdToken(true);
+        await syncUser(refreshedToken);
       },
       sendVerificationEmail: async () => {
         if (!auth.currentUser) throw new Error("No active user");
