@@ -22,7 +22,7 @@ const NAV_FORMATTER = new Intl.NumberFormat("en-IN", {
 const LEADERBOARDS_SESSION_KEY = "mf_leaderboards_cache";
 const LEADERBOARDS_LOADING_EVENT = "mf_leaderboards_loading";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
-const SAVED_FILTERS_BATCH_SIZE = 8;
+const SAVED_FILTERS_BATCH_SIZE = 10;
 
 const formatNav = (value?: number | null) =>
   typeof value === "number" ? `₹${NAV_FORMATTER.format(value)}` : "—";
@@ -696,11 +696,11 @@ const Navbar = () => {
                         savedListScrollable ? "overflow-y-auto" : "overflow-y-hidden"
                       }`}
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
                       {savedFilters.map((item) => (
                         <button
                           key={item.external_id}
-                          className="w-full text-left rounded-xl border border-slate-200 p-3 hover:bg-slate-50 transition-colors"
+                          className="w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 hover:bg-slate-50 transition-colors"
                           onClick={() => {
                             navigate(`/filters/${item.external_id}`);
                             setScreenExplorerOpen(false);
@@ -719,7 +719,7 @@ const Navbar = () => {
                     {savedFilters.length < savedFiltersTotal && (
                       <div className="mt-4 pt-3 border-t border-slate-200 flex justify-center">
                         <button
-                          className="w-full max-w-[260px] px-4 py-2.5 text-[13px] rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-colors font-medium shadow-sm"
+                          className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-[13px] font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
                           onClick={() => void handleLoadMoreSavedFilters()}
                           disabled={savedFiltersLoadingMore}
                         >
