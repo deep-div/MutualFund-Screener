@@ -9,7 +9,7 @@ const DOWN_ARROW = "\u25BC";
 const SESSION_KEY = "mf_leaderboards_ticker";
 const LEADERBOARDS_SESSION_KEY = "mf_leaderboards_cache";
 const LEADERBOARDS_LOADING_EVENT = "mf_leaderboards_loading";
-const TICKER_PIXELS_PER_SECOND = 30;
+const TICKER_PIXELS_PER_SECOND = 40;
 const MIN_TICKER_DURATION_SECONDS = 12;
 const MAX_TICKER_DURATION_SECONDS = 45;
 
