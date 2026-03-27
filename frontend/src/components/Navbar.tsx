@@ -690,10 +690,10 @@ const Navbar = () => {
           <div className="w-full max-w-[920px] h-full bg-background border border-slate-200 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto">
             <div className="grid grid-cols-[240px_1fr] h-full">
               <div className="bg-[#f1f1f1] border-r border-slate-200 p-4">
-                <p className="text-[11px] uppercase tracking-wide text-slate-500 mb-4">Explore Screens</p>
-                <div className="space-y-2">
+                <p className="text-[12px] font-semibold uppercase tracking-wider text-slate-600 mb-5">Screen Categories</p>
+                <div className="space-y-3">
                   <button
-                    className={`w-full text-left px-3 py-2 rounded-md text-[14px] font-medium border inline-flex items-center gap-2 transition-colors ${
+                    className={`w-full text-left px-3 py-2.5 rounded-md text-[14px] font-medium border inline-flex items-center gap-2 transition-colors ${
                       activeScreenGroup === "saved"
                         ? "bg-white text-slate-900 border-slate-200"
                         : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"
@@ -707,7 +707,7 @@ const Navbar = () => {
                   {defaultFilterGroups.map((group) => (
                     <button
                       key={group.key}
-                      className={`w-full text-left px-3 py-2 rounded-md text-[14px] font-medium border transition-colors ${
+                      className={`w-full text-left px-3 py-2.5 rounded-md text-[14px] font-medium border transition-colors ${
                         activeScreenGroup === group.key
                           ? "bg-white text-slate-900 border-slate-200"
                           : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"
@@ -779,7 +779,7 @@ const Navbar = () => {
                                 setScreenExplorerOpen(false);
                               }}
                             >
-                              <div className="text-[14px] font-semibold text-slate-900">
+                              <div className="text-[17px] leading-6 font-semibold text-slate-900">
                                 {item.name?.trim() || "Untitled Screen"}
                               </div>
                               <div className="text-[12px] text-slate-600 mt-1 line-clamp-2">
@@ -816,7 +816,7 @@ const Navbar = () => {
                             setScreenExplorerOpen(false);
                           }}
                         >
-                          <div className="text-[14px] font-semibold text-slate-900">
+                          <div className="text-[17px] leading-6 font-semibold text-slate-900">
                             {item.name?.trim() || "Untitled Screen"}
                           </div>
                           <div className="text-[12px] text-slate-600 mt-1 line-clamp-2">
