@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ChevronDown, LogOut, User } from "lucide-react";
+import { Search, ChevronDown, LogOut, User, Bookmark } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
@@ -658,8 +658,9 @@ const Navbar = () => {
             <div className="grid grid-cols-[240px_1fr] h-full">
               <div className="bg-[#f1f1f1] border-r border-slate-200 p-4">
                 <p className="text-[11px] uppercase tracking-wide text-slate-500 mb-4">Explore Screens</p>
-                <button className="w-full text-left px-3 py-2 rounded-md bg-white text-slate-900 text-[14px] font-medium border border-slate-200">
-                  Saved
+                <button className="w-full text-left px-3 py-2 rounded-md bg-white text-slate-900 text-[14px] font-medium border border-slate-200 inline-flex items-center gap-2">
+                  <Bookmark className="w-4 h-4 text-[hsl(var(--nav))] fill-[hsl(var(--nav))]" />
+                  <span>Saved</span>
                 </button>
               </div>
 
@@ -692,7 +693,7 @@ const Navbar = () => {
                 ) : (
                   <>
                     <div
-                      className={`flex-1 min-h-0 pr-1 ${
+                      className={`flex-1 min-h-0 pr-1 scrollbar-thin ${
                         savedListScrollable ? "overflow-y-auto" : "overflow-y-hidden"
                       }`}
                     >
