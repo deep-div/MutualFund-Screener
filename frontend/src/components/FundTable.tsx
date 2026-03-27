@@ -205,6 +205,11 @@ const FundTable = ({
   ]);
 
   const openEditor = () => {
+    if (!user) {
+      setSaveError("Please sign in to edit and save screens.");
+      return;
+    }
+    setSaveError(null);
     setDraftTitle(title);
     setDraftDescription(description);
     setEditorOpen(true);
@@ -220,7 +225,7 @@ const FundTable = ({
   const handleSave = async () => {
     setSaveError(null);
     if (!user) {
-      setSaveError("Please sign in to save your filters.");
+      setSaveError("Please sign in to edit and save screens.");
       return;
     }
     const action: "save" | "update" = savedFilterExternalId ? "update" : "save";
@@ -325,15 +330,18 @@ const FundTable = ({
           </div>
           <div className="flex items-center gap-2 ml-4">
             <button
-              className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors"
+              className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={openEditor}
+              disabled={!user || saving}
+              title={!user ? "Sign in to edit this screen" : "Edit screen"}
             >
               <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
             <button
               className="px-4 py-2 bg-[#0f1729] text-white rounded-md text-[13px] font-medium hover:bg-[#0b1322] transition-colors disabled:opacity-60"
               onClick={handleSave}
-              disabled={saving || !canSaveScreen}
+              disabled={!user || saving || !canSaveScreen}
+              title={!user ? "Sign in to save this screen" : undefined}
             >
               {saving ? (saveAction === "update" ? "Updating..." : "Saving...") : hasSavedScreen ? "Update" : "Save"}
             </button>
