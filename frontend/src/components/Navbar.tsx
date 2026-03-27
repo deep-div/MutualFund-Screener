@@ -294,7 +294,7 @@ const Navbar = () => {
         />
       )}
 
-      <nav ref={navRef} className="h-14 bg-nav border-b border-nav-hover flex items-center pl-6 pr-0 relative z-[70]">
+      <nav ref={navRef} className="h-14 bg-[#0f1729] border-b border-nav-hover flex items-center pl-6 pr-0 relative z-[70]">
 
         {/* LEFT: Logo */}
         <Link
@@ -721,7 +721,7 @@ const Navbar = () => {
                     {savedFilters.length < savedFiltersTotal && (
                       <div className="mt-4 pt-3 border-t border-slate-200 flex justify-center">
                         <button
-                          className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-[13px] font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+                          className="px-4 py-2 bg-[#0f1729] text-white rounded-md text-[13px] font-medium hover:bg-[#0b1322] transition-colors disabled:opacity-50"
                           onClick={() => void handleLoadMoreSavedFilters()}
                           disabled={savedFiltersLoadingMore}
                         >

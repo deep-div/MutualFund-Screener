@@ -295,7 +295,7 @@ const FundTable = ({
                   Cancel
                 </button>
                 <button
-                  className="w-24 px-3 py-2 text-[12px] bg-foreground text-background rounded-md font-medium hover:bg-foreground/90 transition-colors"
+                  className="w-24 px-3 py-2 text-[12px] bg-[#0f1729] text-white rounded-md font-medium hover:bg-[#0b1322] transition-colors"
                   onClick={applyDraft}
                 >
                   OK
@@ -323,7 +323,7 @@ const FundTable = ({
               <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
             <button
-              className="px-4 py-2 bg-foreground text-background rounded-md text-[13px] font-medium hover:bg-foreground/90 transition-colors disabled:opacity-60"
+              className="px-4 py-2 bg-[#0f1729] text-white rounded-md text-[13px] font-medium hover:bg-[#0b1322] transition-colors disabled:opacity-60"
               onClick={handleSave}
               disabled={saving || !canSaveScreen}
             >
