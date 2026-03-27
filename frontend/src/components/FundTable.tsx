@@ -387,14 +387,14 @@ const FundTable = ({
                 </button>
               </div>
               {formattedLastUpdated && (
-                <p className="mt-2 text-right text-[11px] text-muted-foreground">
+                <p className="mt-3 text-right text-[11px] text-muted-foreground">
                   Last updated {formattedLastUpdated}
                 </p>
               )}
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between mt-3">
+        <div className="flex items-center justify-between mt-0.1">
           <p className="text-[13px]">
             <span className="text-muted-foreground">Showing </span>
             <span className="text-primary font-medium">1 - {items.length}</span>
