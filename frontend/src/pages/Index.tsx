@@ -10,15 +10,13 @@ import {
 } from "@/data/filters";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserFilters } from "@/services/userService";
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
-const SAVED_FILTER_QUERY_KEY = "saved_filter_id";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
-  const [searchParams] = useSearchParams();
-  const savedFilterId = searchParams.get(SAVED_FILTER_QUERY_KEY);
+  const { savedFilterId } = useParams<{ savedFilterId?: string }>();
   const sessionKey = "mfs:filters:temp";
   const [enabledFilters, setEnabledFilters] = useState<string[]>(DEFAULT_ENABLED_FILTERS);
   const [filterValues, setFilterValues] = useState<FilterValueMap>({});
@@ -29,6 +27,7 @@ const Index = () => {
   const [initialSortField, setInitialSortField] = useState<string | null>(null);
   const [initialSortOrder, setInitialSortOrder] = useState<"asc" | "desc" | null>(null);
   const [restoredFilterExternalId, setRestoredFilterExternalId] = useState<string | null>(null);
+  const [restoringSavedFilter, setRestoringSavedFilter] = useState(false);
 
   useEffect(() => {
     if (savedFilterId) return;
@@ -147,13 +146,18 @@ const Index = () => {
     }
   }, [savedFilterId]);
 
-  useEffect(() => {
-    if (!savedFilterId || authLoading || !user) return;
-    const applySavedScreen = async () => {
+  const applySavedScreenByExternalId = useCallback(
+    async (externalId: string) => {
+      if (authLoading || !user || !externalId) return;
+      const normalizedExternalId = externalId.trim().toLowerCase();
+      if (!normalizedExternalId) return;
       try {
+        setRestoringSavedFilter(true);
         const token = await user.getIdToken();
         const response = await getUserFilters(token);
-        const selected = response.filters.find((item) => item.external_id === savedFilterId);
+        const selected = response.filters.find(
+          (item) => item.external_id?.trim().toLowerCase() === normalizedExternalId
+        );
         if (!selected) {
           setRestoredFilterExternalId(null);
           return;
@@ -189,11 +193,25 @@ const Index = () => {
         setRestoredFilterExternalId(selected.external_id);
       } catch {
         // If restore fails, keep current in-memory/local state.
+      } finally {
+        setRestoringSavedFilter(false);
       }
-    };
+    },
+    [authLoading, user]
+  );
 
-    void applySavedScreen();
-  }, [savedFilterId, authLoading, user]);
+  useEffect(() => {
+    if (!savedFilterId || authLoading || !user || restoringSavedFilter) return;
+    if (restoredFilterExternalId?.trim().toLowerCase() === savedFilterId.trim().toLowerCase()) return;
+    void applySavedScreenByExternalId(savedFilterId);
+  }, [
+    savedFilterId,
+    authLoading,
+    user,
+    restoredFilterExternalId,
+    restoringSavedFilter,
+    applySavedScreenByExternalId,
+  ]);
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
@@ -218,6 +236,7 @@ const Index = () => {
           initialSortField={initialSortField}
           initialSortOrder={initialSortOrder}
           restoredFilterExternalId={restoredFilterExternalId}
+          onSavedFilterCreated={applySavedScreenByExternalId}
           onMetaChange={(meta) =>
             setRangeMeta((prev) => (Object.keys(prev).length > 0 ? prev : meta ?? {}))
           }

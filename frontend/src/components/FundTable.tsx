@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
@@ -16,7 +16,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { saveUserFilters, updateUserFilters } from "@/services/userService";
 const LIMIT = 15;
 const SKELETON_ROWS = 10;
-const SAVED_FILTER_QUERY_KEY = "saved_filter_id";
 const DEFAULT_TITLE = "Mutual Funds Screener";
 const DEFAULT_DESCRIPTION =
   "Add a note explaining the purpose behind creating this - such as \"Top 5 ELSS funds for tax saving,\" \"High-performing mid-cap funds,\" or \"My SIP growth selections.\"";
@@ -41,6 +40,7 @@ interface FundTableProps {
   initialSortField?: string | null;
   initialSortOrder?: "asc" | "desc" | null;
   restoredFilterExternalId?: string | null;
+  onSavedFilterCreated?: (externalId: string) => Promise<void> | void;
 }
 
 const FundTable = ({
@@ -53,9 +53,11 @@ const FundTable = ({
   initialSortField,
   initialSortOrder,
   restoredFilterExternalId,
+  onSavedFilterCreated,
 }: FundTableProps) => {
   const { user } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { savedFilterId: routeSavedFilterId } = useParams<{ savedFilterId?: string }>();
   const [sortKey, setSortKey] = useState<keyof SchemeListItem | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [items, setItems] = useState<SchemeListItem[]>([]);
@@ -69,9 +71,7 @@ const FundTable = ({
   const [editorOpen, setEditorOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [activeSavedFilterId, setActiveSavedFilterId] = useState<string | null>(
-    searchParams.get(SAVED_FILTER_QUERY_KEY)
-  );
+  const [activeSavedFilterId, setActiveSavedFilterId] = useState<string | null>(routeSavedFilterId ?? null);
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
 
@@ -150,12 +150,12 @@ const FundTable = ({
   const displayTitle = title.trim() || DEFAULT_TITLE;
   const displayDescription = description.trim() || DEFAULT_DESCRIPTION;
   const canSaveScreen = title.trim().length > 0 && description.trim().length > 0;
-  const savedFilterExternalId = activeSavedFilterId ?? searchParams.get(SAVED_FILTER_QUERY_KEY);
+  const savedFilterExternalId = activeSavedFilterId ?? routeSavedFilterId ?? null;
   const hasSavedScreen = Boolean(savedFilterExternalId);
 
   useEffect(() => {
-    setActiveSavedFilterId(searchParams.get(SAVED_FILTER_QUERY_KEY));
-  }, [searchParams]);
+    setActiveSavedFilterId(routeSavedFilterId ?? null);
+  }, [routeSavedFilterId]);
 
   useEffect(() => {
     setTitle("");
@@ -240,9 +240,8 @@ const FundTable = ({
         const response = (await saveUserFilters(token, payload)) as { external_id?: string };
         if (response?.external_id) {
           setActiveSavedFilterId(response.external_id);
-          const next = new URLSearchParams(searchParams);
-          next.set(SAVED_FILTER_QUERY_KEY, response.external_id);
-          setSearchParams(next, { replace: true });
+          navigate(`/filters/${response.external_id}`, { replace: true });
+          await onSavedFilterCreated?.(response.external_id);
         }
       }
     } catch (err) {

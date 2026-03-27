@@ -21,6 +21,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/filters/:savedFilterId" element={<Index />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/:schemeSlug/:schemeId" element={<FundAnalytics />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
