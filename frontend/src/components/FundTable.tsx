@@ -11,9 +11,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { saveUserFilters, updateUserFilters } from "@/services/userService";
 const LIMIT = 15;
 const SKELETON_ROWS = 10;
-const DEFAULT_TITLE = "Mutual Funds Screener";
+const DEFAULT_TITLE = "Mutual Fund Screener";
 const DEFAULT_DESCRIPTION =
-  "Add a note explaining the purpose behind creating this - such as \"Top 5 ELSS funds for tax saving,\" \"High-performing mid-cap funds,\" or \"My SIP growth selections.\"";
+  "Describe the purpose of this screen (e.g., tax-saving, growth, or tracking)";
 
 const baseColumns: Array<{
   key: keyof SchemeListItem;
@@ -282,8 +282,8 @@ const FundTable = ({
                   id="screen-description"
                   value={draftDescription}
                   placeholder={DEFAULT_DESCRIPTION}
-                  rows={9}
-                  className="w-full h-full min-h-[190px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                  rows={4}
+                  className="w-full h-full min-h-[130px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                   onChange={(event) => setDraftDescription(event.target.value)}
                 />
               </div>
