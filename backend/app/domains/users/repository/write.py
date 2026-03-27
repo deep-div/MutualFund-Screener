@@ -129,15 +129,18 @@ def add_user_filters(
     description: str | None = None,
     sort_field: str | None = None,
     sort_order: str | None = None,
+    enabled_filters: list[str] | None = None,
 ) -> str:
     """Store applied filters for a user as a new entry. Returns external_id."""
     with get_session() as session:
         try:
-            filters_payload = {
-                "filters": filters,
-                "sort_field": sort_field,
-                "sort_order": sort_order,
-            }
+            filters_payload = {"filters": filters or {}}
+            if sort_field:
+                filters_payload["sort_field"] = sort_field
+            if sort_order:
+                filters_payload["sort_order"] = sort_order
+            if enabled_filters:
+                filters_payload["enabled_filters"] = enabled_filters
             external_id = None
             while external_id is None:
                 candidate = generate_external_id()

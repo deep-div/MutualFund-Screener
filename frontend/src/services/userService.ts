@@ -12,6 +12,7 @@ export const saveUserFilters = async (
     filters: Record<string, Record<string, number | string | string[]>>;
     sort_field?: string;
     sort_order?: "asc" | "desc";
+    enabled_filters?: string[];
   }
 ) => {
   return apiPost("/api/v1/users/filters", payload, { params: { token: token } });

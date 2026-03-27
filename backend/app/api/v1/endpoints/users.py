@@ -140,6 +140,7 @@ def add_filters(payload: UserFilterCreate, token: str = Query(...)):
             description=payload.description,
             sort_field=payload.sort_field,
             sort_order=payload.sort_order,
+            enabled_filters=payload.enabled_filters,
         )
         return {"status": "ok", "external_id": external_id}
     except Exception as exc:

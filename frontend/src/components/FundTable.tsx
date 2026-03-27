@@ -173,10 +173,12 @@ const FundTable = ({ filters, enabledFilters, onMetaChange, resetToken }: FundTa
         filters: Record<string, Record<string, number | string | string[]>>;
         sort_field?: string;
         sort_order?: "asc" | "desc";
+        enabled_filters: string[];
       } = {
         name: displayTitle,
         description: displayDescription,
         filters,
+        enabled_filters: enabledFilters,
       };
       if (sortKey) {
         payload.sort_field = String(sortKey);

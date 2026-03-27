@@ -37,6 +37,7 @@ class UserFilterCreate(BaseModel):
                 },
                 "sort_field": "cagr_3y",
                 "sort_order": "desc",
+                "enabled_filters": ["scheme_class", "cagr_3y", "cagr_2y"],
             }
         }
     )
@@ -50,10 +51,7 @@ class UserFilterCreate(BaseModel):
         examples=["Equity funds with 3Y CAGR >= 15"],
     )
     filters: dict[str, Any] = Field(
-        default_factory=lambda: {
-            "scheme_class": {"eq": "Equity"},
-            "cagr_3y": {"gte": 15},
-        },
+        default_factory=dict,
         examples=[
             {
                 "scheme_class": {"eq": "Equity"},
@@ -62,10 +60,14 @@ class UserFilterCreate(BaseModel):
         ],
     )
     sort_field: str | None = Field(
-        default="cagr_3y",
+        default=None,
         examples=["cagr_3y", "expense_ratio", "aum"],
     )
     sort_order: str | None = Field(
-        default="desc",
+        default=None,
         examples=["desc", "asc"],
+    )
+    enabled_filters: list[str] = Field(
+        default_factory=list,
+        examples=[["scheme_class", "cagr_3y", "cagr_2y"]],
     )
