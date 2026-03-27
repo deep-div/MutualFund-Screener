@@ -403,7 +403,7 @@ const FundTable = ({
             <span className="text-muted-foreground"> results</span>
           </p>
         </div>
-        {saveError && <div className="mt-2 text-xs text-negative">{saveError}</div>}
+        {saveError && <div className="mt-3 text-xs text-negative">{saveError}</div>}
       </div>
 
       <div className="flex-1 min-h-0">
