@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Search, Check, ChevronRight } from "lucide-react";
+import { Search, Check, ChevronRight, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { FILTER_CATEGORIES, FILTER_DEFINITIONS, PINNED_FILTERS } from "@/data/filters";
 
@@ -46,7 +46,7 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
       className="absolute inset-0 z-50"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-transparent" />
+      <div className="absolute inset-0 bg-black/10 md:bg-transparent" />
       <motion.div
         initial={{ x: "-100%" }}
         animate={{ x: 0 }}
@@ -55,51 +55,62 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
         onClick={(e) => e.stopPropagation()}
         className="absolute inset-y-0 left-0 w-full bg-background border border-border shadow-2xl overflow-hidden flex flex-col md:left-72 md:w-[640px] md:rounded-2xl"
       >
-        <div className="flex flex-col gap-3 px-4 py-3 border-b border-border sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-border bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div>
             <h2 className="text-[15px] font-semibold text-foreground">Add Filters</h2>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex w-full items-center gap-2 bg-background border border-border rounded-md px-3 py-1.5 hover:bg-[#f1f1f1] transition-colors sm:w-52">
               <Search className="w-3.5 h-3.5 text-muted-foreground" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onBlur={() => setSearchQuery("")}
                 placeholder="Search for Filters"
                 className="bg-transparent text-[12px] text-foreground placeholder:text-muted-foreground outline-none w-full"
               />
             </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-surface-hover md:hidden"
+              aria-label="Close add filters"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
         <div className="flex flex-1 min-h-0 flex-col md:flex-row">
-          <div className="border-b border-border py-2 md:w-52 md:border-b-0 md:border-r">
-            {FILTER_CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`w-full text-left px-4 py-2.5 text-[13px] font-medium transition-colors flex items-center justify-between md:w-full ${
-                  activeCategory === cat.id
-                    ? "text-foreground bg-surface-hover"
-                    : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
-                }`}
-              >
-                <span>{cat.label}</span>
-                {activeCategory === cat.id && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
-              </button>
-            ))}
+          <div className="border-b border-border md:w-52 md:border-b-0 md:border-r md:py-2">
+            <div className="flex gap-2 overflow-x-auto px-3 py-2 scrollbar-thin md:block md:space-y-0 md:px-0 md:py-0">
+              {FILTER_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`shrink-0 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors md:flex md:w-full md:items-center md:justify-between md:rounded-none md:border-0 md:px-4 md:py-2.5 md:text-[13px] md:text-left ${
+                    activeCategory === cat.id
+                      ? "border-primary bg-primary/10 text-foreground md:bg-surface-hover"
+                      : "border-border text-muted-foreground hover:text-foreground hover:bg-surface-hover"
+                  }`}
+                >
+                  <span>{cat.label}</span>
+                  <span className="hidden md:inline">
+                    {activeCategory === cat.id && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="flex-1 py-2 overflow-y-auto scrollbar-thin">
+          <div className="flex-1 overflow-y-auto py-2 scrollbar-thin">
             {visibleFilters.map((filter) => {
               const checked = enabledFilters.includes(filter.id);
               return (
                 <label
                   key={filter.id}
                   onClick={() => toggleFilter(filter.id)}
-                  className="flex items-center gap-3 px-6 py-2.5 hover:bg-[#f1f1f1] transition-colors cursor-pointer"
+                  className="flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-[#f1f1f1] sm:px-6 sm:py-2.5"
                 >
                   <div
                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
@@ -117,8 +128,9 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
           </div>
         </div>
 
-        <div className="mt-auto flex items-center justify-between px-6 py-3 border-t border-border bg-popover">
+        <div className="mt-auto flex items-center justify-between border-t border-border bg-popover px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+            {enabledFilters.length} selected
           </div>
           <button
             onClick={onClose}

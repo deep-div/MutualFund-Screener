@@ -191,7 +191,7 @@ const FilterSidebar = ({
           </span>
           <button
             onClick={onReset}
-            className="text-[12px] font-medium text-foreground border border-border rounded px-2.5 py-1 hover:bg-surface-hover transition-colors"
+            className="mr-8 text-[12px] font-medium text-foreground border border-border rounded px-2.5 py-1 hover:bg-surface-hover transition-colors lg:mr-0"
           >
             Reset all
           </button>
