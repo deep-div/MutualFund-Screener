@@ -73,6 +73,7 @@ const FundTable = ({
   const [activeSavedFilterId, setActiveSavedFilterId] = useState<string | null>(routeSavedFilterId ?? null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  const [headerLoading, setHeaderLoading] = useState(false);
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
 
@@ -174,6 +175,7 @@ const FundTable = ({
   const hasSavedScreen = Boolean(
     savedFilterExternalId && USER_FILTER_ID_REGEX.test(savedFilterExternalId.trim())
   );
+  const isNewScreen = !savedFilterExternalId && title.trim().length === 0 && description.trim().length === 0;
 
   useEffect(() => {
     setActiveSavedFilterId(routeSavedFilterId ?? null);
@@ -190,7 +192,20 @@ const FundTable = ({
     setSaveError(null);
     setActiveSavedFilterId(null);
     setLastUpdatedAt(null);
+    setHeaderLoading(true);
+    const timer = window.setTimeout(() => setHeaderLoading(false), 250);
+    return () => window.clearTimeout(timer);
   }, [resetToken]);
+
+  useEffect(() => {
+    if (!isNewScreen) {
+      setHeaderLoading(false);
+      return;
+    }
+    setHeaderLoading(true);
+    const timer = window.setTimeout(() => setHeaderLoading(false), 250);
+    return () => window.clearTimeout(timer);
+  }, [isNewScreen]);
 
   useEffect(() => {
     if (!savedFilterExternalId) return;
@@ -355,12 +370,21 @@ const FundTable = ({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                <h1 className="text-[18px] font-semibold text-foreground tracking-tight">
-                  {displayTitle}
-                </h1>
-                <p className="text-[13px] text-muted-foreground leading-relaxed">
-                  {displayDescription}
-                </p>
+                {headerLoading ? (
+                  <>
+                    <Skeleton className="h-5 w-44" />
+                    <Skeleton className="h-4 w-[360px]" />
+                  </>
+                ) : (
+                  <>
+                    <h1 className="text-[18px] font-semibold text-foreground tracking-tight">
+                      {displayTitle}
+                    </h1>
+                    <p className="text-[13px] text-muted-foreground leading-relaxed">
+                      {displayDescription}
+                    </p>
+                  </>
+                )}
               </div>
             </div>
             <div className="shrink-0">
