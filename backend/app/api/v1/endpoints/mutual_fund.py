@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Path
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Path
 
 from app.domains.mutual_fund.repository.read import (
     get_filtered_schemes,
@@ -8,6 +8,7 @@ from app.domains.mutual_fund.repository.read import (
 )
 from app.orchestrator.pipeline import run_pipeline
 from app.core.logging import logger
+from app.core.security import verify_pipeline_trigger_api_key
 from app.api.v1.schemas import SchemeListRequest
 
 router = APIRouter()
@@ -21,12 +22,17 @@ def _run_pipeline_background():
 
 
 @router.post("/pipeline/trigger", status_code=202)
-def run_pipeline_api(background_tasks: BackgroundTasks):
+def run_pipeline_api(
+    background_tasks: BackgroundTasks,
+    _auth: None = Depends(verify_pipeline_trigger_api_key),
+):
     try:
         background_tasks.add_task(_run_pipeline_background)
+        logger.info("Pipeline queued via API")
         return {"status": "queued"}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to queue pipeline: {exc}")
+        logger.error(f"Failed to queue pipeline job: {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to queue pipeline job")
 
 
 @router.post("/schemes")
