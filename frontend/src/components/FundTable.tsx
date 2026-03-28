@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
-import { FILTER_DEFINITIONS_BY_ID } from "@/data/filters";
+import { DEFAULT_ENABLED_FILTERS, FILTER_DEFINITIONS_BY_ID } from "@/data/filters";
 import { MoveUp, MoveDown, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,6 +76,10 @@ const FundTable = ({
   const [headerLoading, setHeaderLoading] = useState(false);
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
+  const requiresAuthForFilters = useMemo(
+    () => !user && enabledFilters.some((id) => !DEFAULT_ENABLED_FILTERS.includes(id)),
+    [enabledFilters, user]
+  );
 
   const formatNumber = (val: number) => {
     return val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -119,6 +123,14 @@ const FundTable = ({
   };
 
   const fetchPage = async (nextOffset: number, append: boolean) => {
+    if (requiresAuthForFilters) {
+      setLoading(false);
+      setError(null);
+      setItems([]);
+      setTotal(0);
+      onMetaChange?.(undefined);
+      return;
+    }
     setLoading(true);
     setError(null);
     if (!append) {
@@ -154,7 +166,7 @@ const FundTable = ({
 
   useEffect(() => {
     fetchPage(0, false);
-  }, [filterKey, sortKey, sortDir]);
+  }, [filterKey, sortKey, sortDir, requiresAuthForFilters]);
 
   useEffect(() => {
     if (!editorOpen) return;
@@ -434,7 +446,7 @@ const FundTable = ({
 
       <div className="flex-1 min-h-0">
         <div
-          className="h-full w-full overflow-y-auto overflow-x-hidden scrollbar-thin"
+          className="relative h-full w-full overflow-y-auto overflow-x-hidden scrollbar-thin"
           onScroll={(event) => {
             const nextCollapsed = event.currentTarget.scrollTop > 24;
             setIsHeaderCollapsed((previous) =>
@@ -553,8 +565,20 @@ const FundTable = ({
             </table>
           </div>
 
-          {error && <div className="p-4 text-sm text-negative">{error}</div>}
-          {!loading && items.length === 0 && !error && (
+          {requiresAuthForFilters && !loading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center px-4">
+              <div className="w-full max-w-md rounded-xl border border-dashed border-border bg-background/90 p-6 text-center shadow-md">
+                <p className="text-[14px] font-semibold text-foreground">Sign in to apply filters</p>
+                <p className="mt-2 text-[12px] text-muted-foreground">
+                  Create an account to unlock advanced filters and save your screens.
+                </p>
+              </div>
+            </div>
+          )}
+          {!requiresAuthForFilters && error && (
+            <div className="p-4 text-sm text-negative">{error}</div>
+          )}
+          {!requiresAuthForFilters && !loading && items.length === 0 && !error && (
             <div className="p-4 text-sm text-muted-foreground">No schemes found.</div>
           )}
 
