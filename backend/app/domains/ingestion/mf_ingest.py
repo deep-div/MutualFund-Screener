@@ -5,11 +5,8 @@ import asyncio
 import aiohttp
 import nest_asyncio
 import re
-import time
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 from app.domains.ingestion.schemas import (
     InstrumentType,
     MutualFundNavResponse,
@@ -33,82 +30,6 @@ class MFAPIFetcher:
         self.base_url = base_url
         self.max_concurrent = max_concurrent
         logger.info("MFAPIFetcher initialized")
-
-    @staticmethod
-    def _requests_session_with_retries() -> requests.Session:
-        """Create a requests session with network/read retry strategy."""
-        retry = Retry(
-            total=5,
-            connect=5,
-            read=5,
-            status=5,
-            backoff_factor=0.8,
-            status_forcelist=[429, 500, 502, 503, 504],
-            allowed_methods=["GET"],
-            raise_on_status=False,
-        )
-        adapter = HTTPAdapter(max_retries=retry)
-        session = requests.Session()
-        session.mount("http://", adapter)
-        session.mount("https://", adapter)
-        return session
-
-    def _http_get_json_with_retries(self, url: str, timeout: int = 300):
-        """
-        Perform robust JSON GET with retries for transient transport/body-read failures.
-        """
-        headers = {
-            "Accept": "application/json",
-            # Avoid compressed/chunked edge-cases that can trigger IncompleteRead.
-            "Accept-Encoding": "identity",
-            "Connection": "keep-alive",
-            "User-Agent": "MutualFundScreener/1.0",
-        }
-        last_error = None
-
-        with self._requests_session_with_retries() as session:
-            for attempt in range(1, 6):
-                try:
-                    response = session.get(url, timeout=timeout, headers=headers)
-                    response.raise_for_status()
-                    return response.json()
-                except Exception as e:
-                    last_error = e
-                    logger.warning(
-                        f"GET JSON failed for {url} on attempt {attempt}/5 | "
-                        f"type={type(e).__name__} | repr={repr(e)}"
-                    )
-                    if attempt < 5:
-                        time.sleep(min(0.8 * attempt, 3.2))
-
-        raise RuntimeError(f"GET JSON failed after retries for {url}: {last_error}")
-
-    def _http_get_text_with_retries(self, url: str, timeout: int = 300) -> str:
-        """Perform robust text GET with retries for fallback source calls."""
-        headers = {
-            "Accept": "text/plain,*/*",
-            "Accept-Encoding": "identity",
-            "Connection": "keep-alive",
-            "User-Agent": "MutualFundScreener/1.0",
-        }
-        last_error = None
-
-        with self._requests_session_with_retries() as session:
-            for attempt in range(1, 6):
-                try:
-                    response = session.get(url, timeout=timeout, headers=headers)
-                    response.raise_for_status()
-                    return response.text
-                except Exception as e:
-                    last_error = e
-                    logger.warning(
-                        f"GET text failed for {url} on attempt {attempt}/5 | "
-                        f"type={type(e).__name__} | repr={repr(e)}"
-                    )
-                    if attempt < 5:
-                        time.sleep(min(0.8 * attempt, 3.2))
-
-        raise RuntimeError(f"GET text failed after retries for {url}: {last_error}")
 
     def fetch_recent_active_schemes(self, days: int) -> List[Dict[str, Any]]:
         """Return Direct Growth Open Ended funds updated within given days, with AMFI fallback."""
@@ -185,7 +106,9 @@ class MFAPIFetcher:
         url = f"{self.base_url}/latest"
 
         try:
-            payload = self._http_get_json_with_retries(url, timeout=300)
+            response = requests.get(url, timeout=300)
+            response.raise_for_status()
+            payload = response.json()
             if not isinstance(payload, list):
                 logger.error("Unexpected MFAPI latest payload format (expected list)")
                 return []
@@ -217,8 +140,9 @@ class MFAPIFetcher:
         current_fund_house = ""
 
         try:
-            text = self._http_get_text_with_retries(url, timeout=300)
-            lines = text.splitlines()
+            response = requests.get(url, timeout=300)
+            response.raise_for_status()
+            lines = response.text.splitlines()
         except Exception as e:
             logger.error(f"Failed to fetch AMFI NAVAll fallback: {e}")
             return []
