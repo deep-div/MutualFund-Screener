@@ -354,12 +354,14 @@ const FundTable = ({
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
             <div className="flex-1 min-w-0">
-              <h1 className="text-[18px] font-semibold text-foreground tracking-tight">
-                {displayTitle}
-              </h1>
-              <p className="text-[13px] text-muted-foreground mt-1 leading-relaxed">
-                {displayDescription}
-              </p>
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <h1 className="text-[18px] font-semibold text-foreground tracking-tight">
+                  {displayTitle}
+                </h1>
+                <p className="text-[13px] text-muted-foreground leading-relaxed">
+                  {displayDescription}
+                </p>
+              </div>
             </div>
             <div className="shrink-0">
               <div className="flex items-center gap-2 sm:justify-end">
