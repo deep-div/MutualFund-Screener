@@ -4,18 +4,101 @@ import math
 from datetime import timedelta
 from app.core.logging import logger
 from datetime import datetime
+from app.domains.ingestion.schemas import SchemeSubCategory
 from app.domains.metrics.schemas import NavMetricsOutput
+
+RF_RATE_BY_SUBCATEGORY = {
+    # Equity
+    SchemeSubCategory.LARGE_CAP: 0.07,
+    SchemeSubCategory.MID_CAP: 0.07,
+    SchemeSubCategory.SMALL_CAP: 0.07,
+    SchemeSubCategory.LARGE_MID_CAP: 0.07,
+    SchemeSubCategory.MULTI_CAP: 0.07,
+    SchemeSubCategory.FLEXI_CAP: 0.07,
+    SchemeSubCategory.FOCUSED: 0.07,
+    SchemeSubCategory.ELSS: 0.07,
+    SchemeSubCategory.VALUE: 0.07,
+    SchemeSubCategory.CONTRA: 0.07,
+    SchemeSubCategory.DIVIDEND_YIELD: 0.07,
+    SchemeSubCategory.SECTORAL_THEMATIC: 0.07,
+    SchemeSubCategory.INDEX: 0.07,
+
+    # Debt - Ultra Short (money market aligned)
+    SchemeSubCategory.OVERNIGHT: 0.06,
+    SchemeSubCategory.LIQUID: 0.06,
+    SchemeSubCategory.ULTRA_SHORT_DURATION: 0.06,
+    SchemeSubCategory.LOW_DURATION: 0.06,
+    SchemeSubCategory.MONEY_MARKET: 0.06,
+
+    # Debt - Short to Medium
+    SchemeSubCategory.SHORT_DURATION: 0.065,
+    SchemeSubCategory.MEDIUM_DURATION: 0.065,
+
+    # Debt - Long Duration
+    SchemeSubCategory.MEDIUM_TO_LONG_DURATION: 0.07,
+    SchemeSubCategory.LONG_DURATION: 0.07,
+    SchemeSubCategory.DYNAMIC_BOND: 0.07,
+    SchemeSubCategory.CORPORATE_BOND: 0.07,
+    SchemeSubCategory.BANKING_PSU: 0.07,
+    SchemeSubCategory.CREDIT_RISK: 0.07,
+    SchemeSubCategory.GILT_FUND: 0.07,
+
+    # Special Debt behavior
+    SchemeSubCategory.FLOATER: 0.06,
+
+    # Hybrid
+    SchemeSubCategory.AGGRESSIVE_HYBRID: 0.07,
+    SchemeSubCategory.BALANCED_HYBRID: 0.065,
+    SchemeSubCategory.CONSERVATIVE_HYBRID: 0.06,
+    SchemeSubCategory.DYNAMIC_ASSET_ALLOCATION: 0.065,
+    SchemeSubCategory.EQUITY_SAVINGS: 0.06,
+    SchemeSubCategory.MULTI_ASSET_ALLOCATION: 0.065,
+    SchemeSubCategory.ARBITRAGE: 0.06,
+
+    # Commodity
+    SchemeSubCategory.GOLD: 0.07,
+    SchemeSubCategory.SILVER: 0.07,
+
+    # Others
+    SchemeSubCategory.RETIREMENT: 0.07,
+    SchemeSubCategory.CHILDRENS: 0.07,
+    SchemeSubCategory.FOF_DOMESTIC: 0.07,
+    SchemeSubCategory.FOF_OVERSEAS: 0.05,  # global RF (US 10Y)
+}
+
+
+def _resolve_rf_rate_annual(scheme_sub_category):
+    """Resolve annual risk-free rate from scheme sub-category."""
+    if scheme_sub_category is None:
+        return 0.0
+
+    if isinstance(scheme_sub_category, SchemeSubCategory):
+        return RF_RATE_BY_SUBCATEGORY.get(scheme_sub_category, 0.0)
+
+    if isinstance(scheme_sub_category, str):
+        sub_category_value = scheme_sub_category.strip()
+
+        try:
+            enum_sub_category = SchemeSubCategory(sub_category_value)
+            return RF_RATE_BY_SUBCATEGORY.get(enum_sub_category, 0.0)
+        except ValueError:
+            return 0.0
+
+    return 0.0
+
 
 class NavMetrics:
     """Compute absolute return, CAGR, MDD, YoY and Rolling CAGR from NAV history"""
     FIXED_ANNUALIZATION_PERIODS = 365.0
     DAY_COUNT_BASIS = 365.0
 
-    def __init__(self, nav_data):
+    def __init__(self, nav_data, risk_free_rate_annual=0.0):
         """Initialize NAV data sorted ascending with parsed dates"""
         try:
             if not nav_data:
                 raise ValueError("NAV data is empty")
+
+            self.risk_free_rate_annual = float(risk_free_rate_annual or 0.0)
 
             parsed_data = []
             skipped_invalid_nav = 0
@@ -1245,10 +1328,19 @@ class NavMetrics:
                 mdd_returns[name] = mdd_info["max_drawdown_percent"]
                 mdd_duration_details[name] = mdd_info
                 annualized_volatility[name] = self._annualized_volatility(past_date)
-                sharpe_ratios[name] = self._sharpe_ratio(past_date)
+                sharpe_ratios[name] = self._sharpe_ratio(
+                    past_date,
+                    risk_free_rate_annual=self.risk_free_rate_annual
+                )
                 calmar_ratios[name] = self._calmar_ratio(cagr_returns[name], mdd_returns[name])
-                sortino_ratios[name] = self._sortino_ratio(past_date)
-                downside_deviation_values[name] = self._downside_deviation_percent(past_date)
+                sortino_ratios[name] = self._sortino_ratio(
+                    past_date,
+                    risk_free_rate_annual=self.risk_free_rate_annual
+                )
+                downside_deviation_values[name] = self._downside_deviation_percent(
+                    past_date,
+                    threshold_annual=self.risk_free_rate_annual
+                )
                 skewness_values[name] = self._skewness(past_date)
                 kurtosis_values[name] = self._kurtosis(past_date)
                 pain_index_values[name] = self._pain_index(past_date)
@@ -1284,10 +1376,19 @@ class NavMetrics:
             mdd_returns["max"] = mdd_info_max["max_drawdown_percent"]
             mdd_duration_details["max"] = mdd_info_max
             annualized_volatility["max"] = self._annualized_volatility(launch_date)
-            sharpe_ratios["max"] = self._sharpe_ratio(launch_date)
+            sharpe_ratios["max"] = self._sharpe_ratio(
+                launch_date,
+                risk_free_rate_annual=self.risk_free_rate_annual
+            )
             calmar_ratios["max"] = self._calmar_ratio(cagr_returns["max"], mdd_returns["max"])
-            sortino_ratios["max"] = self._sortino_ratio(launch_date)
-            downside_deviation_values["max"] = self._downside_deviation_percent(launch_date)
+            sortino_ratios["max"] = self._sortino_ratio(
+                launch_date,
+                risk_free_rate_annual=self.risk_free_rate_annual
+            )
+            downside_deviation_values["max"] = self._downside_deviation_percent(
+                launch_date,
+                threshold_annual=self.risk_free_rate_annual
+            )
             skewness_values["max"] = self._skewness(launch_date)
             kurtosis_values["max"] = self._kurtosis(launch_date)
             pain_index_values["max"] = self._pain_index(launch_date)
@@ -1357,7 +1458,9 @@ def run_metrics(raw_data):
             meta = scheme.get("meta", {})
             nav_data = scheme.get("data", [])
 
-            metrics = NavMetrics(nav_data)
+            scheme_sub_category = meta.get("scheme_sub_category")
+            rf_rate_annual = _resolve_rf_rate_annual(scheme_sub_category)
+            metrics = NavMetrics(nav_data, risk_free_rate_annual=rf_rate_annual)
             metrics_output = metrics.get_all_metrics()
             if metrics._normalization_events:
                 scheme_code = meta.get("scheme_code")
