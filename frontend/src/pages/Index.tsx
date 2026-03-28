@@ -5,6 +5,7 @@ import FundTable from "@/components/FundTable";
 import {
   FILTER_DEFINITIONS_BY_ID,
   DEFAULT_ENABLED_FILTERS,
+  PINNED_FILTERS,
   FilterValueMap,
   FilterRangeMeta,
 } from "@/data/filters";
@@ -113,7 +114,7 @@ const Index = () => {
   }, [enabledFilters, filterValues]);
 
   const handleReset = () => {
-    setEnabledFilters(DEFAULT_ENABLED_FILTERS);
+    setEnabledFilters(PINNED_FILTERS);
     setFilterValues({});
     try {
       sessionStorage.removeItem(sessionKey);

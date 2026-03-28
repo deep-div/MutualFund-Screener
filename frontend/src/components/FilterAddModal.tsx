@@ -30,6 +30,11 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
     });
   }, [activeCategory, searchQuery, selectableFilters]);
 
+  const selectedOptionalCount = useMemo(
+    () => enabledFilters.filter((filterId) => !PINNED_FILTERS.includes(filterId)).length,
+    [enabledFilters]
+  );
+
   const toggleFilter = (id: string) => {
     if (enabledFilters.includes(id)) {
       onChangeEnabled(enabledFilters.filter((filterId) => filterId !== id));
@@ -126,7 +131,7 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
 
         <div className="mt-auto flex items-center justify-between border-t border-border bg-popover px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
-            {enabledFilters.length} selected
+            {selectedOptionalCount} selected
           </div>
           <button
             onClick={onClose}
