@@ -248,7 +248,7 @@ const Index = () => {
               <button
                 type="button"
                 onClick={() => setDesktopFiltersCollapsed(false)}
-                className="absolute left-1/2 top-3 inline-flex h-9 w-5 -translate-x-1/2 items-center justify-center rounded-r-md border border-l-0 border-border bg-background text-muted-foreground transition-colors hover:bg-surface-hover"
+                className="absolute left-1/2 top-3 inline-flex h-7 w-7 -translate-x-1/2 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-surface-hover"
                 aria-label="Expand filters sidebar"
                 title="Expand filters"
               >
@@ -269,7 +269,7 @@ const Index = () => {
               <button
                 type="button"
                 onClick={() => setDesktopFiltersCollapsed(true)}
-                className="absolute right-0 top-3 z-20 inline-flex h-9 w-5 translate-x-full items-center justify-center rounded-r-md border border-l-0 border-border bg-background text-muted-foreground transition-colors hover:bg-surface-hover"
+                className="absolute right-0 top-3 z-20 inline-flex h-7 w-7 translate-x-[calc(50%+1px)] items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-surface-hover"
                 aria-label="Collapse filters sidebar"
                 title="Collapse filters"
               >
