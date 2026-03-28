@@ -11,6 +11,11 @@ interface FilterAddModalProps {
 
 const buildFilterHint = (filter: FilterDefinition) => {
   const id = filter.id;
+  const formatYears = (value: string | number) => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return `${value} years`;
+    return num === 1 ? "1 year" : `${num} years`;
+  };
   if (id.startsWith("abs_")) {
     if (id === "abs_1w") return "Absolute return over the last 1 week.";
     if (id === "abs_1m") return "Absolute return over the last 1 month.";
@@ -19,34 +24,34 @@ const buildFilterHint = (filter: FilterDefinition) => {
   }
   if (id.startsWith("cagr_")) {
     const years = id.match(/cagr_(\d+)y/)?.[1];
-    return years ? `Compounded annual growth rate over ${years} years.` : "Compounded annual growth rate.";
+    return years ? `Compounded annual growth rate over the last ${formatYears(years)}.` : "Compounded annual growth rate.";
   }
   if (id.startsWith("rolling_avg_")) {
     const years = id.match(/rolling_avg_(\d+)y/)?.[1];
-    return years ? `Average rolling CAGR for ${years}-year windows.` : "Average rolling CAGR.";
+    return years ? `Average rolling CAGR using ${formatYears(years)} windows.` : "Average rolling CAGR.";
   }
   if (id.startsWith("rolling_min_")) {
     const years = id.match(/rolling_min_(\d+)y/)?.[1];
-    return years ? `Lowest rolling CAGR for ${years}-year windows.` : "Lowest rolling CAGR.";
+    return years ? `Lowest rolling CAGR using ${formatYears(years)} windows.` : "Lowest rolling CAGR.";
   }
   if (id.startsWith("rolling_max_")) {
     const years = id.match(/rolling_max_(\d+)y/)?.[1];
-    return years ? `Highest rolling CAGR for ${years}-year windows.` : "Highest rolling CAGR.";
+    return years ? `Highest rolling CAGR using ${formatYears(years)} windows.` : "Highest rolling CAGR.";
   }
-  if (id === "calmar") return "Return divided by max drawdown (risk-adjusted).";
-  if (id === "volatility") return "Annualized return volatility (risk).";
-  if (id === "downside_deviation") return "Volatility of negative returns only.";
-  if (id === "skewness") return "Asymmetry of returns distribution.";
-  if (id === "pain_index") return "Average drawdown over the period.";
-  if (id === "ulcer_index") return "RMS drawdown over the period.";
+  if (id === "calmar") return "Calmar ratio (Return / Max Drawdown) over the last 3 years.";
+  if (id === "volatility") return "Annualized volatility over the last 3 years.";
+  if (id === "downside_deviation") return "Downside deviation over the last 3 years.";
+  if (id === "skewness") return "Skewness of daily returns over the last 3 years.";
+  if (id === "pain_index") return "Pain index over the last 3 years.";
+  if (id === "ulcer_index") return "Ulcer index over the last 3 years.";
   if (id === "current_drawdown_percent") return "Drawdown from latest NAV vs peak.";
-  if (id === "mdd_max_drawdown_percent") return "Maximum drawdown over full history.";
+  if (id === "mdd_max_drawdown_percent") return "Maximum drawdown since inception.";
   if (id === "mdd_one_year_pct") return "Maximum drawdown over the last 1 year.";
   if (id === "mdd_three_year_pct") return "Maximum drawdown over the last 3 years.";
   if (id === "mdd_five_year_pct") return "Maximum drawdown over the last 5 years.";
   if (id === "mdd_ten_year_pct") return "Maximum drawdown over the last 10 years.";
   if (id === "current_nav") return "Latest reported NAV.";
-  if (id === "time_since_inception_years") return "Years since the scheme started.";
+  if (id === "time_since_inception_years") return "Years since scheme inception.";
   if (id === "scheme_class") return "High-level scheme class (Equity, Debt, etc.).";
   if (id === "scheme_sub_category") return "AMC sub-category within the scheme class.";
   return "";
