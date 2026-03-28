@@ -80,7 +80,6 @@ export interface SchemeAnalyticsResponse {
     };
     risk_adjusted_returns?: {
       sharpe_ratio?: Record<string, number | null>;
-      sortino_ratio?: Record<string, number | null>;
     };
   };
 }
@@ -124,7 +123,6 @@ export interface SchemeListItem {
   skewness?: number | null;
   kurtosis?: number | null;
   sharpe?: number | null;
-  sortino?: number | null;
   calmar?: number | null;
   pain_index?: number | null;
   ulcer_index?: number | null;

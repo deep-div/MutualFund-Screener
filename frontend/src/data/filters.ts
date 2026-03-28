@@ -164,7 +164,6 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
   { id: "kurtosis", label: "Kurtosis", type: "range", category: "risk" },
 
   { id: "sharpe", label: "Sharpe Ratio", type: "range", category: "ratios" },
-  { id: "sortino", label: "Sortino Ratio", type: "range", category: "ratios" },
   { id: "calmar", label: "Calmar Ratio", type: "range", category: "ratios" },
   { id: "pain_index", label: "Pain Ratio", type: "range", category: "ratios" },
   { id: "ulcer_index", label: "Ulcer Ratio", type: "range", category: "ratios" },
