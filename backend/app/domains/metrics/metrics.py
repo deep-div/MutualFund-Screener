@@ -8,6 +8,7 @@ from app.domains.metrics.schemas import NavMetricsOutput
 
 class NavMetrics:
     """Compute absolute return, CAGR, MDD, YoY and Rolling CAGR from NAV history"""
+    FIXED_ANNUALIZATION_PERIODS = 365.0
 
     def __init__(self, nav_data):
         """Initialize NAV data sorted ascending with parsed dates"""
@@ -763,22 +764,10 @@ class NavMetrics:
             return -1.0
         return (1.0 + annual_rate) ** (1.0 / periods_per_year) - 1.0
     def _annualization_factor(self, filtered):
-        """Infer annualization factor from NAV frequency in the filtered period"""
+        """Return fixed annualization factor (periods per year)."""
         if len(filtered) < 2:
             return None
-
-        start_date = filtered[0]["date"]
-        end_date = filtered[-1]["date"]
-        days = (end_date - start_date).days
-        if days <= 0:
-            return None
-
-        years = days / 365.25
-        n_returns = len(filtered) - 1
-        if years <= 0 or n_returns <= 0:
-            return None
-
-        return n_returns / years
+        return self.FIXED_ANNUALIZATION_PERIODS
     def _calmar_ratio(self, cagr_percent, mdd_percent):
         """Calculate Calmar ratio as CAGR / abs(Max Drawdown)"""
         if cagr_percent is None or mdd_percent is None:
@@ -1160,9 +1149,11 @@ class NavMetrics:
                 "kurtosis": {"min": 0.0, "max": 50.0, "scale": 8.0, "center": 0.0, "mode": "non_negative"},
             },
             "risk_adjusted_returns": {
-                "sharpe_ratio": {"min": -3.0, "max": 5.0, "scale": 1.25, "center": 1.0, "mode": "signed"},
-                "sortino_ratio": {"min": -3.0, "max": 10.0, "scale": 1.8, "center": 2.0, "mode": "signed"},
-                "calmar_ratio": {"min": -3.0, "max": 10.0, "scale": 1.8, "center": 1.5, "mode": "signed"},
+                # Increased scale reduces top-end saturation so high values keep separation.
+                # Slight headroom below hard max avoids many values appearing as exact max.
+                "sharpe_ratio": {"min": -3.0, "max": 4.9, "scale": 2.4, "center": 1.0, "mode": "signed"},
+                "sortino_ratio": {"min": -3.0, "max": 9.8, "scale": 4.0, "center": 2.0, "mode": "signed"},
+                "calmar_ratio": {"min": -3.0, "max": 9.8, "scale": 4.0, "center": 1.5, "mode": "signed"},
                 "pain_index": {"min": 0.0, "max": 100.0, "scale": 18.0, "center": 0.0, "mode": "non_negative"},
                 "ulcer_index": {"min": 0.0, "max": 50.0, "scale": 10.0, "center": 0.0, "mode": "non_negative"},
             },
