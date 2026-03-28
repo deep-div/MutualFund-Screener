@@ -117,14 +117,14 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
         animate={{ x: 0 }}
         exit={{ x: "-100%" }}
         transition={{ type: "spring", stiffness: 280, damping: 30 }}
-        className="absolute inset-y-0 left-0 w-full bg-background border border-border shadow-2xl overflow-hidden flex flex-col md:left-72 md:w-[560px] md:rounded-2xl"
+        className="absolute inset-y-0 left-0 w-full bg-background border border-border shadow-2xl overflow-hidden flex flex-col md:left-72 md:w-[640px] md:rounded-2xl"
       >
         <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-border bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div>
             <h2 className="text-[15px] font-semibold text-foreground">Add Filters</h2>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex w-full items-center gap-2 bg-background border border-border rounded-md px-3 py-1.5 hover:bg-[#f1f1f1] transition-colors sm:w-52">
+            <div className="flex w-full items-center gap-2 bg-background border border-border rounded-md px-3 py-1.5 hover:bg-surface-hover transition-colors sm:w-52">
               <Search className="w-3.5 h-3.5 text-muted-foreground" />
               <input
                 type="text"
@@ -145,22 +145,25 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
           </div>
         </div>
 
-        <div className="flex flex-1 min-h-0 flex-col">
-          <div className="border-b border-border">
-            <div className="flex gap-2 overflow-x-auto px-3 py-2 scrollbar-thin sm:px-4">
-              {FILTER_CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`shrink-0 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors sm:text-[13px] ${
-                    activeCategory === cat.id
-                      ? "border-primary bg-primary/10 text-foreground"
-                      : "border-border text-muted-foreground hover:text-foreground hover:bg-surface-hover"
-                  }`}
-                >
-                  <span>{cat.label}</span>
-                </button>
-              ))}
+        <div className="flex flex-1 min-h-0 flex-col sm:flex-row">
+          <div className="border-b border-border sm:border-b-0 sm:border-r sm:w-44">
+            <div className="px-3 py-3 sm:px-4">
+              <div className="flex flex-col gap-1">
+                {FILTER_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={`w-full border-l-2 px-3 py-2.5 text-left text-[13px] font-medium transition-colors sm:text-[14px] ${
+                      activeCategory === cat.id
+                        ? "border-primary bg-surface-hover text-foreground"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:bg-surface-hover"
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -172,13 +175,13 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
                 <label
                   key={filter.id}
                   onClick={() => toggleFilter(filter.id)}
-                  className="group flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-[#f1f1f1] sm:px-6 sm:py-2.5"
+                  className="group flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-hover sm:px-6 sm:py-2.5"
                 >
                   <div
                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                       checked
                         ? "bg-primary border-primary text-primary-foreground"
-                        : "border-border hover:border-muted-foreground bg-[#f1f1f1]"
+                        : "border-border hover:border-muted-foreground bg-secondary"
                     }`}
                   >
                     {checked && <Check className="w-3 h-3" />}
