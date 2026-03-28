@@ -1,13 +1,56 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, Check, X } from "lucide-react";
 import { motion } from "framer-motion";
-import { FILTER_CATEGORIES, FILTER_DEFINITIONS, PINNED_FILTERS } from "@/data/filters";
+import { FILTER_CATEGORIES, FILTER_DEFINITIONS, PINNED_FILTERS, type FilterDefinition } from "@/data/filters";
 
 interface FilterAddModalProps {
   onClose: () => void;
   enabledFilters: string[];
   onChangeEnabled: (next: string[]) => void;
 }
+
+const buildFilterHint = (filter: FilterDefinition) => {
+  const id = filter.id;
+  if (id.startsWith("abs_")) {
+    if (id === "abs_1w") return "Absolute return over the last 1 week.";
+    if (id === "abs_1m") return "Absolute return over the last 1 month.";
+    if (id === "abs_3m") return "Absolute return over the last 3 months.";
+    if (id === "abs_6m") return "Absolute return over the last 6 months.";
+  }
+  if (id.startsWith("cagr_")) {
+    const years = id.match(/cagr_(\d+)y/)?.[1];
+    return years ? `Compounded annual growth rate over ${years} years.` : "Compounded annual growth rate.";
+  }
+  if (id.startsWith("rolling_avg_")) {
+    const years = id.match(/rolling_avg_(\d+)y/)?.[1];
+    return years ? `Average rolling CAGR for ${years}-year windows.` : "Average rolling CAGR.";
+  }
+  if (id.startsWith("rolling_min_")) {
+    const years = id.match(/rolling_min_(\d+)y/)?.[1];
+    return years ? `Lowest rolling CAGR for ${years}-year windows.` : "Lowest rolling CAGR.";
+  }
+  if (id.startsWith("rolling_max_")) {
+    const years = id.match(/rolling_max_(\d+)y/)?.[1];
+    return years ? `Highest rolling CAGR for ${years}-year windows.` : "Highest rolling CAGR.";
+  }
+  if (id === "calmar") return "Return divided by max drawdown (risk-adjusted).";
+  if (id === "volatility") return "Annualized return volatility (risk).";
+  if (id === "downside_deviation") return "Volatility of negative returns only.";
+  if (id === "skewness") return "Asymmetry of returns distribution.";
+  if (id === "pain_index") return "Average drawdown over the period.";
+  if (id === "ulcer_index") return "RMS drawdown over the period.";
+  if (id === "current_drawdown_percent") return "Drawdown from latest NAV vs peak.";
+  if (id === "mdd_max_drawdown_percent") return "Maximum drawdown over full history.";
+  if (id === "mdd_one_year_pct") return "Maximum drawdown over the last 1 year.";
+  if (id === "mdd_three_year_pct") return "Maximum drawdown over the last 3 years.";
+  if (id === "mdd_five_year_pct") return "Maximum drawdown over the last 5 years.";
+  if (id === "mdd_ten_year_pct") return "Maximum drawdown over the last 10 years.";
+  if (id === "current_nav") return "Latest reported NAV.";
+  if (id === "time_since_inception_years") return "Years since the scheme started.";
+  if (id === "scheme_class") return "High-level scheme class (Equity, Debt, etc.).";
+  if (id === "scheme_sub_category") return "AMC sub-category within the scheme class.";
+  return "";
+};
 
 const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddModalProps) => {
   const [activeCategory, setActiveCategory] = useState("returns");
@@ -74,7 +117,7 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
         animate={{ x: 0 }}
         exit={{ x: "-100%" }}
         transition={{ type: "spring", stiffness: 280, damping: 30 }}
-        className="absolute inset-y-0 left-0 w-full bg-background border border-border shadow-2xl overflow-hidden flex flex-col md:left-72 md:w-[640px] md:rounded-2xl"
+        className="absolute inset-y-0 left-0 w-full bg-background border border-border shadow-2xl overflow-hidden flex flex-col md:left-72 md:w-[560px] md:rounded-2xl"
       >
         <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-border bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div>
@@ -124,11 +167,12 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
           <div className="flex-1 overflow-y-auto py-2 scrollbar-thin">
             {visibleFilters.map((filter) => {
               const checked = enabledFilters.includes(filter.id);
+              const hint = buildFilterHint(filter);
               return (
                 <label
                   key={filter.id}
                   onClick={() => toggleFilter(filter.id)}
-                  className="flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-[#f1f1f1] sm:px-6 sm:py-2.5"
+                  className="group flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-[#f1f1f1] sm:px-6 sm:py-2.5"
                 >
                   <div
                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
@@ -140,6 +184,11 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
                     {checked && <Check className="w-3 h-3" />}
                   </div>
                   <span className="text-[13px] text-foreground">{filter.label}</span>
+                  {hint ? (
+                    <span className="ml-auto hidden max-w-[260px] text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 sm:block">
+                      <span className="border-l border-border pl-3">{hint}</span>
+                    </span>
+                  ) : null}
                 </label>
               );
             })}
