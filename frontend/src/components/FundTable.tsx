@@ -271,7 +271,8 @@ const FundTable = ({
       setSaveError("Please sign in to edit and save screens.");
       return;
     }
-    const action: "save" | "update" = savedFilterExternalId ? "update" : "save";
+    const shouldUpdateExisting = Boolean(savedFilterExternalId && hasSavedScreen);
+    const action: "save" | "update" = shouldUpdateExisting ? "update" : "save";
     setSaveAction(action);
     setSaving(true);
     try {
@@ -293,7 +294,7 @@ const FundTable = ({
         payload.sort_field = String(sortKey);
         payload.sort_order = sortDir;
       }
-      if (savedFilterExternalId) {
+      if (shouldUpdateExisting && savedFilterExternalId) {
         const response = (await updateUserFilters(token, savedFilterExternalId, payload)) as {
           updated_at?: string;
         };
