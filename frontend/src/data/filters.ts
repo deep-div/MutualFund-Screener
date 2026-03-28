@@ -181,9 +181,8 @@ export const PINNED_FILTERS = FILTER_DEFINITIONS.filter((filter) => filter.pinne
 
 export const DEFAULT_ENABLED_FILTERS = [
   ...PINNED_FILTERS,
-  "cagr_1y",
   "cagr_3y",
-  "cagr_5y",
+  "current_drawdown_percent",
 ];
 
 export const FILTER_DEFINITIONS_BY_ID = Object.fromEntries(
