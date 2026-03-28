@@ -583,7 +583,7 @@ const FundTable = ({
           )}
 
           <div className="p-4 flex justify-center">
-            {canLoadMore && (
+            {!requiresAuthForFilters && canLoadMore && (
               <button
                 onClick={() => fetchPage(items.length, true)}
                 disabled={loading}

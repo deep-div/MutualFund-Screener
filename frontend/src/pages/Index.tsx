@@ -55,6 +55,27 @@ const Index = () => {
   }, [savedFilterId]);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (user) return;
+    setEnabledFilters(DEFAULT_ENABLED_FILTERS);
+    setFilterValues((prev) => {
+      const next: FilterValueMap = {};
+      DEFAULT_ENABLED_FILTERS.forEach((id) => {
+        if (prev[id]) {
+          next[id] = prev[id];
+        }
+      });
+      return next;
+    });
+    setRangeMeta({});
+    try {
+      sessionStorage.removeItem(sessionKey);
+    } catch {
+      // Ignore storage errors.
+    }
+  }, [authLoading, user]);
+
+  useEffect(() => {
     try {
       sessionStorage.setItem(
         sessionKey,
