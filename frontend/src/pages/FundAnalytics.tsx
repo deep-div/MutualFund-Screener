@@ -841,18 +841,18 @@ const FundAnalytics = () => {
                           onClick={() => scrollToSection("risk-metrics")}
                           className="analytics-card p-3 text-left cursor-pointer hover:border-primary/40"
                         >
-                          <div className="text-[10px] uppercase tracking-wider analytics-muted">Sharpe Ratio (3Y)</div>
+                          <div className="text-[10px] uppercase tracking-wider analytics-muted">Return/MDD (3Y)</div>
                           <div
                             className={`text-[18px] font-semibold mt-1 ${
-                              typeof riskAdj?.sharpe_ratio?.three_year === "number"
-                                ? riskAdj.sharpe_ratio.three_year >= 0
+                              typeof riskAdj?.calmar_ratio?.three_year === "number"
+                                ? riskAdj.calmar_ratio.three_year >= 0
                                   ? "text-positive"
                                   : "text-negative"
                                 : "text-foreground"
                             }`}
                           >
-                            {typeof riskAdj?.sharpe_ratio?.three_year === "number"
-                              ? riskAdj.sharpe_ratio.three_year.toFixed(2)
+                            {typeof riskAdj?.calmar_ratio?.three_year === "number"
+                              ? riskAdj.calmar_ratio.three_year.toFixed(2)
                               : "-"}
                           </div>
                           <div className="text-[11px] analytics-muted mt-1">Risk-adjusted return</div>
