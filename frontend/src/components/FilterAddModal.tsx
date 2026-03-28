@@ -146,18 +146,18 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
         </div>
 
         <div className="flex flex-1 min-h-0 flex-col sm:flex-row">
-          <div className="border-b border-border sm:border-b-0 sm:border-r sm:w-52">
-            <div className="py-3 pl-3 pr-10 sm:pl-4 sm:pr-12">
+          <div className="border-b border-border sm:border-b-0 sm:border-r sm:w-44">
+            <div className="py-3 pl-3 pr-5 sm:pl-4 sm:pr-6">
               <div className="flex flex-col gap-1">
                 {FILTER_CATEGORIES.map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
                     onClick={() => setActiveCategory(cat.id)}
-                    className={`w-full border-l-2 px-3 py-2.5 text-left text-[13px] font-medium transition-colors sm:text-[14px] ${
+                    className={`w-full border-l-2 px-3 py-2 text-left text-[13px] font-medium transition-colors sm:text-[14px] ${
                       activeCategory === cat.id
-                        ? "border-primary bg-surface-hover text-foreground"
-                        : "border-transparent text-muted-foreground hover:text-foreground hover:bg-surface-hover"
+                        ? "border-primary bg-[#f1f1f1] text-foreground"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:bg-[#f1f1f1]"
                     }`}
                   >
                     {cat.label}
@@ -175,10 +175,10 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
                 <label
                   key={filter.id}
                   onClick={() => toggleFilter(filter.id)}
-                  className="group flex cursor-pointer items-center gap-3 px-5 py-3 transition-colors hover:bg-surface-hover sm:px-7 sm:py-2.5"
+                  className="group flex cursor-pointer items-start gap-3 px-5 py-1.5 transition-colors hover:bg-[#f1f1f1] sm:px-7 sm:py-3"
                 >
                   <div
-                    className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                    className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                       checked
                         ? "bg-primary border-primary text-primary-foreground"
                         : "border-border hover:border-muted-foreground bg-secondary"
@@ -186,12 +186,14 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
                   >
                     {checked && <Check className="w-3 h-3" />}
                   </div>
-                  <span className="text-[13px] text-foreground">{filter.label}</span>
-                  {hint ? (
-                    <span className="ml-auto hidden max-w-[260px] text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 sm:block">
-                      <span className="border-l border-border pl-3">{hint}</span>
-                    </span>
-                  ) : null}
+                  <div className="flex flex-col gap-0">
+                    <span className="text-[13px] text-foreground">{filter.label}</span>
+                    {hint ? (
+                      <span className="hidden text-[11px] text-muted-foreground group-hover:block">
+                        {hint}
+                      </span>
+                    ) : null}
+                  </div>
                 </label>
               );
             })}
