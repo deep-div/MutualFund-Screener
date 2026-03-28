@@ -29,8 +29,7 @@ export const FILTER_CATEGORIES: FilterCategory[] = [
   { id: "returns", label: "Returns" },
   { id: "rolling", label: "Rolling Returns" },
   { id: "drawdown", label: "Drawdown" },
-  { id: "risk", label: "Risk" },
-  { id: "ratios", label: "Ratios" },
+  { id: "risk_ratios", label: "Risk & Ratios" },
   { id: "scheme", label: "Scheme Info" },
 ];
 
@@ -158,15 +157,14 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
   { id: "rolling_max_5y", label: "Rolling Max 5Y", type: "range", category: "rolling" },
   { id: "rolling_max_10y", label: "Rolling Max 10Y", type: "range", category: "rolling" },
 
-  { id: "volatility", label: "Volatility", type: "range", category: "risk" },
-  { id: "downside_deviation", label: "Downside Deviation", type: "range", category: "risk" },
-  { id: "skewness", label: "Skewness", type: "range", category: "risk" },
-  { id: "kurtosis", label: "Kurtosis", type: "range", category: "risk" },
-
-  { id: "sharpe", label: "Sharpe Ratio", type: "range", category: "ratios" },
-  { id: "calmar", label: "Return/MDD", type: "range", category: "ratios" },
-  { id: "pain_index", label: "Pain Ratio", type: "range", category: "ratios" },
-  { id: "ulcer_index", label: "Ulcer Ratio", type: "range", category: "ratios" },
+  { id: "calmar", label: "Return/MDD", type: "range", category: "risk_ratios" },
+  { id: "sharpe", label: "Sharpe Ratio", type: "range", category: "risk_ratios" },
+  { id: "volatility", label: "Volatility", type: "range", category: "risk_ratios" },
+  { id: "downside_deviation", label: "Downside Deviation", type: "range", category: "risk_ratios" },
+  { id: "skewness", label: "Skewness", type: "range", category: "risk_ratios" },
+  { id: "kurtosis", label: "Kurtosis", type: "range", category: "risk_ratios" },
+  { id: "pain_index", label: "Pain Ratio", type: "range", category: "risk_ratios" },
+  { id: "ulcer_index", label: "Ulcer Ratio", type: "range", category: "risk_ratios" },
 
   { id: "current_drawdown_percent", label: "Current Drawdown", type: "range", category: "drawdown" },
   { id: "mdd_max_drawdown_percent", label: "Max Drawdown", type: "range", category: "drawdown" },
