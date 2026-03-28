@@ -90,6 +90,8 @@ def _resolve_rf_rate_annual(scheme_sub_category):
 class NavMetrics:
     """Compute absolute return, CAGR, MDD, YoY and Rolling CAGR from NAV history"""
     FIXED_ANNUALIZATION_PERIODS = 365.0
+    SHARPE_ANNUALIZATION_PERIODS = 252.0
+    SORTINO_ANNUALIZATION_PERIODS = 365.0
     DAY_COUNT_BASIS = 365.0
 
     def __init__(self, nav_data, risk_free_rate_annual=0.0):
@@ -587,7 +589,7 @@ class NavMetrics:
         if n < 2:
             return 0.0
 
-        annual_factor = self._annualization_factor(filtered)
+        annual_factor = self.SHARPE_ANNUALIZATION_PERIODS
         if not annual_factor:
             return 0.0
 
@@ -705,7 +707,7 @@ class NavMetrics:
         if n < 2:
             return 0.0
 
-        annual_factor = self._annualization_factor(filtered)
+        annual_factor = self.SORTINO_ANNUALIZATION_PERIODS
         if not annual_factor:
             return 0.0
 
@@ -861,7 +863,7 @@ class NavMetrics:
 
         denominator = abs(mdd_percent)
         if denominator == 0:
-            return 0.0
+            return None
 
         return round(cagr_percent / denominator, 4)
     def _pain_index(self, start_date):
