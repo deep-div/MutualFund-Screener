@@ -146,8 +146,8 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
         </div>
 
         <div className="flex flex-1 min-h-0 flex-col sm:flex-row">
-          <div className="border-b border-border sm:border-b-0 sm:border-r sm:w-44">
-            <div className="py-3 pl-3 pr-5 sm:pl-4 sm:pr-6">
+          <div className="border-b border-border sm:border-b-0 sm:border-r sm:w-56">
+            <div className="py-3 pl-3 pr-16 sm:pl-4 sm:pr-20">
               <div className="flex flex-col gap-1">
                 {FILTER_CATEGORIES.map((cat) => (
                   <button
@@ -156,8 +156,8 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
                     onClick={() => setActiveCategory(cat.id)}
                     className={`w-full border-l-2 px-3 py-2 text-left text-[13px] font-medium transition-colors sm:text-[14px] ${
                       activeCategory === cat.id
-                        ? "border-primary bg-[#f1f1f1] text-foreground"
-                        : "border-transparent text-muted-foreground hover:text-foreground hover:bg-[#f1f1f1]"
+                        ? "border-primary text-foreground"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     {cat.label}
@@ -175,7 +175,7 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
                 <label
                   key={filter.id}
                   onClick={() => toggleFilter(filter.id)}
-                  className="group flex cursor-pointer items-start gap-3 px-5 py-1.5 transition-colors hover:bg-[#f1f1f1] sm:px-7 sm:py-3"
+                  className="group flex cursor-pointer items-start gap-3 px-5 py-1.5 transition-colors hover:bg-transparent sm:px-7 sm:py-3"
                 >
                   <div
                     className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
