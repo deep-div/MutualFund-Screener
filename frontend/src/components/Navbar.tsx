@@ -341,7 +341,7 @@ const Navbar = () => {
 
       <nav
         ref={navRef}
-        className="relative z-[70] flex min-h-14 flex-wrap items-center gap-y-2 border-b border-nav-hover bg-[#0f1729] px-3 py-2 sm:px-4 lg:flex-nowrap lg:gap-y-0 lg:pl-6 lg:pr-4"
+        className="relative z-[70] flex min-h-14 flex-wrap items-center gap-y-2 border-b border-nav-hover bg-[#0f1729] px-3 py-2 sm:px-4 lg:flex-nowrap lg:gap-y-0 lg:pl-6 lg:pr-6"
       >
 
         {/* LEFT: Logo */}
@@ -642,7 +642,7 @@ const Navbar = () => {
         </div>
 
         {/* RIGHT: Auth / Account */}
-        <div className="order-2 ml-auto flex min-w-0 justify-end pr-0 lg:order-none lg:ml-6 lg:min-w-[140px]">
+        <div className="order-2 ml-auto flex min-w-0 justify-end lg:order-none lg:ml-6 lg:min-w-[140px]">
           {loading ? (
             <div className="h-7 w-24 rounded-md bg-nav-hover/70 animate-pulse" />
           ) : isLoggedIn ? (
@@ -675,7 +675,7 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex items-center mr-3">
+            <div className="flex items-center">
               <button
                 onClick={() => setShowAuthModal(true)}
                 className="text-[13px] bg-primary text-white px-4 py-1.5 rounded-md hover:opacity-90 disabled:opacity-60"
