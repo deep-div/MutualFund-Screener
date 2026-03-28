@@ -272,13 +272,7 @@ const Navbar = () => {
   const handleNavClick = (item: NavItem) => {
     navigate("/");
     if (item === "All Screens") {
-      if (!isLoggedIn) {
-        toast("Sign in required", {
-          description: "Please sign in to access your screen library.",
-        });
-        return;
-      }
-      setActiveScreenGroup(isLoggedIn ? "saved" : defaultFilterGroups[0]?.key ?? "saved");
+      setActiveScreenGroup(isLoggedIn ? "saved" : "saved");
       setScreenExplorerOpen(true);
       return;
     }
@@ -706,6 +700,7 @@ const Navbar = () => {
                         : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"
                     }`}
                     onClick={() => setActiveScreenGroup("saved")}
+                    disabled={!isLoggedIn}
                   >
                     <span className="inline-flex items-center gap-2">
                       <Bookmark className="w-4 h-4 text-[hsl(var(--nav))] fill-[hsl(var(--nav))]" />
@@ -722,6 +717,7 @@ const Navbar = () => {
                           : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"
                       }`}
                       onClick={() => setActiveScreenGroup(group.key)}
+                      disabled={!isLoggedIn}
                     >
                       {group.label}
                     </button>
@@ -744,7 +740,25 @@ const Navbar = () => {
                   </button>
                 </div>
 
-                {defaultFiltersError && activeScreenGroup !== "saved" ? (
+                {!isLoggedIn ? (
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="w-full max-w-sm rounded-xl border border-dashed border-slate-200 bg-white/80 p-6 text-center">
+                      <p className="text-[14px] font-semibold text-slate-900">Sign in to access screens</p>
+                      <p className="mt-2 text-[12px] text-slate-600">
+                        Create an account to view saved and curated screens.
+                      </p>
+                      <button
+                        onClick={() => {
+                          setScreenExplorerOpen(false);
+                          setShowAuthModal(true);
+                        }}
+                        className="mt-4 inline-flex items-center justify-center rounded-md bg-[#0f1729] px-4 py-2 text-[12px] font-medium text-white hover:bg-[#0b1322] transition-colors"
+                      >
+                        Sign in / Sign up
+                      </button>
+                    </div>
+                  </div>
+                ) : defaultFiltersError && activeScreenGroup !== "saved" ? (
                   <div className="text-[13px] text-red-500">{defaultFiltersError}</div>
                 ) : defaultFiltersLoading && activeScreenGroup !== "saved" ? (
                   <div className="space-y-3">
