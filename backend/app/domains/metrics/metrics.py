@@ -9,6 +9,7 @@ from app.domains.metrics.schemas import NavMetricsOutput
 class NavMetrics:
     """Compute absolute return, CAGR, MDD, YoY and Rolling CAGR from NAV history"""
     FIXED_ANNUALIZATION_PERIODS = 365.0
+    DAY_COUNT_BASIS = 365.0
 
     def __init__(self, nav_data):
         """Initialize NAV data sorted ascending with parsed dates"""
@@ -173,7 +174,7 @@ class NavMetrics:
         if past_nav <= 0:
             return 0.0
 
-        years = (latest_date - past_date).days / 365.25
+        years = (latest_date - past_date).days / self.DAY_COUNT_BASIS
         if years <= 0:
             return 0.0
 
@@ -822,7 +823,7 @@ class NavMetrics:
         total = 0.0
 
         for dt, amt in cashflows:
-            years = (dt - first_date).days / 365.0
+            years = (dt - first_date).days / self.DAY_COUNT_BASIS
             total += amt / ((1 + rate) ** years)
 
         return total
@@ -1035,7 +1036,7 @@ class NavMetrics:
             dates = [e["date"] for e in self.nav_data]
             navs = [e["nav"] for e in self.nav_data]
 
-            # Identify first trading day of each month
+            # Identify first available NAV date of each month
             monthly_indices = []
             seen = set()
 
@@ -1046,7 +1047,7 @@ class NavMetrics:
                     monthly_indices.append(i)
 
             for years in periods:
-                window_days = int(years * 365.25)
+                window_days = int(years * self.DAY_COUNT_BASIS)
                 rolling_values = []
                 rolling_points = []
 
@@ -1082,7 +1083,7 @@ class NavMetrics:
                     if end_nav <= 0:
                         continue
 
-                    actual_years = (end_date - start_date).days / 365.25
+                    actual_years = (end_date - start_date).days / self.DAY_COUNT_BASIS
 
                     # Skip windows that are materially shorter than requested.
                     if actual_years >= years * 0.9:
