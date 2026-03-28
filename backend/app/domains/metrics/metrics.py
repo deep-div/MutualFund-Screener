@@ -99,6 +99,11 @@ class NavMetrics:
     KURTOSIS_NEAR_CAP_THRESHOLD = 0.95
     KURTOSIS_NEAR_CAP_NORMALIZED_MIN = 0.95
     KURTOSIS_NEAR_CAP_NORMALIZED_MAX = 0.9999
+    SORTINO_LOWER_CAP = -5.0
+    SORTINO_UPPER_CAP = 10.0
+    SORTINO_NEAR_CAP_THRESHOLD = 0.95
+    SORTINO_NEAR_CAP_NORMALIZED_MIN = 0.95
+    SORTINO_NEAR_CAP_NORMALIZED_MAX = 0.9999
 
     def __init__(self, nav_data, risk_free_rate_annual=0.0):
         """Initialize NAV data sorted ascending with parsed dates"""
@@ -695,7 +700,7 @@ class NavMetrics:
 
         return buckets
     def _sortino_ratio(self, start_date, risk_free_rate_annual=0.0):
-        """Calculate annualized Sortino ratio from NAV-derived daily returns."""
+        """Calculate normalized Sortino score from NAV-derived daily returns."""
         filtered = [e for e in self.nav_data if e['date'] >= start_date]
         if len(filtered) < 2:
             return None
@@ -743,11 +748,31 @@ class NavMetrics:
         if annual_downside_deviation == 0 or not math.isfinite(annual_downside_deviation):
             return None
 
-        sortino = (annual_return - rf_annual) / annual_downside_deviation
-        if not math.isfinite(sortino):
+        raw_sortino = (annual_return - rf_annual) / annual_downside_deviation
+        if not math.isfinite(raw_sortino):
             return None
 
-        return round(sortino, 4)
+        capped_sortino = min(
+            max(raw_sortino, self.SORTINO_LOWER_CAP),
+            self.SORTINO_UPPER_CAP
+        )
+
+        cap_span = self.SORTINO_UPPER_CAP - self.SORTINO_LOWER_CAP
+        if cap_span <= 0:
+            return None
+
+        near_cap_cutoff = self.SORTINO_UPPER_CAP * self.SORTINO_NEAR_CAP_THRESHOLD
+        if capped_sortino >= near_cap_cutoff:
+            seed = int(abs(raw_sortino) * 1_000_000) ^ n ^ filtered[-1]["date"].toordinal()
+            jitter_rng = random.Random(seed)
+            normalized_sortino = jitter_rng.uniform(
+                self.SORTINO_NEAR_CAP_NORMALIZED_MIN,
+                self.SORTINO_NEAR_CAP_NORMALIZED_MAX
+            )
+        else:
+            normalized_sortino = (capped_sortino - self.SORTINO_LOWER_CAP) / cap_span
+
+        return round(normalized_sortino, 4)
 
     def _skewness(self, start_date):
         """Calculate bias-corrected sample skewness of daily returns"""
