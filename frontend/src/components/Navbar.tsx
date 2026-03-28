@@ -23,6 +23,7 @@ const NAV_FORMATTER = new Intl.NumberFormat("en-IN", {
 const LEADERBOARDS_SESSION_KEY = "mf_leaderboards_cache";
 const LEADERBOARDS_LOADING_EVENT = "mf_leaderboards_loading";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
+const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 const SAVED_FILTERS_BATCH_SIZE = 10;
 type NavItem = "All Screens" | "New Screen";
 
@@ -267,6 +268,12 @@ const Navbar = () => {
     syncBodyTopOffset();
     window.addEventListener("resize", syncBodyTopOffset);
     return () => window.removeEventListener("resize", syncBodyTopOffset);
+  }, []);
+
+  useEffect(() => {
+    const handleOpenAuthModal = () => setShowAuthModal(true);
+    window.addEventListener(OPEN_AUTH_MODAL_EVENT, handleOpenAuthModal);
+    return () => window.removeEventListener(OPEN_AUTH_MODAL_EVENT, handleOpenAuthModal);
   }, []);
 
   const handleNavClick = (item: NavItem) => {

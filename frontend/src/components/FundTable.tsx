@@ -15,6 +15,7 @@ const DEFAULT_TITLE = "Mutual Fund Screener";
 const DEFAULT_DESCRIPTION =
   "Describe the purpose of this screen (e.g., tax-saving, growth, or tracking)";
 const USER_FILTER_ID_REGEX = /^[0-9A-Za-z]{8}$/;
+const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 
 const baseColumns: Array<{
   key: keyof SchemeListItem;
@@ -572,6 +573,13 @@ const FundTable = ({
                 <p className="mt-2 text-[12px] text-muted-foreground">
                   Create an account to unlock advanced filters and save your screens.
                 </p>
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent(OPEN_AUTH_MODAL_EVENT))}
+                  className="mt-4 inline-flex items-center justify-center rounded-md bg-[#0f1729] px-4 py-2 text-[12px] font-medium text-white hover:bg-[#0b1322] transition-colors"
+                >
+                  Sign in / Sign up
+                </button>
               </div>
             </div>
           )}

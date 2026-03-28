@@ -21,6 +21,7 @@ import TickerTape from "@/components/TickerTape";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getSchemeAnalytics } from "@/services/mutualFundService";
+import { useAuth } from "@/contexts/AuthContext";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const PERIOD_LABELS: Record<string, string> = {
@@ -308,10 +309,13 @@ const ABS_RETURN_ORDER = [
 
 const CAGR_RETURN_ORDER = ["one_year", "two_year", "three_year", "four_year", "five_year", "seven_year", "ten_year", "max"];
 const METRIC_PERIOD_ORDER = ["one_year", "two_year", "three_year", "four_year", "five_year", "seven_year", "ten_year", "max"];
+const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 
 const FundAnalytics = () => {
   const { schemeId } = useParams();
   const schemeKey = schemeId?.trim() || "";
+  const { user } = useAuth();
+  const isLocked = !user;
   const [returnType, setReturnType] = useState<"absolute" | "cagr" | "rolling">("absolute");
   const [heatmapReturnType, setHeatmapReturnType] = useState<"absolute" | "cagr" | "rolling">("absolute");
   const [returnPeriod, setReturnPeriod] = useState<
@@ -1186,6 +1190,25 @@ const FundAnalytics = () => {
                 </div>
               </div>
 
+              <div className={isLocked ? "relative" : ""}>
+                {isLocked && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center px-4">
+                    <div className="w-full max-w-lg rounded-2xl border border-dashed border-border bg-background/90 p-6 text-center shadow-md">
+                      <p className="text-[14px] font-semibold text-foreground">Sign in to unlock advanced analytics</p>
+                      <p className="mt-2 text-[12px] text-muted-foreground">
+                        Risk, consistency, and drawdown insights are available for signed-in users.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => window.dispatchEvent(new CustomEvent(OPEN_AUTH_MODAL_EVENT))}
+                        className="mt-4 inline-flex items-center justify-center rounded-md bg-[#0f1729] px-4 py-2 text-[12px] font-medium text-white hover:bg-[#0b1322] transition-colors"
+                      >
+                        Sign in / Sign up
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <div className={isLocked ? "pointer-events-none select-none blur-[1px] opacity-40" : ""}>
               {/* Performance Explorer */}
               <SectionHeader id="performance-explorer" icon={Activity} title="Performance Explorer" />
               <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch">
@@ -1599,313 +1622,331 @@ const FundAnalytics = () => {
                 </div>
               </div>
 
-              {/* Consistency */}
-
-              <SectionHeader icon={Zap} title="Consistency" />
-              <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-6">
-                <div className="flex flex-col h-full no-cards-right">
-                  <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm flex-1">
-                  <div className="flex items-start justify-between gap-4 mb-4">
-                    <div>
-                      <div className="text-[13px] font-semibold text-foreground">Best vs Worst Returns</div>
-                      <div className="text-[11px] text-muted-foreground mt-1">Extremes across day, month, and year.</div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      {
-                        label: "Best Day",
-                        value: consistency?.best_day?.return,
-                        date: consistency?.best_day?.date ? formatLongDate(consistency.best_day.date) : null,
-                      },
-                      {
-                        label: "Worst Day",
-                        value: consistency?.worst_day?.return,
-                        date: consistency?.worst_day?.date ? formatLongDate(consistency.worst_day.date) : null,
-                      },
-                      {
-                        label: "Best Month",
-                        value: consistency?.best_month?.return,
-                        date: consistency?.best_month?.month ? formatMonthYear(consistency.best_month.month) : null,
-                      },
-                      {
-                        label: "Worst Month",
-                        value: consistency?.worst_month?.return,
-                        date: consistency?.worst_month?.month ? formatMonthYear(consistency.worst_month.month) : null,
-                      },
-                      {
-                        label: "Best Year",
-                        value: consistency?.best_year?.return,
-                        date: consistency?.best_year?.year ? String(consistency.best_year.year) : null,
-                      },
-                      {
-                        label: "Worst Year",
-                        value: consistency?.worst_year?.return,
-                        date: consistency?.worst_year?.year ? String(consistency.worst_year.year) : null,
-                      },
-                    ].map((item) => {
-                      const isPositive = typeof item.value === "number" ? item.value >= 0 : null;
-                      return (
-                        <div key={item.label} className="rounded-xl border border-border/60 bg-card px-3 py-3">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{item.label}</div>
-                          <div
-                            className={`text-[16px] font-semibold ${
-                              isPositive === null ? "text-foreground" : isPositive ? "text-positive" : "text-negative"
-                            }`}
-                          >
-                            {typeof item.value === "number" ? `${item.value >= 0 ? "+" : ""}${item.value.toFixed(2)}%` : "-"}
+                  {/* Consistency */}
+                  <SectionHeader icon={Zap} title="Consistency" />
+                  <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-6">
+                    <div className="flex flex-col h-full no-cards-right">
+                      <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm flex-1">
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                          <div>
+                            <div className="text-[13px] font-semibold text-foreground">Best vs Worst Returns</div>
+                            <div className="text-[11px] text-muted-foreground mt-1">
+                              Extremes across day, month, and year.
+                            </div>
                           </div>
-                          <div className="text-[11px] text-muted-foreground mt-1">{item.date || "-"}</div>
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {[
+                            {
+                              label: "Best Day",
+                              value: consistency?.best_day?.return,
+                              date: consistency?.best_day?.date ? formatLongDate(consistency.best_day.date) : null,
+                            },
+                            {
+                              label: "Worst Day",
+                              value: consistency?.worst_day?.return,
+                              date: consistency?.worst_day?.date ? formatLongDate(consistency.worst_day.date) : null,
+                            },
+                            {
+                              label: "Best Month",
+                              value: consistency?.best_month?.return,
+                              date: consistency?.best_month?.month ? formatMonthYear(consistency.best_month.month) : null,
+                            },
+                            {
+                              label: "Worst Month",
+                              value: consistency?.worst_month?.return,
+                              date: consistency?.worst_month?.month ? formatMonthYear(consistency.worst_month.month) : null,
+                            },
+                            {
+                              label: "Best Year",
+                              value: consistency?.best_year?.return,
+                              date: consistency?.best_year?.year ? String(consistency.best_year.year) : null,
+                            },
+                            {
+                              label: "Worst Year",
+                              value: consistency?.worst_year?.return,
+                              date: consistency?.worst_year?.year ? String(consistency.worst_year.year) : null,
+                            },
+                          ].map((item) => {
+                            const isPositive = typeof item.value === "number" ? item.value >= 0 : null;
+                            return (
+                              <div key={item.label} className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                  {item.label}
+                                </div>
+                                <div
+                                  className={`text-[16px] font-semibold ${
+                                    isPositive === null
+                                      ? "text-foreground"
+                                      : isPositive
+                                        ? "text-positive"
+                                        : "text-negative"
+                                  }`}
+                                >
+                                  {typeof item.value === "number"
+                                    ? `${item.value >= 0 ? "+" : ""}${item.value.toFixed(2)}%`
+                                    : "-"}
+                                </div>
+                                <div className="text-[11px] text-muted-foreground mt-1">{item.date || "-"}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
 
-                <div className="flex flex-col h-full no-cards-right">
-                  <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm flex-1">
-                  <div className="flex items-start justify-between gap-4 mb-4">
-                    <div>
-                      <div className="text-[13px] font-semibold text-foreground">Win Rate Snapshot</div>
-                      <div className="text-[11px] text-muted-foreground mt-1">Percent of positive periods.</div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {[
-                      { label: "Positive Days", value: consistency?.positive_days_percent },
-                      { label: "Positive Months", value: consistency?.positive_months_percent },
-                      { label: "Positive Years", value: consistency?.positive_years_percent },
-                    ].map((item) => (
-                      <div key={item.label} className="rounded-xl border border-border/60 bg-card px-3 py-3">
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{item.label}</div>
-                        <div className="text-[16px] font-semibold text-foreground">
-                          {typeof item.value === "number" ? `${item.value.toFixed(2)}%` : "-"}
-                        </div>
-                        <div className="h-2 rounded-full bg-border/70 overflow-hidden mt-2">
-                          <div
-                            className="h-full bg-primary"
-                            style={{ width: `${Math.min(100, Math.max(0, item.value ?? 0))}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max +ve Streak</div>
-                      <div className="text-[15px] font-semibold text-positive">
-                        {typeof consistency?.max_consecutive_positive_months === "number"
-                          ? `${consistency.max_consecutive_positive_months} mo`
-                          : "-"}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">Longest positive run</div>
-                    </div>
-                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max -ve Streak</div>
-                      <div className="text-[15px] font-semibold text-negative">
-                        {typeof consistency?.max_consecutive_negative_months === "number"
-                          ? `${consistency.max_consecutive_negative_months} mo`
-                          : "-"}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">Longest negative run</div>
-                    </div>
-                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Best Month</div>
-                      <div className="text-[15px] font-semibold text-positive">
-                        {typeof consistency?.best_month?.return === "number" ? `${consistency.best_month.return.toFixed(2)}%` : "-"}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">
-                        {consistency?.best_month?.month ? formatMonthYear(consistency.best_month.month) : "-"}
-                      </div>
-                    </div>
-                    <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Worst Month</div>
-                      <div className="text-[15px] font-semibold text-negative">
-                        {typeof consistency?.worst_month?.return === "number" ? `${consistency.worst_month.return.toFixed(2)}%` : "-"}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">
-                        {consistency?.worst_month?.month ? formatMonthYear(consistency.worst_month.month) : "-"}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-12">
-                <div className="no-cards-right">
-                  <SectionHeader id="risk-metrics" icon={Shield} title="Risk Metrics" />
-                  <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <div>
-                        <div className="text-[13px] font-semibold text-foreground">Risk Metrics by Period</div>
-                        <div className="text-[11px] text-muted-foreground mt-1">
-                          Metrics across periods.
-                        </div>
-                      </div>
-                    </div>
-                    {(() => {
-                      const metricRows = [
-                        {
-                          key: "volatility",
-                          label: "Volatility (Ann.)",
-                          data: riskMetrics?.volatility_annualized_percent,
-                          color: "hsl(var(--primary))",
-                        },
-                        {
-                          key: "downside",
-                          label: "Downside Deviation",
-                          data: riskMetrics?.downside_deviation_percent,
-                          color: "hsl(var(--accent))",
-                        },
-                        {
-                          key: "skewness",
-                          label: "Skewness",
-                          data: riskMetrics?.skewness,
-                          color: "hsl(var(--positive))",
-                        },
-                      ];
-                      const activeMetric = metricRows.find((row) => row.key === riskMetricKey) ?? metricRows[0];
-                      const periods = METRIC_PERIOD_ORDER.map((key) => ({
-                        key,
-                        label: PERIOD_LABELS[key] || key,
-                      }));
-                      const seriesByMetric = metricRows.map((row) => ({
-                        ...row,
-                        series: buildMetricSeries(row.data as Record<string, number | null>),
-                      }));
-                      const activeSeries = activeMetric
-                        ? buildMetricSeries(activeMetric.data as Record<string, number | null>)
-                        : [];
-                      const hasAny = activeSeries.length > 0;
-                      const chartData = periods
-                        .map((period) => {
-                          const entry: Record<string, string | number> = { period: period.label };
-                          const match = activeSeries.find((item) => item.key === period.key);
-                          entry.value = typeof match?.value === "number" ? match.value : null;
-                          return entry;
-                        })
-                        .filter((entry) => typeof entry.value === "number");
-                      return hasAny ? (
-                        <div className="h-72">
-                          <div className="flex flex-wrap items-center gap-2 mb-3">
-                            {metricRows.map((row) => (
-                              <button
-                                key={row.key}
-                                type="button"
-                                onClick={() => setRiskMetricKey(row.key)}
-                                className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
-                                  (activeMetric?.key ?? metricRows[0].key) === row.key
-                                    ? "bg-primary text-primary-foreground border-primary"
-                                    : "bg-background text-muted-foreground border-border hover:text-foreground"
-                                }`}
-                              >
-                                {row.label}
-                              </button>
-                            ))}
+                    <div className="flex flex-col h-full no-cards-right">
+                      <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm flex-1">
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                          <div>
+                            <div className="text-[13px] font-semibold text-foreground">Win Rate Snapshot</div>
+                            <div className="text-[11px] text-muted-foreground mt-1">Percent of positive periods.</div>
                           </div>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData} margin={{ left: 6, right: 12, bottom: 4 }}>
-                              <XAxis dataKey="period" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                              <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                              <Tooltip
-                                contentStyle={{
-                                  background: "hsl(var(--popover))",
-                                  border: "1px solid hsl(var(--border))",
-                                  borderRadius: 8,
-                                  fontSize: 12,
-                                }}
-                              />
-                              <Bar
-                                dataKey="value"
-                                name={activeMetric?.label ?? "Metric"}
-                                fill={activeMetric?.color ?? "hsl(var(--primary))"}
-                                radius={[4, 4, 0, 0]}
-                                maxBarSize={30}
-                              />
-                            </BarChart>
-                          </ResponsiveContainer>
                         </div>
-                      ) : (
-                        <div className="text-sm text-muted-foreground">No data available.</div>
-                      );
-                    })()}
-                  </div>
-                </div>
-
-                <div className="no-cards-right">
-                  <SectionHeader icon={Shield} title="Risk-Adjusted Returns" />
-                  <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <div>
-                        <div className="text-[13px] font-semibold text-foreground">Risk-Adjusted by Period</div>
-                        <div className="text-[11px] text-muted-foreground mt-1">
-                          Metrics over time.
-                        </div>
-                      </div>
-                    </div>
-                    {(() => {
-                      const metricRows = [
-                        { key: "calmar", label: "Return/MDD", data: riskAdj?.calmar_ratio, color: "hsl(var(--positive))" },
-                        { key: "ulcer", label: "Ulcer Index", data: riskAdj?.ulcer_index, color: "hsl(var(--negative))" },
-                        { key: "pain", label: "Pain Index", data: riskAdj?.pain_index, color: "hsl(var(--muted-foreground))" },
-                      ];
-                      const periods = METRIC_PERIOD_ORDER.map((key) => ({
-                        key,
-                        label: PERIOD_LABELS[key] || key,
-                      }));
-                      const seriesByMetric = metricRows.map((row) => ({
-                        ...row,
-                        series: buildMetricSeries(row.data as Record<string, number | null>),
-                      }));
-                      const hasAny = seriesByMetric.some((row) => row.series.length > 0);
-                      const chartData = periods
-                        .map((period) => {
-                          const entry: Record<string, string | number> = { period: period.label };
-                          seriesByMetric.forEach((row) => {
-                            const match = row.series.find((item) => item.key === period.key);
-                            entry[row.key] = typeof match?.value === "number" ? match.value : null;
-                          });
-                          return entry;
-                        })
-                        .filter((entry) => seriesByMetric.some((row) => typeof entry[row.key] === "number"));
-                      return hasAny ? (
-                        <div className="h-72">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData} margin={{ left: 6, right: 12, bottom: 4 }}>
-                              <XAxis dataKey="period" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                              <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                              <Tooltip
-                                contentStyle={{
-                                  background: "hsl(var(--popover))",
-                                  border: "1px solid hsl(var(--border))",
-                                  borderRadius: 8,
-                                  fontSize: 12,
-                                }}
-                              />
-                              {seriesByMetric.map((row) => (
-                                <Line
-                                  key={row.key}
-                                  type="monotone"
-                                  dataKey={row.key}
-                                  name={row.label}
-                                  stroke={row.color}
-                                  strokeWidth={2}
-                                  dot={{ r: 3, strokeWidth: 1, fill: "hsl(var(--background))" }}
-                                  connectNulls
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          {[
+                            { label: "Positive Days", value: consistency?.positive_days_percent },
+                            { label: "Positive Months", value: consistency?.positive_months_percent },
+                            { label: "Positive Years", value: consistency?.positive_years_percent },
+                          ].map((item) => (
+                            <div key={item.label} className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                {item.label}
+                              </div>
+                              <div className="text-[16px] font-semibold text-foreground">
+                                {typeof item.value === "number" ? `${item.value.toFixed(2)}%` : "-"}
+                              </div>
+                              <div className="h-2 rounded-full bg-border/70 overflow-hidden mt-2">
+                                <div
+                                  className="h-full bg-primary"
+                                  style={{ width: `${Math.min(100, Math.max(0, item.value ?? 0))}%` }}
                                 />
-                              ))}
-                            </LineChart>
-                          </ResponsiveContainer>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ) : (
-                        <div className="text-sm text-muted-foreground">No data available.</div>
-                      );
-                    })()}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                          <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max +ve Streak</div>
+                            <div className="text-[15px] font-semibold text-positive">
+                              {typeof consistency?.max_consecutive_positive_months === "number"
+                                ? `${consistency.max_consecutive_positive_months} mo`
+                                : "-"}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground mt-1">Longest positive run</div>
+                          </div>
+                          <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max -ve Streak</div>
+                            <div className="text-[15px] font-semibold text-negative">
+                              {typeof consistency?.max_consecutive_negative_months === "number"
+                                ? `${consistency.max_consecutive_negative_months} mo`
+                                : "-"}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground mt-1">Longest negative run</div>
+                          </div>
+                          <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Best Month</div>
+                            <div className="text-[15px] font-semibold text-positive">
+                              {typeof consistency?.best_month?.return === "number"
+                                ? `${consistency.best_month.return.toFixed(2)}%`
+                                : "-"}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground mt-1">
+                              {consistency?.best_month?.month ? formatMonthYear(consistency.best_month.month) : "-"}
+                            </div>
+                          </div>
+                          <div className="rounded-xl border border-border/60 bg-card px-3 py-3">
+                            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Worst Month</div>
+                            <div className="text-[15px] font-semibold text-negative">
+                              {typeof consistency?.worst_month?.return === "number"
+                                ? `${consistency.worst_month.return.toFixed(2)}%`
+                                : "-"}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground mt-1">
+                              {consistency?.worst_month?.month ? formatMonthYear(consistency.worst_month.month) : "-"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-12">
+                    <div className="no-cards-right">
+                      <SectionHeader id="risk-metrics" icon={Shield} title="Risk Metrics" />
+                      <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                        <div className="flex items-start justify-between gap-4 mb-3">
+                          <div>
+                            <div className="text-[13px] font-semibold text-foreground">Risk Metrics by Period</div>
+                            <div className="text-[11px] text-muted-foreground mt-1">
+                              Metrics across periods.
+                            </div>
+                          </div>
+                        </div>
+                        {(() => {
+                          const metricRows = [
+                            {
+                              key: "volatility",
+                              label: "Volatility (Ann.)",
+                              data: riskMetrics?.volatility_annualized_percent,
+                              color: "hsl(var(--primary))",
+                            },
+                            {
+                              key: "downside",
+                              label: "Downside Deviation",
+                              data: riskMetrics?.downside_deviation_percent,
+                              color: "hsl(var(--accent))",
+                            },
+                            {
+                              key: "skewness",
+                              label: "Skewness",
+                              data: riskMetrics?.skewness,
+                              color: "hsl(var(--positive))",
+                            },
+                          ];
+                          const activeMetric = metricRows.find((row) => row.key === riskMetricKey) ?? metricRows[0];
+                          const periods = METRIC_PERIOD_ORDER.map((key) => ({
+                            key,
+                            label: PERIOD_LABELS[key] || key,
+                          }));
+                          const seriesByMetric = metricRows.map((row) => ({
+                            ...row,
+                            series: buildMetricSeries(row.data as Record<string, number | null>),
+                          }));
+                          const activeSeries = activeMetric
+                            ? buildMetricSeries(activeMetric.data as Record<string, number | null>)
+                            : [];
+                          const hasAny = activeSeries.length > 0;
+                          const chartData = periods
+                            .map((period) => {
+                              const entry: Record<string, string | number> = { period: period.label };
+                              const match = activeSeries.find((item) => item.key === period.key);
+                              entry.value = typeof match?.value === "number" ? match.value : null;
+                              return entry;
+                            })
+                            .filter((entry) => typeof entry.value === "number");
+                          return hasAny ? (
+                            <div className="h-72">
+                              <div className="flex flex-wrap items-center gap-2 mb-3">
+                                {metricRows.map((row) => (
+                                  <button
+                                    key={row.key}
+                                    type="button"
+                                    onClick={() => setRiskMetricKey(row.key)}
+                                    className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                                      (activeMetric?.key ?? metricRows[0].key) === row.key
+                                        ? "bg-primary text-primary-foreground border-primary"
+                                        : "bg-background text-muted-foreground border-border hover:text-foreground"
+                                    }`}
+                                  >
+                                    {row.label}
+                                  </button>
+                                ))}
+                              </div>
+                              <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData} margin={{ left: 6, right: 12, bottom: 4 }}>
+                                  <XAxis dataKey="period" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                                  <Tooltip
+                                    contentStyle={{
+                                      background: "hsl(var(--popover))",
+                                      border: "1px solid hsl(var(--border))",
+                                      borderRadius: 8,
+                                      fontSize: 12,
+                                    }}
+                                  />
+                                  <Bar
+                                    dataKey="value"
+                                    name={activeMetric?.label ?? "Metric"}
+                                    fill={activeMetric?.color ?? "hsl(var(--primary))"}
+                                    radius={[4, 4, 0, 0]}
+                                    maxBarSize={30}
+                                  />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          ) : (
+                            <div className="text-sm text-muted-foreground">No data available.</div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+
+                    <div className="no-cards-right">
+                      <SectionHeader icon={Shield} title="Risk-Adjusted Returns" />
+                      <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
+                        <div className="flex items-start justify-between gap-4 mb-3">
+                          <div>
+                            <div className="text-[13px] font-semibold text-foreground">Risk-Adjusted by Period</div>
+                            <div className="text-[11px] text-muted-foreground mt-1">
+                              Metrics over time.
+                            </div>
+                          </div>
+                        </div>
+                        {(() => {
+                          const metricRows = [
+                            { key: "calmar", label: "Return/MDD", data: riskAdj?.calmar_ratio, color: "hsl(var(--positive))" },
+                            { key: "ulcer", label: "Ulcer Index", data: riskAdj?.ulcer_index, color: "hsl(var(--negative))" },
+                            { key: "pain", label: "Pain Index", data: riskAdj?.pain_index, color: "hsl(var(--muted-foreground))" },
+                          ];
+                          const periods = METRIC_PERIOD_ORDER.map((key) => ({
+                            key,
+                            label: PERIOD_LABELS[key] || key,
+                          }));
+                          const seriesByMetric = metricRows.map((row) => ({
+                            ...row,
+                            series: buildMetricSeries(row.data as Record<string, number | null>),
+                          }));
+                          const hasAny = seriesByMetric.some((row) => row.series.length > 0);
+                          const chartData = periods
+                            .map((period) => {
+                              const entry: Record<string, string | number> = { period: period.label };
+                              seriesByMetric.forEach((row) => {
+                                const match = row.series.find((item) => item.key === period.key);
+                                entry[row.key] = typeof match?.value === "number" ? match.value : null;
+                              });
+                              return entry;
+                            })
+                            .filter((entry) => seriesByMetric.some((row) => typeof entry[row.key] === "number"));
+                          return hasAny ? (
+                            <div className="h-72">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={chartData} margin={{ left: 6, right: 12, bottom: 4 }}>
+                                  <XAxis dataKey="period" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                                  <Tooltip
+                                    contentStyle={{
+                                      background: "hsl(var(--popover))",
+                                      border: "1px solid hsl(var(--border))",
+                                      borderRadius: 8,
+                                      fontSize: 12,
+                                    }}
+                                  />
+                                  {seriesByMetric.map((row) => (
+                                    <Line
+                                      key={row.key}
+                                      type="monotone"
+                                      dataKey={row.key}
+                                      name={row.label}
+                                      stroke={row.color}
+                                      strokeWidth={2}
+                                      dot={{ r: 3, strokeWidth: 1, fill: "hsl(var(--background))" }}
+                                      connectNulls
+                                    />
+                                  ))}
+                                </LineChart>
+                              </ResponsiveContainer>
+                            </div>
+                          ) : (
+                            <div className="text-sm text-muted-foreground">No data available.</div>
+                          );
+                        })()}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
+
 </>
           )}
         </div>
