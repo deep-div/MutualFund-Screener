@@ -1144,17 +1144,19 @@ class NavMetrics:
         """Normalize selected risk outputs into practical bounded ranges."""
         configs = {
             "risk_metrics": {
-                "volatility_annualized_percent": {"min": 0.0, "max": 300.0, "scale": 20.0, "center": 0.0, "mode": "non_negative"},
-                "downside_deviation_percent": {"min": 0.0, "max": 300.0, "scale": 12.0, "center": 0.0, "mode": "non_negative"},
-                "skewness": {"min": -10.0, "max": 20.0, "scale": 1.5, "center": 0.0, "mode": "signed"},
-                "kurtosis": {"min": -10.0, "max": 100.0, "scale": 8.0, "center": 0.0, "mode": "non_negative"},
+                "volatility_annualized_percent": {"min": 0.0, "max": 100.0, "scale": 20.0, "center": 0.0, "mode": "non_negative"},
+                "downside_deviation_percent": {"min": 0.0, "max": 80.0, "scale": 12.0, "center": 0.0, "mode": "non_negative"},
+                "skewness": {"min": -5.0, "max": 5.0, "scale": 1.5, "center": 0.0, "mode": "signed"},
+                "kurtosis": {"min": 0.0, "max": 50.0, "scale": 8.0, "center": 0.0, "mode": "non_negative"},
             },
             "risk_adjusted_returns": {
-                "sharpe_ratio": {"min": -10.0, "max": 50.0, "scale": 2.4, "center": 1.0, "mode": "signed"},
-                "sortino_ratio": {"min": -10.0, "max": 50.0, "scale": 4.0, "center": 2.0, "mode": "signed"},
-                "calmar_ratio": {"min": -10.0, "max": 50.0, "scale": 4.0, "center": 1.5, "mode": "signed"},
+                # Increased scale reduces top-end saturation so high values keep separation.
+                # Slight headroom below hard max avoids many values appearing as exact max.
+                "sharpe_ratio": {"min": -3.0, "max": 4.9, "scale": 2.4, "center": 1.0, "mode": "signed"},
+                "sortino_ratio": {"min": -3.0, "max": 9.8, "scale": 4.0, "center": 2.0, "mode": "signed"},
+                "calmar_ratio": {"min": -3.0, "max": 9.8, "scale": 4.0, "center": 1.5, "mode": "signed"},
                 "pain_index": {"min": 0.0, "max": 100.0, "scale": 18.0, "center": 0.0, "mode": "non_negative"},
-                "ulcer_index": {"min": 0.0, "max": 100.0, "scale": 10.0, "center": 0.0, "mode": "non_negative"},
+                "ulcer_index": {"min": 0.0, "max": 50.0, "scale": 10.0, "center": 0.0, "mode": "non_negative"},
             },
         }
 
