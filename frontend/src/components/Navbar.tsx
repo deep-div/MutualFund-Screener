@@ -656,26 +656,20 @@ const Navbar = () => {
                 </button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" sideOffset={15} className="w-52">
-                <div className="px-2 py-1.5">
-                  <p className="text-[13px] font-medium">{user?.displayName || user?.email}</p>
-                </div>
-
-                <DropdownMenuSeparator />
-
+              <DropdownMenuContent align="end" sideOffset={15} className="w-40">
                 <DropdownMenuItem
-                  className="text-[13px] cursor-pointer"
+                  className="text-[14px] cursor-pointer py-2.5"
                   onClick={() => navigate("/profile")}
                 >
-                  <User className="w-3.5 h-3.5 mr-2" />
+                  <User className="w-4 h-4 mr-2" />
                   Profile
                 </DropdownMenuItem>
 
               <DropdownMenuItem
-                  className="text-[13px] cursor-pointer text-destructive"
+                  className="text-[14px] cursor-pointer text-destructive py-2.5"
                   onClick={() => void logout()}
                 >
-                  <LogOut className="w-3.5 h-3.5 mr-2" />
+                  <LogOut className="w-4 h-4 mr-2" />
                   Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
