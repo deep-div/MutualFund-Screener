@@ -27,10 +27,10 @@ const SAVED_FILTERS_BATCH_SIZE = 10;
 type NavItem = "All Screens" | "New Screen";
 
 const formatNav = (value?: number | null) =>
-  typeof value === "number" ? `â‚¹${NAV_FORMATTER.format(value)}` : "â€”";
+  typeof value === "number" ? `₹${NAV_FORMATTER.format(value)}` : "—";
  
 const formatChange = (value?: number | null) =>
-  typeof value === "number" ? `${NAV_FORMATTER.format(Math.abs(value))}%` : "â€”";
+  typeof value === "number" ? `${NAV_FORMATTER.format(Math.abs(value))}%` : "—";
 
 const toSchemeSlug = (value: string) =>
   value
@@ -625,7 +625,7 @@ const Navbar = () => {
                                     {formatChange(changeValue)}
                                   </span>
                                 ) : (
-                                  <span className="text-[12px] text-slate-400">â€”</span>
+                                  <span className="text-[12px] text-slate-400">—</span>
                                 )}
                               </div>
                             </div>
