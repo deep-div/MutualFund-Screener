@@ -114,7 +114,7 @@ const Index = () => {
     return payload;
   }, [enabledFilters, filterValues]);
 
-  const handleReset = () => {
+  const handleResetAll = () => {
     setEnabledFilters(PINNED_FILTERS);
     setFilterValues({});
     try {
@@ -133,7 +133,13 @@ const Index = () => {
 
   useEffect(() => {
     const handleNewScreen = () => {
-      handleReset();
+      setEnabledFilters(DEFAULT_ENABLED_FILTERS);
+      setFilterValues({});
+      try {
+        sessionStorage.removeItem(sessionKey);
+      } catch {
+        // Ignore storage errors.
+      }
       setRangeMeta({});
       setScreenResetToken((prev) => prev + 1);
       setMobileFiltersOpen(false);
@@ -264,7 +270,7 @@ const Index = () => {
                 activeCount={activeCount}
                 onChangeEnabled={setEnabledFilters}
                 onChangeValue={handleValueChange}
-                onReset={handleReset}
+                onReset={handleResetAll}
               />
               <button
                 type="button"
@@ -295,7 +301,7 @@ const Index = () => {
                 activeCount={activeCount}
                 onChangeEnabled={setEnabledFilters}
                 onChangeValue={handleValueChange}
-                onReset={handleReset}
+                onReset={handleResetAll}
               />
               <button
                 type="button"
