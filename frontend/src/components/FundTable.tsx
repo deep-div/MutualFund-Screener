@@ -408,7 +408,7 @@ const FundTable = ({
 
       <div className="flex-1 min-h-0">
         <div
-          className="h-full w-full overflow-auto scrollbar-thin"
+          className="h-full w-full overflow-y-auto overflow-x-hidden scrollbar-thin"
           onScroll={(event) => {
             const nextCollapsed = event.currentTarget.scrollTop > 24;
             setIsHeaderCollapsed((previous) =>
@@ -416,114 +416,116 @@ const FundTable = ({
             );
           }}
         >
-          <table className="w-full min-w-max table-fixed border-separate border-spacing-0">
-          <colgroup>
-            {columns.map((col) => (
-              <col
-                key={String(col.key)}
-                className={col.key === "scheme_sub_name" ? "w-[200px]" : "w-[140px]"}
-              />
-            ))}
-          </colgroup>
-          <thead className="sticky top-0 z-30 table-header-bg dimmable-header">
-            <tr className="border-b border-border">
-              {columns.map((col) => (
-                <th
-                  key={String(col.key)}
-                  onClick={() => {
-                    const nextKey = col.key;
-                    if (sortKey === nextKey) {
-                      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
-                    } else {
-                      setSortKey(nextKey);
-                      setSortDir("desc");
-                    }
-                  }}
-                  className={`sticky top-0 z-20 px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-normal break-words leading-normal table-header-bg bg-background shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group ${
-                    col.key === "scheme_sub_name" ? "sticky left-0 z-40" : ""
-                  }`}
-                >
-                  <span className="inline-flex items-center justify-center gap-2">
-                    <span>{col.label}</span>
-                    {sortKey === col.key ? (
-                      sortDir === "asc" ? (
-                        <MoveUp  className="w-3 h-3 text-foreground" strokeWidth={1.5} />
-                      ) : (
-                        <MoveDown className="w-3 h-3 text-foreground" strokeWidth={1.5} />
-                      )
-                    ) : null}
-                  </span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading && items.length === 0
-              ? Array.from({ length: SKELETON_ROWS }).map((_, rowIndex) => (
-                  <tr key={`skeleton-${rowIndex}`} className="border-b border-border">
-                    {columns.map((col) => (
-                      <td key={`${rowIndex}-${String(col.key)}`} className="px-3 py-3">
-                        <Skeleton
-                          className={`h-3 ${
-                            col.key === "scheme_sub_name"
-                              ? "w-48"
-                              : col.key === "scheme_sub_category"
-                                ? "w-40"
-                                : "w-24"
-                          }`}
-                        />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              : items.map((fund, index) => (
-                  <motion.tr
-                    key={fund.external_id ?? `${fund.scheme_sub_name}-${index}`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.02 }}
-                    className="border-b border-border table-row-hover transition-colors cursor-pointer group dimmable-row"
-                  >
-                    {columns.map((col) => {
-                      const value = fund[col.key];
-                      const schemePath = getSchemePath(fund);
-                      if (col.key === "scheme_sub_name") {
-                        return (
-                      <td
-                        key={String(col.key)}
-                        className={`px-3 py-3 transition-colors ${col.key === "scheme_sub_name" ? "sticky left-0 z-10 bg-background sticky-cell" : ""}`}
-                      >
-                        <Link
-                          to={schemePath}
-                          className="block text-[13px] font-medium text-foreground hover:no-underline cursor-pointer"
-                        >
-                          {typeof value === "string" && value ? value : "-"}
-                        </Link>
-                      </td>
-                        );
-                      }
-
-                      return (
-                        <td
-                          key={String(col.key)}
-                          className={`px-3 py-3 text-[13px] text-center text-foreground ${
-                            col.key === "scheme_sub_name" ? "sticky left-0 z-10 bg-background text-left" : ""
-                          }`}
-                        >
-                          <Link to={schemePath} className="block">
-                            {typeof value === "string" && value
-                              ? value
-                              : typeof value === "number"
-                                ? formatNumber(value)
-                                : "-"}
-                          </Link>
-                        </td>
-                      );
-                    })}
-                  </motion.tr>
+          <div className="w-full overflow-x-auto scrollbar-thin">
+            <table className="w-full min-w-max table-fixed border-separate border-spacing-0">
+              <colgroup>
+                {columns.map((col) => (
+                  <col
+                    key={String(col.key)}
+                    className={col.key === "scheme_sub_name" ? "w-[200px]" : "w-[140px]"}
+                  />
                 ))}
-          </tbody>
-          </table>
+              </colgroup>
+              <thead className="sticky top-0 z-30 table-header-bg dimmable-header">
+                <tr className="border-b border-border">
+                  {columns.map((col) => (
+                    <th
+                      key={String(col.key)}
+                      onClick={() => {
+                        const nextKey = col.key;
+                        if (sortKey === nextKey) {
+                          setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+                        } else {
+                          setSortKey(nextKey);
+                          setSortDir("desc");
+                        }
+                      }}
+                      className={`sticky top-0 z-20 px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-normal break-words leading-normal table-header-bg bg-background shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group ${
+                        col.key === "scheme_sub_name" ? "sticky left-0 z-40" : ""
+                      }`}
+                    >
+                      <span className="inline-flex items-center justify-center gap-2">
+                        <span>{col.label}</span>
+                        {sortKey === col.key ? (
+                          sortDir === "asc" ? (
+                            <MoveUp className="w-3 h-3 text-foreground" strokeWidth={1.5} />
+                          ) : (
+                            <MoveDown className="w-3 h-3 text-foreground" strokeWidth={1.5} />
+                          )
+                        ) : null}
+                      </span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading && items.length === 0
+                  ? Array.from({ length: SKELETON_ROWS }).map((_, rowIndex) => (
+                      <tr key={`skeleton-${rowIndex}`} className="border-b border-border">
+                        {columns.map((col) => (
+                          <td key={`${rowIndex}-${String(col.key)}`} className="px-3 py-3">
+                            <Skeleton
+                              className={`h-3 ${
+                                col.key === "scheme_sub_name"
+                                  ? "w-48"
+                                  : col.key === "scheme_sub_category"
+                                    ? "w-40"
+                                    : "w-24"
+                              }`}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  : items.map((fund, index) => (
+                      <motion.tr
+                        key={fund.external_id ?? `${fund.scheme_sub_name}-${index}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: index * 0.02 }}
+                        className="border-b border-border table-row-hover transition-colors cursor-pointer group dimmable-row"
+                      >
+                        {columns.map((col) => {
+                          const value = fund[col.key];
+                          const schemePath = getSchemePath(fund);
+                          if (col.key === "scheme_sub_name") {
+                            return (
+                              <td
+                                key={String(col.key)}
+                                className={`px-3 py-3 transition-colors ${col.key === "scheme_sub_name" ? "sticky left-0 z-10 bg-background sticky-cell" : ""}`}
+                              >
+                                <Link
+                                  to={schemePath}
+                                  className="block text-[13px] font-medium text-foreground hover:no-underline cursor-pointer"
+                                >
+                                  {typeof value === "string" && value ? value : "-"}
+                                </Link>
+                              </td>
+                            );
+                          }
+
+                          return (
+                            <td
+                              key={String(col.key)}
+                              className={`px-3 py-3 text-[13px] text-center text-foreground ${
+                                col.key === "scheme_sub_name" ? "sticky left-0 z-10 bg-background text-left" : ""
+                              }`}
+                            >
+                              <Link to={schemePath} className="block">
+                                {typeof value === "string" && value
+                                  ? value
+                                  : typeof value === "number"
+                                    ? formatNumber(value)
+                                    : "-"}
+                              </Link>
+                            </td>
+                          );
+                        })}
+                      </motion.tr>
+                    ))}
+              </tbody>
+            </table>
+          </div>
 
           {error && <div className="p-4 text-sm text-negative">{error}</div>}
           {!loading && items.length === 0 && !error && (
