@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getDefaultFilters, getUserFilters, SavedUserFilter } from "@/services/userService";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { SlidersHorizontal, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from "lucide-react";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 
 const Index = () => {
@@ -32,6 +32,7 @@ const Index = () => {
   const [restoredFilterExternalId, setRestoredFilterExternalId] = useState<string | null>(null);
   const [restoringSavedFilter, setRestoringSavedFilter] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [desktopFiltersCollapsed, setDesktopFiltersCollapsed] = useState(false);
 
   useEffect(() => {
     if (savedFilterId) return;
@@ -241,16 +242,41 @@ const Index = () => {
       <TickerTape />
       <Navbar />
       <div className="relative flex flex-1 overflow-hidden page-dimmable">
-        <div className="hidden lg:block h-full">
-          <FilterSidebar
-            enabledFilters={enabledFilters}
-            values={filterValues}
-            rangeMeta={rangeMeta}
-            activeCount={activeCount}
-            onChangeEnabled={setEnabledFilters}
-            onChangeValue={handleValueChange}
-            onReset={handleReset}
-          />
+        <div className="relative hidden lg:flex h-full">
+          {desktopFiltersCollapsed ? (
+            <div className="relative h-full w-4 border-r border-border bg-background/70">
+              <button
+                type="button"
+                onClick={() => setDesktopFiltersCollapsed(false)}
+                className="absolute left-1/2 top-3 inline-flex h-9 w-5 -translate-x-1/2 items-center justify-center rounded-r-md border border-l-0 border-border bg-background text-muted-foreground transition-colors hover:bg-surface-hover"
+                aria-label="Expand filters sidebar"
+                title="Expand filters"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="relative h-full">
+              <FilterSidebar
+                enabledFilters={enabledFilters}
+                values={filterValues}
+                rangeMeta={rangeMeta}
+                activeCount={activeCount}
+                onChangeEnabled={setEnabledFilters}
+                onChangeValue={handleValueChange}
+                onReset={handleReset}
+              />
+              <button
+                type="button"
+                onClick={() => setDesktopFiltersCollapsed(true)}
+                className="absolute right-0 top-3 z-20 inline-flex h-9 w-5 translate-x-full items-center justify-center rounded-r-md border border-l-0 border-border bg-background text-muted-foreground transition-colors hover:bg-surface-hover"
+                aria-label="Collapse filters sidebar"
+                title="Collapse filters"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
         </div>
         {mobileFiltersOpen && (
           <div className="absolute inset-0 z-[115] lg:hidden">
