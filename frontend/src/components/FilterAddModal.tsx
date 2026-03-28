@@ -146,8 +146,8 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
         </div>
 
         <div className="flex flex-1 min-h-0 flex-col sm:flex-row">
-          <div className="border-b border-border sm:border-b-0 sm:border-r sm:w-44">
-            <div className="px-3 py-3 sm:px-4">
+          <div className="border-b border-border sm:border-b-0 sm:border-r sm:w-52">
+            <div className="py-3 pl-3 pr-10 sm:pl-4 sm:pr-12">
               <div className="flex flex-col gap-1">
                 {FILTER_CATEGORIES.map((cat) => (
                   <button
@@ -175,7 +175,7 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
                 <label
                   key={filter.id}
                   onClick={() => toggleFilter(filter.id)}
-                  className="group flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-hover sm:px-6 sm:py-2.5"
+                  className="group flex cursor-pointer items-center gap-3 px-5 py-3 transition-colors hover:bg-surface-hover sm:px-7 sm:py-2.5"
                 >
                   <div
                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
