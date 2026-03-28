@@ -158,11 +158,9 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
   { id: "rolling_max_10y", label: "Rolling Max 10Y", type: "range", category: "rolling" },
 
   { id: "calmar", label: "Return/MDD", type: "range", category: "risk_ratios" },
-  { id: "sharpe", label: "Sharpe Ratio", type: "range", category: "risk_ratios" },
   { id: "volatility", label: "Volatility", type: "range", category: "risk_ratios" },
   { id: "downside_deviation", label: "Downside Deviation", type: "range", category: "risk_ratios" },
   { id: "skewness", label: "Skewness", type: "range", category: "risk_ratios" },
-  { id: "kurtosis", label: "Kurtosis", type: "range", category: "risk_ratios" },
   { id: "pain_index", label: "Pain Ratio", type: "range", category: "risk_ratios" },
   { id: "ulcer_index", label: "Ulcer Ratio", type: "range", category: "risk_ratios" },
 

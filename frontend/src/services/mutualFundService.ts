@@ -79,7 +79,6 @@ export interface SchemeAnalyticsResponse {
       downside_deviation_percent?: Record<string, number | null>;
     };
     risk_adjusted_returns?: {
-      sharpe_ratio?: Record<string, number | null>;
     };
   };
 }
@@ -121,8 +120,6 @@ export interface SchemeListItem {
   volatility?: number | null;
   downside_deviation?: number | null;
   skewness?: number | null;
-  kurtosis?: number | null;
-  sharpe?: number | null;
   calmar?: number | null;
   pain_index?: number | null;
   ulcer_index?: number | null;

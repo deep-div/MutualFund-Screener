@@ -1765,12 +1765,6 @@ const FundAnalytics = () => {
                           data: riskMetrics?.skewness,
                           color: "hsl(var(--positive))",
                         },
-                        {
-                          key: "kurtosis",
-                          label: "Kurtosis",
-                          data: riskMetrics?.kurtosis,
-                          color: "hsl(var(--negative))",
-                        },
                       ];
                       const activeMetric = metricRows.find((row) => row.key === riskMetricKey) ?? metricRows[0];
                       const periods = METRIC_PERIOD_ORDER.map((key) => ({
@@ -1853,7 +1847,6 @@ const FundAnalytics = () => {
                     </div>
                     {(() => {
                       const metricRows = [
-                        { key: "sharpe", label: "Sharpe Ratio", data: riskAdj?.sharpe_ratio, color: "hsl(var(--primary))" },
                         { key: "calmar", label: "Return/MDD", data: riskAdj?.calmar_ratio, color: "hsl(var(--positive))" },
                         { key: "ulcer", label: "Ulcer Index", data: riskAdj?.ulcer_index, color: "hsl(var(--negative))" },
                         { key: "pain", label: "Pain Index", data: riskAdj?.pain_index, color: "hsl(var(--muted-foreground))" },
