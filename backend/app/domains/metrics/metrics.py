@@ -506,7 +506,7 @@ class NavMetrics:
         if not annual_factor:
             return 0.0
 
-        rf_daily = risk_free_rate_annual / annual_factor
+        rf_daily = self._annual_to_periodic_rate(risk_free_rate_annual, annual_factor)
         excess_returns = [r - rf_daily for r in daily_returns]
 
         mean_excess = sum(excess_returns) / n
@@ -624,12 +624,15 @@ class NavMetrics:
         if not annual_factor:
             return 0.0
 
-        rf_daily = risk_free_rate_annual / annual_factor
+        rf_daily = self._annual_to_periodic_rate(risk_free_rate_annual, annual_factor)
         excess_returns = [r - rf_daily for r in daily_returns]
 
         mean_excess = sum(excess_returns) / n
-        downside_squared = [(min(0.0, r)) ** 2 for r in excess_returns]
-        downside_deviation = (sum(downside_squared) / n) ** 0.5
+        # Use full denominator by default for Sortino-compatible downside deviation.
+        downside_deviation = self._downside_deviation_from_excess_returns(
+            excess_returns,
+            denominator_method="full"
+        )
 
         if downside_deviation == 0:
             return 0.0
@@ -638,7 +641,7 @@ class NavMetrics:
         return round(sortino, 4)
 
     def _skewness(self, start_date):
-        """Calculate skewness of daily returns for a period"""
+        """Calculate bias-corrected sample skewness of daily returns"""
         filtered = [e for e in self.nav_data if e['date'] >= start_date]
         if len(filtered) < 3:
             return 0.0
@@ -657,17 +660,18 @@ class NavMetrics:
             return 0.0
 
         mean_return = sum(daily_returns) / n
-        variance = sum((r - mean_return) ** 2 for r in daily_returns) / (n - 1)
-        std_dev = variance ** 0.5
-
-        if std_dev == 0:
+        centered = [r - mean_return for r in daily_returns]
+        m2 = sum(x ** 2 for x in centered) / n
+        if m2 == 0:
             return 0.0
 
-        skew = sum(((r - mean_return) / std_dev) ** 3 for r in daily_returns) / n
-        return round(skew, 4)
+        m3 = sum(x ** 3 for x in centered) / n
+        g1 = m3 / (m2 ** 1.5)
+        corrected_skew = ((n * (n - 1)) ** 0.5 / (n - 2)) * g1
+        return round(corrected_skew, 4)
 
     def _kurtosis(self, start_date):
-        """Calculate kurtosis of daily returns for a period"""
+        """Calculate bias-corrected sample excess kurtosis of daily returns"""
         filtered = [e for e in self.nav_data if e['date'] >= start_date]
         if len(filtered) < 4:
             return 0.0
@@ -686,15 +690,16 @@ class NavMetrics:
             return 0.0
 
         mean_return = sum(daily_returns) / n
-        variance = sum((r - mean_return) ** 2 for r in daily_returns) / (n - 1)
-        std_dev = variance ** 0.5
-
-        if std_dev == 0:
+        centered = [r - mean_return for r in daily_returns]
+        m2 = sum(x ** 2 for x in centered) / n
+        if m2 == 0:
             return 0.0
 
-        kurt = sum(((r - mean_return) / std_dev) ** 4 for r in daily_returns) / n - 3
-        return round(kurt, 4)
-    def _downside_deviation_percent(self, start_date, threshold_annual=0.0):
+        m4 = sum(x ** 4 for x in centered) / n
+        g2 = (m4 / (m2 ** 2)) - 3.0
+        corrected_kurtosis = ((n - 1) / ((n - 2) * (n - 3))) * ((n + 1) * g2 + 6.0)
+        return round(corrected_kurtosis, 4)
+    def _downside_deviation_percent(self, start_date, threshold_annual=0.0, denominator_method="full"):
         """Calculate annualized downside deviation (%) from daily returns"""
         filtered = [e for e in self.nav_data if e['date'] >= start_date]
         if len(filtered) < 2:
@@ -717,12 +722,46 @@ class NavMetrics:
         if not annual_factor:
             return 0.0
 
-        threshold_daily = threshold_annual / annual_factor
-        downside_squared = [(min(0.0, r - threshold_daily)) ** 2 for r in daily_returns]
-        downside_deviation_daily = (sum(downside_squared) / n) ** 0.5
+        threshold_daily = self._annual_to_periodic_rate(threshold_annual, annual_factor)
+        excess_returns = [r - threshold_daily for r in daily_returns]
+        downside_deviation_daily = self._downside_deviation_from_excess_returns(
+            excess_returns,
+            denominator_method=denominator_method
+        )
         downside_deviation_annual_percent = downside_deviation_daily * (annual_factor ** 0.5) * 100
 
         return round(downside_deviation_annual_percent, 2)
+    def _downside_deviation_from_excess_returns(self, excess_returns, denominator_method="full"):
+        """Calculate downside deviation from excess returns.
+
+        denominator_method:
+        - "full": divide by total observations (Sortino-compatible default)
+        - "subset": divide by count of downside observations only
+        """
+        if not excess_returns:
+            return 0.0
+
+        downside_squared = [(min(0.0, r)) ** 2 for r in excess_returns]
+        downside_count = sum(1 for r in excess_returns if r < 0)
+
+        if denominator_method == "subset":
+            if downside_count == 0:
+                return 0.0
+            return (sum(downside_squared) / downside_count) ** 0.5
+
+        denominator = len(excess_returns)
+        if denominator == 0:
+            return 0.0
+        return (sum(downside_squared) / denominator) ** 0.5
+    def _annual_to_periodic_rate(self, annual_rate, periods_per_year):
+        """Convert annual effective rate to periodic effective rate."""
+        if annual_rate is None:
+            return 0.0
+        if periods_per_year is None or periods_per_year <= 0:
+            return 0.0
+        if annual_rate <= -1.0:
+            return -1.0
+        return (1.0 + annual_rate) ** (1.0 / periods_per_year) - 1.0
     def _annualization_factor(self, filtered):
         """Infer annualization factor from NAV frequency in the filtered period"""
         if len(filtered) < 2:
@@ -742,6 +781,11 @@ class NavMetrics:
         return n_returns / years
     def _calmar_ratio(self, cagr_percent, mdd_percent):
         """Calculate Calmar ratio as CAGR / abs(Max Drawdown)"""
+        if cagr_percent is None or mdd_percent is None:
+            return 0.0
+        if not math.isfinite(cagr_percent) or not math.isfinite(mdd_percent):
+            return 0.0
+
         denominator = abs(mdd_percent)
         if denominator == 0:
             return 0.0
@@ -1083,6 +1127,52 @@ class NavMetrics:
         except Exception as e:
             logger.error(f"Monthly rolling CAGR calculation failed: {str(e)}")
             raise
+    @staticmethod
+    def _clip_metric_value(value, min_value, max_value):
+        """Clip numeric metric to a configured display range."""
+        if value is None:
+            return None
+        if not isinstance(value, (int, float)) or not math.isfinite(value):
+            return None
+        return min(max(value, min_value), max_value)
+
+    def _normalize_risk_sections(self, risk_metrics, risk_adjusted_returns):
+        """Normalize selected risk outputs into practical bounded ranges."""
+        ranges = {
+            "risk_metrics": {
+                "volatility_annualized_percent": (0.0, 100.0),
+                "downside_deviation_percent": (0.0, 80.0),
+                "skewness": (-5.0, 5.0),
+                "kurtosis": (0.0, 50.0),
+            },
+            "risk_adjusted_returns": {
+                "sharpe_ratio": (-3.0, 5.0),
+                "sortino_ratio": (-3.0, 10.0),
+                "calmar_ratio": (-3.0, 10.0),
+                "pain_index": (0.0, 100.0),
+                "ulcer_index": (0.0, 50.0),
+            },
+        }
+
+        for metric_name, bounds in ranges["risk_metrics"].items():
+            values = risk_metrics.get(metric_name, {})
+            if not isinstance(values, dict):
+                continue
+            min_v, max_v = bounds
+            risk_metrics[metric_name] = {
+                k: self._clip_metric_value(v, min_v, max_v)
+                for k, v in values.items()
+            }
+
+        for metric_name, bounds in ranges["risk_adjusted_returns"].items():
+            values = risk_adjusted_returns.get(metric_name, {})
+            if not isinstance(values, dict):
+                continue
+            min_v, max_v = bounds
+            risk_adjusted_returns[metric_name] = {
+                k: self._clip_metric_value(v, min_v, max_v)
+                for k, v in values.items()
+            }
 
     def get_all_metrics(self):
         """Return all metrics in dict format"""
@@ -1219,6 +1309,12 @@ class NavMetrics:
                     "consistency": self._consistency_metrics(),
                 },
             }
+
+            # Keep risk outputs within practical display bounds.
+            self._normalize_risk_sections(
+                result["risk_metrics"],
+                result["risk_adjusted_returns"]
+            )
 
             try:
                 validated_result = NavMetricsOutput(**result)
