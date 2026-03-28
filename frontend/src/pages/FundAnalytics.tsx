@@ -1854,7 +1854,7 @@ const FundAnalytics = () => {
                     {(() => {
                       const metricRows = [
                         { key: "sharpe", label: "Sharpe Ratio", data: riskAdj?.sharpe_ratio, color: "hsl(var(--primary))" },
-                        { key: "calmar", label: "Calmar Ratio", data: riskAdj?.calmar_ratio, color: "hsl(var(--positive))" },
+                        { key: "calmar", label: "Return/MDD", data: riskAdj?.calmar_ratio, color: "hsl(var(--positive))" },
                         { key: "ulcer", label: "Ulcer Index", data: riskAdj?.ulcer_index, color: "hsl(var(--negative))" },
                         { key: "pain", label: "Pain Index", data: riskAdj?.pain_index, color: "hsl(var(--muted-foreground))" },
                       ];
