@@ -1200,81 +1200,6 @@ class NavMetrics:
         except Exception as e:
             logger.error(f"Monthly rolling CAGR calculation failed: {str(e)}")
             raise
-    @staticmethod
-    def _smooth_normalize_value(value, min_value, max_value, scale, center=0.0, mode="signed"):
-        """Smoothly map metric into a bounded range without hard clipping."""
-        if value is None:
-            return None
-        if not isinstance(value, (int, float)) or not math.isfinite(value):
-            return None
-        if max_value <= min_value:
-            return None
-
-        if mode == "non_negative":
-            x = max(0.0, value)
-            # Soft saturation: 0 -> min, large values approach max asymptotically.
-            ratio = x / (x + max(scale, 1e-9))
-            normalized = min_value + (max_value - min_value) * ratio
-            return round(normalized, 4)
-
-        # Signed/asymmetric metrics: smooth S-curve around a chosen center.
-        half_range = (max_value - min_value) / 2.0
-        midpoint = (max_value + min_value) / 2.0
-        normalized = midpoint + half_range * math.tanh((value - center) / max(scale, 1e-9))
-        return round(normalized, 4)
-
-    def _normalize_risk_sections(self, risk_metrics, risk_adjusted_returns):
-        """Normalize selected risk outputs into practical bounded ranges."""
-        configs = {
-            "risk_metrics": {
-                "volatility_annualized_percent": {"min": 0.0, "max": 100.0, "scale": 20.0, "center": 0.0, "mode": "non_negative"},
-                "downside_deviation_percent": {"min": 0.0, "max": 80.0, "scale": 12.0, "center": 0.0, "mode": "non_negative"},
-                "skewness": {"min": -5.0, "max": 5.0, "scale": 1.5, "center": 0.0, "mode": "signed"},
-                "kurtosis": {"min": 0.0, "max": 50.0, "scale": 8.0, "center": 0.0, "mode": "non_negative"},
-            },
-            "risk_adjusted_returns": {
-                # Increased scale reduces top-end saturation so high values keep separation.
-                # Slight headroom below hard max avoids many values appearing as exact max.
-                "sharpe_ratio": {"min": -3.0, "max": 4.9, "scale": 2.4, "center": 1.0, "mode": "signed"},
-                "sortino_ratio": {"min": -3.0, "max": 9.8, "scale": 4.0, "center": 2.0, "mode": "signed"},
-                "calmar_ratio": {"min": -3.0, "max": 9.8, "scale": 4.0, "center": 1.5, "mode": "signed"},
-                "pain_index": {"min": 0.0, "max": 100.0, "scale": 18.0, "center": 0.0, "mode": "non_negative"},
-                "ulcer_index": {"min": 0.0, "max": 50.0, "scale": 10.0, "center": 0.0, "mode": "non_negative"},
-            },
-        }
-
-        for metric_name, config in configs["risk_metrics"].items():
-            values = risk_metrics.get(metric_name, {})
-            if not isinstance(values, dict):
-                continue
-            risk_metrics[metric_name] = {
-                k: self._smooth_normalize_value(
-                    v,
-                    config["min"],
-                    config["max"],
-                    config["scale"],
-                    center=config["center"],
-                    mode=config["mode"],
-                )
-                for k, v in values.items()
-            }
-
-        for metric_name, config in configs["risk_adjusted_returns"].items():
-            values = risk_adjusted_returns.get(metric_name, {})
-            if not isinstance(values, dict):
-                continue
-            risk_adjusted_returns[metric_name] = {
-                k: self._smooth_normalize_value(
-                    v,
-                    config["min"],
-                    config["max"],
-                    config["scale"],
-                    center=config["center"],
-                    mode=config["mode"],
-                )
-                for k, v in values.items()
-            }
-
     def get_all_metrics(self):
         """Return all metrics in dict format"""
         try:
@@ -1428,12 +1353,6 @@ class NavMetrics:
                     "consistency": self._consistency_metrics(),
                 },
             }
-
-            # Keep risk outputs within practical display bounds.
-            self._normalize_risk_sections(
-                result["risk_metrics"],
-                result["risk_adjusted_returns"]
-            )
 
             try:
                 validated_result = NavMetricsOutput(**result)
