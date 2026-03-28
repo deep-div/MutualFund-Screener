@@ -1,6 +1,7 @@
 import json
 import bisect
 import math
+import random
 from datetime import timedelta
 from app.core.logging import logger
 from datetime import datetime
@@ -93,6 +94,11 @@ class NavMetrics:
     SHARPE_ANNUALIZATION_PERIODS = 252.0
     SORTINO_ANNUALIZATION_PERIODS = 365.0
     DAY_COUNT_BASIS = 365.0
+    KURTOSIS_LOWER_CAP = -3.0
+    KURTOSIS_UPPER_CAP = 50.0
+    KURTOSIS_NEAR_CAP_THRESHOLD = 0.95
+    KURTOSIS_NEAR_CAP_NORMALIZED_MIN = 0.95
+    KURTOSIS_NEAR_CAP_NORMALIZED_MAX = 0.9999
 
     def __init__(self, nav_data, risk_free_rate_annual=0.0):
         """Initialize NAV data sorted ascending with parsed dates"""
@@ -689,10 +695,10 @@ class NavMetrics:
 
         return buckets
     def _sortino_ratio(self, start_date, risk_free_rate_annual=0.0):
-        """Calculate annualized Sortino ratio from daily NAV returns"""
+        """Calculate annualized Sortino ratio from NAV-derived daily returns."""
         filtered = [e for e in self.nav_data if e['date'] >= start_date]
         if len(filtered) < 2:
-            return 0.0
+            return None
 
         navs = [e['nav'] for e in filtered]
         daily_returns = []
@@ -705,26 +711,42 @@ class NavMetrics:
 
         n = len(daily_returns)
         if n < 2:
-            return 0.0
+            return None
 
         annual_factor = self.SORTINO_ANNUALIZATION_PERIODS
         if not annual_factor:
-            return 0.0
+            return None
 
-        rf_daily = self._annual_to_periodic_rate(risk_free_rate_annual, annual_factor)
+        try:
+            rf_annual = float(risk_free_rate_annual or 0.0)
+        except (TypeError, ValueError):
+            return None
+
+        # Step 1-3: daily return series and daily risk-free conversion.
+        rf_daily = self._annual_to_periodic_rate(rf_annual, annual_factor)
+        if not math.isfinite(rf_daily):
+            return None
+
+        # Step 2: arithmetic mean of NAV-derived periodic returns.
+        mean_return = sum(daily_returns) / n
+
+        # Step 4-5: excess returns and downside deviation (full denominator n).
         excess_returns = [r - rf_daily for r in daily_returns]
+        downside_squared_sum = sum((min(0.0, ex)) ** 2 for ex in excess_returns)
+        downside_deviation_daily = (downside_squared_sum / n) ** 0.5
 
-        mean_excess = sum(excess_returns) / n
-        # Use full denominator by default for Sortino-compatible downside deviation.
-        downside_deviation = self._downside_deviation_from_excess_returns(
-            excess_returns,
-            denominator_method="full"
-        )
+        # Step 6: annualization.
+        annual_return = mean_return * annual_factor
+        annual_downside_deviation = downside_deviation_daily * (annual_factor ** 0.5)
 
-        if downside_deviation == 0:
-            return 0.0
+        # Step 7: numerical stability / divide-by-zero guard.
+        if annual_downside_deviation == 0 or not math.isfinite(annual_downside_deviation):
+            return None
 
-        sortino = (mean_excess / downside_deviation) * (annual_factor ** 0.5)
+        sortino = (annual_return - rf_annual) / annual_downside_deviation
+        if not math.isfinite(sortino):
+            return None
+
         return round(sortino, 4)
 
     def _skewness(self, start_date):
@@ -758,7 +780,7 @@ class NavMetrics:
         return round(corrected_skew, 4)
 
     def _kurtosis(self, start_date):
-        """Calculate bias-corrected sample excess kurtosis of daily returns"""
+        """Calculate normalized kurtosis score using capped excess kurtosis."""
         filtered = [e for e in self.nav_data if e['date'] >= start_date]
         if len(filtered) < 4:
             return 0.0
@@ -785,7 +807,29 @@ class NavMetrics:
         m4 = sum(x ** 4 for x in centered) / n
         g2 = (m4 / (m2 ** 2)) - 3.0
         corrected_kurtosis = ((n - 1) / ((n - 2) * (n - 3))) * ((n + 1) * g2 + 6.0)
-        return round(corrected_kurtosis, 4)
+
+        capped_kurtosis = min(
+            max(corrected_kurtosis, self.KURTOSIS_LOWER_CAP),
+            self.KURTOSIS_UPPER_CAP
+        )
+
+        cap_span = self.KURTOSIS_UPPER_CAP - self.KURTOSIS_LOWER_CAP
+        if cap_span <= 0:
+            return 0.0
+
+        near_cap_cutoff = self.KURTOSIS_UPPER_CAP * self.KURTOSIS_NEAR_CAP_THRESHOLD
+        if capped_kurtosis >= near_cap_cutoff:
+            # Keep values close to cap separated by adding deterministic jitter near 1.0.
+            seed = int(abs(corrected_kurtosis) * 1_000_000) ^ n ^ filtered[-1]["date"].toordinal()
+            jitter_rng = random.Random(seed)
+            normalized_kurtosis = jitter_rng.uniform(
+                self.KURTOSIS_NEAR_CAP_NORMALIZED_MIN,
+                self.KURTOSIS_NEAR_CAP_NORMALIZED_MAX
+            )
+        else:
+            normalized_kurtosis = (capped_kurtosis - self.KURTOSIS_LOWER_CAP) / cap_span
+
+        return round(normalized_kurtosis, 4)
     def _downside_deviation_percent(self, start_date, threshold_annual=0.0, denominator_method="full"):
         """Calculate annualized downside deviation (%) from daily returns"""
         filtered = [e for e in self.nav_data if e['date'] >= start_date]
