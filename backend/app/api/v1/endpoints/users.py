@@ -43,7 +43,7 @@ def create_or_update_user(
     token: str = Query(...),
 ):
     try:
-        print("Received Firebase token:", token)  # Debug log
+        # print("Received Firebase token:", token)  # Debug log
         claims = _get_claims_from_token(token)
         uid = _get_uid_from_token(token)
 
