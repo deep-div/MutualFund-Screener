@@ -351,7 +351,7 @@ const Navbar = () => {
           className="flex shrink-0 items-center gap-2 text-base font-bold tracking-tight text-nav-foreground sm:text-lg"
         >
           <img src="/logo.svg" alt="Screener logo" className="w-8 h-8" />
-          <span className="hidden sm:inline">MF Screener</span>
+          <span className="hidden sm:inline">ScreenFunds</span>
           <span className="sm:hidden">MFS</span>
         </Link>
 
