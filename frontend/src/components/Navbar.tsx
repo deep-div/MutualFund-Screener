@@ -350,6 +350,8 @@ const Navbar = () => {
           to="/"
           className="flex shrink-0 items-center gap-2 text-base font-bold tracking-tight text-nav-foreground sm:text-lg"
         >
+          <img src="/logo.png" alt="ScreenFunds logo" className="w-8 h-8" />
+          <span className="hidden sm:inline">ScreenFunds</span>
           <span className="sm:hidden">MFS</span>
         </Link>
 
