@@ -316,8 +316,8 @@ const FundAnalytics = () => {
   const schemeKey = schemeId?.trim() || "";
   const { user } = useAuth();
   const isLocked = !user;
-  const [returnType, setReturnType] = useState<"absolute" | "cagr" | "rolling">("absolute");
-  const [heatmapReturnType, setHeatmapReturnType] = useState<"absolute" | "cagr" | "rolling">("absolute");
+  const [returnType, setReturnType] = useState<"absolute" | "cagr" | "rolling">("cagr");
+  const [heatmapReturnType, setHeatmapReturnType] = useState<"absolute" | "cagr" | "rolling">("cagr");
   const [returnPeriod, setReturnPeriod] = useState<
     | "one_day"
     | "one_week"
