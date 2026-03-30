@@ -342,13 +342,13 @@ const Navbar = () => {
 
       <nav
         ref={navRef}
-        className="relative z-[70] flex min-h-14 flex-wrap items-center gap-y-2 border-b border-nav-hover bg-[#0f1729] px-3 py-2 sm:px-4 lg:flex-nowrap lg:gap-y-0 lg:pl-6 lg:pr-6"
+        className="relative z-[70] flex min-h-14 flex-wrap items-center gap-y-2 border-b border-nav-hover bg-[#0f1729] px-2 py-2 sm:px-3 lg:flex-nowrap lg:gap-y-0 lg:pl-6 lg:pr-6"
       >
 
         {/* LEFT: Logo */}
         <Link
           to="/"
-          className="flex shrink-0 items-center gap-2 text-base font-bold tracking-tight text-nav-foreground sm:text-lg"
+          className="flex shrink-0 items-center gap-0.1 text-base font-bold tracking-tight text-nav-foreground sm:text-lg"
         >
           <img src="/logo.png" alt="ScreenFunds logo" className="w-8 h-8" />
           <span className="hidden sm:inline">ScreenFunds</span>
