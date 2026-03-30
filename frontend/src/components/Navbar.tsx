@@ -87,11 +87,11 @@ const Navbar = () => {
   const [savedFiltersError, setSavedFiltersError] = useState<string | null>(null);
   const [savedFilters, setSavedFilters] = useState<SavedUserFilter[]>([]);
   const [savedFiltersTotal, setSavedFiltersTotal] = useState(0);
+  const [savedFiltersHasMore, setSavedFiltersHasMore] = useState(false);
   const [defaultFilterGroups, setDefaultFilterGroups] = useState<DefaultFilterGroup[]>([]);
   const [defaultFiltersLoading, setDefaultFiltersLoading] = useState(false);
   const [defaultFiltersError, setDefaultFiltersError] = useState<string | null>(null);
   const [activeScreenGroup, setActiveScreenGroup] = useState<string>("saved");
-  const [savedListScrollable, setSavedListScrollable] = useState(false);
   const [bodyTopOffset, setBodyTopOffset] = useState(56);
   const navRef = useRef<HTMLElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
@@ -244,12 +244,15 @@ const Navbar = () => {
           offset: 0,
         });
         const filters = Array.isArray(response?.filters) ? response.filters : [];
+        const hasTotal = typeof response?.total === "number";
+        const resolvedTotal = hasTotal ? (response?.total as number) : filters.length;
         setSavedFilters(filters);
-        setSavedFiltersTotal(typeof response?.total === "number" ? response.total : filters.length);
-        setSavedListScrollable(false);
+        setSavedFiltersTotal(resolvedTotal);
+        setSavedFiltersHasMore(hasTotal ? filters.length < resolvedTotal : filters.length >= SAVED_FILTERS_BATCH_SIZE);
       } catch (error) {
         setSavedFilters([]);
         setSavedFiltersTotal(0);
+        setSavedFiltersHasMore(false);
         setSavedFiltersError(error instanceof Error ? error.message : "Failed to load saved screens.");
       } finally {
         setSavedFiltersLoading(false);
@@ -296,9 +299,9 @@ const Navbar = () => {
 
   const handleLoadMoreSavedFilters = async () => {
     if (!user || savedFiltersLoadingMore) return;
+    if (!savedFiltersHasMore) return;
     const currentOffset = savedFilters.length;
     if (savedFiltersTotal > 0 && currentOffset >= savedFiltersTotal) return;
-    setSavedListScrollable(true);
     setSavedFiltersLoadingMore(true);
     try {
       const token = await user.getIdToken();
@@ -307,17 +310,25 @@ const Navbar = () => {
         offset: currentOffset,
       });
       const incoming = Array.isArray(response?.filters) ? response.filters : [];
+      let nextSavedFiltersCount = currentOffset;
       setSavedFilters((prev) => {
         const seen = new Set(prev.map((item) => item.external_id));
         const dedupedIncoming = incoming.filter((item) => !seen.has(item.external_id));
-        return prev.concat(dedupedIncoming);
+        const next = prev.concat(dedupedIncoming);
+        nextSavedFiltersCount = next.length;
+        return next;
       });
       if (typeof response?.total === "number") {
         setSavedFiltersTotal(response.total);
-      } else if (incoming.length === 0) {
-        setSavedFiltersTotal(currentOffset);
+        setSavedFiltersHasMore(nextSavedFiltersCount < response.total);
+      } else {
+        setSavedFiltersHasMore(incoming.length >= SAVED_FILTERS_BATCH_SIZE);
+        if (incoming.length === 0) {
+          setSavedFiltersTotal(currentOffset);
+        }
       }
     } catch (error) {
+      setSavedFiltersHasMore(false);
       setSavedFiltersError(error instanceof Error ? error.message : "Failed to load more screens.");
     } finally {
       setSavedFiltersLoadingMore(false);
@@ -794,10 +805,8 @@ const Navbar = () => {
                     <div className="text-[13px] text-slate-600">No saved screens found.</div>
                   ) : (
                     <>
-                      <div
-                        className={`flex-1 min-h-0 pr-1 scrollbar-thin ${
-                          savedListScrollable ? "overflow-y-auto" : "overflow-y-hidden"
-                        }`}
+                    <div
+                        className="flex-1 min-h-0 pr-1 overflow-y-auto scrollbar-thin"
                       >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
                           {savedFilters.map((item) => (
@@ -819,7 +828,7 @@ const Navbar = () => {
                           ))}
                         </div>
                       </div>
-                      {savedFilters.length < savedFiltersTotal && (
+                      {savedFiltersHasMore && (
                         <div className="mt-4 pt-3 border-t border-slate-200 flex justify-center">
                           <button
                             className="px-4 py-2 bg-[#0f1729] text-white rounded-md text-[13px] font-medium hover:bg-[#0b1322] transition-colors disabled:opacity-50"
