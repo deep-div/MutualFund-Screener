@@ -386,9 +386,9 @@ const FundTable = ({
             isHeaderCollapsed ? "max-h-0 opacity-0" : "max-h-40 opacity-100 sm:max-h-28"
           }`}
         >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <div className="flex items-start justify-between gap-3 sm:gap-4">
+            <div className="flex-1 min-w-0 pr-2">
+              <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2 sm:gap-y-1">
                 {headerLoading ? (
                   <>
                     <Skeleton className="h-5 w-44" />
