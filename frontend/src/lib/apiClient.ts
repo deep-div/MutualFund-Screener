@@ -12,7 +12,7 @@ export class ApiError extends Error {
   }
 }
 
-const DEFAULT_BASE_URL = "http://127.0.0.1:8000";
+const DEFAULT_BASE_URL = typeof window !== "undefined" ? window.location.origin : "http://localhost:4000";
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() || DEFAULT_BASE_URL;
 
 const buildUrl = (path: string, params?: Record<string, string | number | boolean | undefined>) => {
