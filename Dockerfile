@@ -48,7 +48,11 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY --from=backend-builder /opt/venv /opt/venv
-COPY --from=frontend-builder /app/frontend /app/frontend
+COPY --from=frontend-builder /app/frontend/package.json /app/frontend/package.json
+COPY --from=frontend-builder /app/frontend/package-lock.json /app/frontend/package-lock.json
+COPY --from=frontend-builder /app/frontend/vite.config.ts /app/frontend/vite.config.ts
+COPY --from=frontend-builder /app/frontend/node_modules /app/frontend/node_modules
+COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
 
 COPY backend /app/backend
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
