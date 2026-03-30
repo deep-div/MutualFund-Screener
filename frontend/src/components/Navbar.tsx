@@ -348,7 +348,7 @@ const Navbar = () => {
         {/* LEFT: Logo */}
         <Link
           to="/"
-          className="flex shrink-0 items-center gap-0.1 text-base font-bold tracking-tight text-nav-foreground sm:text-lg"
+          className="flex shrink-0 items-center gap-0.5 text-base font-bold tracking-tight text-nav-foreground sm:text-lg lg:w-[140px]"
         >
           <img src="/logo.png" alt="ScreenFunds logo" className="w-8 h-8" />
           <span className="hidden sm:inline">ScreenFunds</span>
@@ -356,7 +356,7 @@ const Navbar = () => {
         </Link>
 
         {/* CENTER: Nav + Search (Centered, no empty space) */}
-        <div className="order-3 flex w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3 lg:order-none lg:flex-1 lg:justify-center lg:gap-6">
+        <div className="order-3 flex w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3 lg:order-none lg:flex-1 lg:justify-center lg:gap-8">
 
           {/* NAV ITEMS */}
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hidden">
@@ -643,7 +643,7 @@ const Navbar = () => {
         </div>
 
         {/* RIGHT: Auth / Account */}
-        <div className="order-2 ml-auto flex min-w-0 justify-end lg:order-none lg:ml-6 lg:min-w-[140px]">
+        <div className="order-2 ml-auto flex min-w-0 justify-end lg:order-none lg:ml-0 lg:w-[140px]">
           {loading ? (
             <div className="h-7 w-24 rounded-md bg-nav-hover/70 animate-pulse" />
           ) : isLoggedIn ? (
