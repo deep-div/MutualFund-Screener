@@ -214,6 +214,7 @@ backend/__marimo__/
 
 # Alembic
 backend/alembic/versions/
+backend/alembic/
 
 # Rough
 backend/z_dump/

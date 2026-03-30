@@ -6,7 +6,4 @@ services:
     container_name: mutual-fund-screener
     ports:
       - "80:80"
-    env_file:
-      - ./backend/.env
-      - ./frontend/.env
     restart: unless-stopped

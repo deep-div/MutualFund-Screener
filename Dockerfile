@@ -29,10 +29,12 @@ RUN cd /app/frontend && npm ci
 COPY . /app
 
 RUN cd /app/frontend && npm run build
-RUN chmod +x /app/services.sh
+RUN chmod +x /app/start.sh
 
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+RUN cp -r /app/frontend/dist/. /usr/share/nginx/html/
 
 EXPOSE 80
 
-CMD ["sh", "-c", "set -e; /app/services.sh & SERVICES_PID=$!; nginx -g 'daemon off;' & NGINX_PID=$!; while kill -0 $SERVICES_PID 2>/dev/null && kill -0 $NGINX_PID 2>/dev/null; do sleep 1; done; kill $SERVICES_PID $NGINX_PID 2>/dev/null || true; wait $SERVICES_PID 2>/dev/null || true; wait $NGINX_PID 2>/dev/null || true; exit 1"]
+CMD ["/app/start.sh"]
+
