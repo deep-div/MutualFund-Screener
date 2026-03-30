@@ -690,7 +690,7 @@ const Navbar = () => {
             <div className="flex items-center">
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="text-[13px] bg-primary text-white px-4 py-1.5 rounded-md hover:opacity-90 disabled:opacity-60"
+                className="mr-1.5 text-[13px] bg-primary text-white px-4 py-1.5 rounded-md hover:opacity-90 disabled:opacity-60"
                 disabled={loading}
               >
                 {loading ? "Loading..." : "Get Started"}
