@@ -431,15 +431,10 @@ const FundTable = ({
                       : "Save"}
                 </button>
               </div>
-              {formattedLastUpdated && (
-                <p className="mt-2 text-[11px] text-muted-foreground sm:mt-3 sm:text-right">
-                  Last updated {formattedLastUpdated}
-                </p>
-              )}
             </div>
           </div>
         </div>
-        <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+        <div className="mt-1 flex items-center justify-between gap-2">
           <p className="text-[13px]">
             <span className="text-muted-foreground">Showing </span>
             <span className="text-primary font-medium">1 - {items.length}</span>
@@ -447,6 +442,11 @@ const FundTable = ({
             <span className="text-primary font-medium">{total}</span>
             <span className="text-muted-foreground"> results</span>
           </p>
+          {formattedLastUpdated && (
+            <p className="text-[11px] text-muted-foreground text-right">
+              Last updated {formattedLastUpdated}
+            </p>
+          )}
         </div>
         {saveError && <div className="mt-3 text-xs text-negative">{saveError}</div>}
       </div>
