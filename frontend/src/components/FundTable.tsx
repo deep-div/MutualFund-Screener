@@ -440,7 +440,7 @@ const FundTable = ({
             <span className="text-primary font-medium">1 - {items.length}</span>
             <span className="text-muted-foreground"> of </span>
             <span className="text-primary font-medium">{total}</span>
-            <span className="text-muted-foreground"> results</span>
+            {/* <span className="text-muted-foreground"> results</span> */}
           </p>
           {formattedLastUpdated && (
             <p className="text-[11px] text-muted-foreground text-right">
