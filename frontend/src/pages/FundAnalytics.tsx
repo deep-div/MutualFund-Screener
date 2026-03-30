@@ -343,6 +343,7 @@ const FundAnalytics = () => {
   const yearPickerRef = useRef<HTMLDivElement | null>(null);
   const [rollingKey, setRollingKey] = useState<string>("");
   const [riskMetricKey, setRiskMetricKey] = useState<string>("volatility");
+  const [isMobileView, setIsMobileView] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["scheme-analytics", schemeKey],
@@ -397,6 +398,21 @@ const FundAnalytics = () => {
       document.removeEventListener("touchstart", handleOutside);
     };
   }, [yearPickerOpen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 639px)");
+    const sync = () => setIsMobileView(media.matches);
+    sync();
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", sync);
+      return () => media.removeEventListener("change", sync);
+    }
+    media.onchange = sync;
+    return () => {
+      media.onchange = null;
+    };
+  }, []);
 
 
   const rollingKeys = Object.keys(metrics?.returns?.rolling_cagr_percent || {});
@@ -962,7 +978,7 @@ const FundAnalytics = () => {
                       cagrReturnSeries.length === 0 ? (
                         <div className="text-sm text-muted-foreground">No CAGR return data available.</div>
                       ) : (
-                        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-3">
                           {cagrReturnSeries.map((entry) => {
                             const intensity = Math.min(0.22, Math.max(0.08, Math.abs(entry.value) / cagrScale));
                             const bg =
@@ -1000,7 +1016,7 @@ const FundAnalytics = () => {
                     ) : absReturnSeries.length === 0 ? (
                       <div className="text-sm text-muted-foreground">No absolute return data available.</div>
                     ) : (
-                      <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-3">
                         {absReturnSeries.filter((entry) => entry.key !== "one_day").map((entry) => {
                           const intensity = Math.min(0.22, Math.max(0.08, Math.abs(entry.value) / absScale));
                           const bg =
@@ -1378,8 +1394,8 @@ const FundAnalytics = () => {
                           <XAxis
                             dataKey="year"
                             ticks={yearlyMddSeries.map((entry) => entry.year)}
-                            interval={0}
-                            tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                            interval={isMobileView ? 1 : 0}
+                            tick={{ fontSize: isMobileView ? 9 : 10, fill: "hsl(var(--muted-foreground))" }}
                           />
                           <YAxis
                             yAxisId="left"
@@ -1436,11 +1452,11 @@ const FundAnalytics = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+                  <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="analytics-card group relative px-4 py-3 text-center z-10">
                       <div className="flex items-center justify-center gap-3">
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Current Drawdown</div>
-                        <div className="text-[22px] font-semibold text-negative">
+                        <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-muted-foreground">Current Drawdown</div>
+                        <div className="text-[15px] sm:text-[22px] font-semibold text-negative">
                           {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
                             ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
                             : "-"}
@@ -1491,8 +1507,8 @@ const FundAnalytics = () => {
                     </div>
                     <div className="analytics-card group relative px-4 py-3 text-center z-10">
                       <div className="flex items-center justify-center gap-3">
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max Drawdown</div>
-                        <div className="text-[26px] font-semibold text-negative text-center">
+                        <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-muted-foreground">Max Drawdown</div>
+                        <div className="text-[15px] sm:text-[22px] font-semibold text-negative text-center">
                           {typeof drawdown?.mdd_duration_details?.max?.max_drawdown_percent === "number"
                             ? `${drawdown.mdd_duration_details.max.max_drawdown_percent.toFixed(2)}%`
                             : "-"}
@@ -1771,9 +1787,9 @@ const FundAnalytics = () => {
                     </div>
                   </div>
 
+                  <SectionHeader id="risk-metrics" icon={Shield} title="Risk Metrics" />
                   <div className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.7fr] gap-6 items-stretch mb-12">
                     <div className="no-cards-right">
-                      <SectionHeader id="risk-metrics" icon={Shield} title="Risk Metrics" />
                       <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
                         <div className="flex items-start justify-between gap-4 mb-3">
                           <div>
@@ -1826,7 +1842,7 @@ const FundAnalytics = () => {
                             })
                             .filter((entry) => typeof entry.value === "number");
                           return hasAny ? (
-                            <div className="h-72">
+                            <div className="h-[22rem] sm:h-72 flex flex-col">
                               <div className="flex flex-wrap items-center gap-2 mb-3">
                                 {metricRows.map((row) => (
                                   <button
@@ -1843,27 +1859,29 @@ const FundAnalytics = () => {
                                   </button>
                                 ))}
                               </div>
-                              <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={chartData} margin={{ left: 6, right: 12, bottom: 4 }}>
-                                  <XAxis dataKey="period" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                                  <Tooltip
-                                    contentStyle={{
-                                      background: "hsl(var(--popover))",
-                                      border: "1px solid hsl(var(--border))",
-                                      borderRadius: 8,
-                                      fontSize: 12,
-                                    }}
-                                  />
-                                  <Bar
-                                    dataKey="value"
-                                    name={activeMetric?.label ?? "Metric"}
-                                    fill={activeMetric?.color ?? "hsl(var(--primary))"}
-                                    radius={[4, 4, 0, 0]}
-                                    maxBarSize={30}
-                                  />
-                                </BarChart>
-                              </ResponsiveContainer>
+                              <div className="min-h-0 flex-1">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <BarChart data={chartData} margin={{ left: 6, right: 12, bottom: 4 }}>
+                                    <XAxis dataKey="period" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                                    <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                                    <Tooltip
+                                      contentStyle={{
+                                        background: "hsl(var(--popover))",
+                                        border: "1px solid hsl(var(--border))",
+                                        borderRadius: 8,
+                                        fontSize: 12,
+                                      }}
+                                    />
+                                    <Bar
+                                      dataKey="value"
+                                      name={activeMetric?.label ?? "Metric"}
+                                      fill={activeMetric?.color ?? "hsl(var(--primary))"}
+                                      radius={[4, 4, 0, 0]}
+                                      maxBarSize={30}
+                                    />
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </div>
                             </div>
                           ) : (
                             <div className="text-sm text-muted-foreground">No data available.</div>
@@ -1873,7 +1891,6 @@ const FundAnalytics = () => {
                     </div>
 
                     <div className="no-cards-right">
-                      <SectionHeader icon={Shield} title="Risk-Adjusted Returns" />
                       <div className="bg-surface border border-border/60 rounded-2xl p-4 shadow-sm">
                         <div className="flex items-start justify-between gap-4 mb-3">
                           <div>
