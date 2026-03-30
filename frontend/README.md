@@ -1,44 +1,67 @@
-# Mutual Fund Screener
 
-## Project info
+# Mutual Fund Screener - Frontend
 
-Frontend for the Mutual Fund Screener app.
+React + Vite + TypeScript frontend for the Mutual Fund Screener project.
 
-## How can I edit this code?
+## Tech Stack
 
-You can edit locally with your preferred IDE.
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+- TanStack Query
+- Firebase Auth
 
-Follow these steps:
+## Prerequisites
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- Node.js 18+ (recommended)
+- npm
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>/frontend
+## Environment Variables
 
-# Step 3: Install the necessary dependencies.
-npm i
+Create `frontend/.env`:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```env
+VITE_FIREBASE_API_KEY="<firebase-api-key>"
+VITE_FIREBASE_AUTH_DOMAIN="<project>.firebaseapp.com"
+VITE_FIREBASE_PROJECT_ID="<project-id>"
+VITE_FIREBASE_STORAGE_BUCKET="<project>.firebasestorage.app"
+VITE_FIREBASE_MESSAGING_SENDER_ID="<sender-id>"
+VITE_FIREBASE_APP_ID="<app-id>"
+VITE_FIREBASE_MEASUREMENT_ID="<measurement-id>"
+
+VITE_API_BASE_URL="http://127.0.0.1:8000"
+```
+
+## Installation
+
+```bash
+cd frontend
+npm install
+```
+
+## Run Locally
+
+```bash
 npm run dev
 ```
 
-## What technologies are used for this project?
+Dev server URL: `http://localhost:4000`  
+The app expects backend API at `VITE_API_BASE_URL`.
 
-This project is built with:
+## Scripts
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- `npm run dev` - start dev server
+- `npm run build` - production build
+- `npm run build:dev` - development-mode build
+- `npm run preview` - preview production build
+- `npm run lint` - run ESLint
+- `npm run test` - run tests once (Vitest)
+- `npm run test:watch` - run tests in watch mode
 
-## How can I deploy this project?
+## Routes
 
-Build the project and serve the `dist` folder with any static host.
-
-```sh
-npm run build
-npm run preview
-```
+- `/` - main screener view
+- `/filters/:savedFilterId` - screener view with saved filter
+- `/profile` - user profile/watchlist views
+- `/:schemeSlug/:schemeId` - fund analytics page
