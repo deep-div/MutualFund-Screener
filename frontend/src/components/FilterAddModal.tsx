@@ -151,7 +151,7 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
 
         <div className="flex flex-1 min-h-0 flex-col sm:flex-row">
           <div className="border-b border-border px-3 py-2 sm:hidden">
-            <div className="no-scrollbar flex gap-2 overflow-x-auto">
+            <div className="flex flex-wrap gap-2">
               {FILTER_CATEGORIES.map((cat) => (
                 <button
                   key={cat.id}
