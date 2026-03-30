@@ -248,3 +248,30 @@ frontend/*.njsproj
 frontend/*.sln
 frontend/*.sw?
 
+# Root cleanup
+node_modules
+dist
+build
+.env
+.env.*
+*.log
+
+# Git extra
+.gitignore
+.gitattributes
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Docker (optional)
+Dockerfile*
+docker-compose*
+
+# Read me
+README.md
+backend/README.md
+frontend/README.md
+
+# License
+LICENSE
