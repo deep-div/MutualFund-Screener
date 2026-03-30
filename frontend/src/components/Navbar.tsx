@@ -353,7 +353,7 @@ const Navbar = () => {
 
       <nav
         ref={navRef}
-        className="relative z-[70] flex min-h-14 flex-wrap items-center gap-y-2 border-b border-nav-hover bg-[#0f1729] px-2 py-2 sm:px-3 lg:flex-nowrap lg:gap-y-0 lg:pl-6 lg:pr-6"
+        className="relative z-[70] flex min-h-14 flex-wrap items-center gap-y-2 border-b border-nav-hover bg-[#0f1729] px-3 py-2 sm:px-3 lg:flex-nowrap lg:gap-y-0 lg:pl-3 lg:pr-3"
       >
 
         {/* LEFT: Logo */}
@@ -687,7 +687,7 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex items-center pr-0.5 sm:pr-1">
+            <div className="flex items-center">
               <button
                 onClick={() => setShowAuthModal(true)}
                 className="text-[13px] bg-primary text-white px-4 py-1.5 rounded-md hover:opacity-90 disabled:opacity-60"
