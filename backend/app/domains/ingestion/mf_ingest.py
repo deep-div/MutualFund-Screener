@@ -3,8 +3,10 @@ from os import name
 import requests
 import asyncio
 import aiohttp
+import certifi
 import nest_asyncio
 import re
+import ssl
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 from app.domains.ingestion.schemas import (
@@ -924,7 +926,8 @@ class MFAPIFetcher:
 
     async def fetch_schemes_from_list(self, schemes_list):
         """Fetch NAV data for schemes list with MFAPI primary and captnemo fallback."""
-        connector = aiohttp.TCPConnector(limit=100)
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+        connector = aiohttp.TCPConnector(limit=100, ssl=ssl_context)
         timeout = aiohttp.ClientTimeout(total=30)
 
         scheme_items = [

@@ -55,7 +55,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 \
         nginx \
+        ca-certificates \
         libpq5 \
+    && update-ca-certificates \
     && rm -f /etc/nginx/sites-enabled/default \
     && rm -rf /var/lib/apt/lists/*
 
