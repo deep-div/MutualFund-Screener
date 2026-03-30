@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: mutual-fund-screener:v1.0
     container_name: mutual-fund-screener
     ports:
       - "80:80"
