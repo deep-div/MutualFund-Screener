@@ -453,7 +453,7 @@ const FundTable = ({
 
       <div className="flex-1 min-h-0">
         <div
-          className="relative h-full w-full overflow-y-auto overflow-x-hidden scrollbar-thin"
+          className="relative h-full w-full overflow-auto scrollbar-thin"
           onScroll={(event) => {
             const nextCollapsed = event.currentTarget.scrollTop > 24;
             setIsHeaderCollapsed((previous) =>
@@ -461,49 +461,48 @@ const FundTable = ({
             );
           }}
         >
-          <div className="w-full overflow-x-auto scrollbar-thin">
-            <table className="w-full min-w-max table-fixed border-separate border-spacing-0">
-              <colgroup>
+          <table className="w-full min-w-max table-fixed border-separate border-spacing-0">
+            <colgroup>
+              {columns.map((col) => (
+                <col
+                  key={String(col.key)}
+                  className={col.key === "scheme_sub_name" ? "w-[200px]" : "w-[140px]"}
+                />
+              ))}
+            </colgroup>
+            <thead className="sticky top-0 z-30 table-header-bg dimmable-header">
+              <tr className="border-b border-border">
                 {columns.map((col) => (
-                  <col
+                  <th
                     key={String(col.key)}
-                    className={col.key === "scheme_sub_name" ? "w-[200px]" : "w-[140px]"}
-                  />
+                    onClick={() => {
+                      const nextKey = col.key;
+                      if (sortKey === nextKey) {
+                        setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+                      } else {
+                        setSortKey(nextKey);
+                        setSortDir("desc");
+                      }
+                    }}
+                    className={`sticky top-0 z-20 px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-normal break-words leading-normal table-header-bg bg-background shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group ${
+                      col.key === "scheme_sub_name" ? "sticky left-0 z-40" : ""
+                    }`}
+                  >
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <span>{col.label}</span>
+                      {sortKey === col.key ? (
+                        sortDir === "asc" ? (
+                          <MoveUp className="w-3 h-3 text-foreground" strokeWidth={1.5} />
+                        ) : (
+                          <MoveDown className="w-3 h-3 text-foreground" strokeWidth={1.5} />
+                        )
+                      ) : null}
+                    </span>
+                  </th>
                 ))}
-              </colgroup>
-              <thead className="sticky top-0 z-30 table-header-bg dimmable-header">
-                <tr className="border-b border-border">
-                  {columns.map((col) => (
-                    <th
-                      key={String(col.key)}
-                      onClick={() => {
-                        const nextKey = col.key;
-                        if (sortKey === nextKey) {
-                          setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
-                        } else {
-                          setSortKey(nextKey);
-                          setSortDir("desc");
-                        }
-                      }}
-                      className={`sticky top-0 z-20 px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-normal break-words leading-normal table-header-bg bg-background shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group ${
-                        col.key === "scheme_sub_name" ? "sticky left-0 z-40" : ""
-                      }`}
-                    >
-                      <span className="inline-flex items-center justify-center gap-2">
-                        <span>{col.label}</span>
-                        {sortKey === col.key ? (
-                          sortDir === "asc" ? (
-                            <MoveUp className="w-3 h-3 text-foreground" strokeWidth={1.5} />
-                          ) : (
-                            <MoveDown className="w-3 h-3 text-foreground" strokeWidth={1.5} />
-                          )
-                        ) : null}
-                      </span>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
+              </tr>
+            </thead>
+            <tbody>
                 {loading && items.length === 0
                   ? Array.from({ length: SKELETON_ROWS }).map((_, rowIndex) => (
                       <tr key={`skeleton-${rowIndex}`} className="border-b border-border">
@@ -568,9 +567,8 @@ const FundTable = ({
                         })}
                       </motion.tr>
                     ))}
-              </tbody>
-            </table>
-          </div>
+            </tbody>
+          </table>
 
           {requiresAuthForFilters && !loading && (
             <div className="absolute inset-0 z-10 flex items-center justify-center px-4">
@@ -596,7 +594,7 @@ const FundTable = ({
             <div className="p-4 text-sm text-muted-foreground">No schemes found.</div>
           )}
 
-          <div className="p-4 flex justify-center">
+          <div className="sticky left-0 w-full p-4 flex justify-center">
             {!requiresAuthForFilters && canLoadMore && (
               <button
                 onClick={() => fetchPage(items.length, true)}
