@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -75,6 +75,7 @@ const FundTable = ({
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const [headerLoading, setHeaderLoading] = useState(false);
+  const fetchRequestIdRef = useRef(0);
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
   const requiresAuthForFilters = useMemo(
@@ -124,6 +125,7 @@ const FundTable = ({
   };
 
   const fetchPage = async (nextOffset: number, append: boolean) => {
+    const requestId = ++fetchRequestIdRef.current;
     if (requiresAuthForFilters) {
       setLoading(false);
       setError(null);
@@ -149,18 +151,21 @@ const FundTable = ({
         payload.sort_order = sortDir;
       }
       const response = await listSchemes(payload, { limit: LIMIT, offset: nextOffset });
+      if (requestId !== fetchRequestIdRef.current) return;
       setTotal(response.total);
       setItems((prev) => (append ? [...prev, ...response.items] : response.items));
       if (!append && onMetaChange) {
         onMetaChange(response.meta);
       }
     } catch (err) {
+      if (requestId !== fetchRequestIdRef.current) return;
       setError(err instanceof Error ? err.message : "Failed to load data.");
       if (!append) {
         setItems([]);
         setTotal(0);
       }
     } finally {
+      if (requestId !== fetchRequestIdRef.current) return;
       setLoading(false);
     }
   };
