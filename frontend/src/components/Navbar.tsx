@@ -759,7 +759,7 @@ const Navbar = () => {
                 </div>
 
                 {!isLoggedIn ? (
-                  <div className="flex-1 flex items-center justify-center">
+                  <div className="flex-1 flex items-start justify-center pt-2 md:items-center md:pt-0">
                     <div className="w-full max-w-sm rounded-xl border border-dashed border-slate-200 bg-white/80 p-6 text-center">
                       <p className="text-[14px] font-semibold text-slate-900">Sign in to access screens</p>
                       <p className="mt-2 text-[12px] text-slate-600">

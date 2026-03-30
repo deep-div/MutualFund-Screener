@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, Check, X } from "lucide-react";
+import { Search, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { FILTER_CATEGORIES, FILTER_DEFINITIONS, PINNED_FILTERS, type FilterDefinition } from "@/data/filters";
 
@@ -134,14 +134,6 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
         <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-border bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div className="flex items-center justify-between">
             <h2 className="text-[15px] font-semibold text-foreground">Add Filters</h2>
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-surface-hover sm:hidden"
-              aria-label="Close add filters"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex w-full items-center gap-2 bg-background border border-border rounded-md px-3 py-2 hover:bg-surface-hover transition-colors sm:w-52 sm:py-1.5">
@@ -154,14 +146,6 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
                 className="bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none w-full sm:text-[12px]"
               />
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="hidden h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-surface-hover sm:inline-flex md:hidden"
-              aria-label="Close add filters"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
         </div>
 

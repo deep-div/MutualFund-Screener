@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getDefaultFilters, getUserFilters, SavedUserFilter } from "@/services/userService";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 
 const Index = () => {
@@ -324,14 +324,6 @@ const Index = () => {
                 onChangeValue={handleValueChange}
                 onReset={handleResetAll}
               />
-              <button
-                type="button"
-                className="absolute -right-5 top-2 inline-flex items-center justify-center rounded-full border border-border bg-background p-1.5 text-muted-foreground"
-                onClick={() => setMobileFiltersOpen(false)}
-                aria-label="Close filters"
-              >
-                <X className="h-4 w-4" />
-              </button>
             </div>
           </div>
         )}
