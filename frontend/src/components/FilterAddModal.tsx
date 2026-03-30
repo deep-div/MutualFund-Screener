@@ -60,6 +60,7 @@ const buildFilterHint = (filter: FilterDefinition) => {
 const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddModalProps) => {
   const [activeCategory, setActiveCategory] = useState("returns");
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeHintId, setActiveHintId] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const selectableFilters = useMemo(
@@ -90,6 +91,12 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
     } else {
       onChangeEnabled([...enabledFilters, id]);
     }
+  };
+
+  const handleFilterTap = (id: string) => {
+    const wasEnabled = enabledFilters.includes(id);
+    toggleFilter(id);
+    setActiveHintId(wasEnabled ? null : id);
   };
 
   useEffect(() => {
@@ -125,24 +132,32 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
         className="absolute inset-y-0 left-0 w-full bg-background border border-border shadow-2xl overflow-hidden flex flex-col md:left-72 md:w-[640px] md:rounded-2xl"
       >
         <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-border bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-          <div>
+          <div className="flex items-center justify-between">
             <h2 className="text-[15px] font-semibold text-foreground">Add Filters</h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-surface-hover sm:hidden"
+              aria-label="Close add filters"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex w-full items-center gap-2 bg-background border border-border rounded-md px-3 py-1.5 hover:bg-surface-hover transition-colors sm:w-52">
+            <div className="flex w-full items-center gap-2 bg-background border border-border rounded-md px-3 py-2 hover:bg-surface-hover transition-colors sm:w-52 sm:py-1.5">
               <Search className="w-3.5 h-3.5 text-muted-foreground" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for Filters"
-                className="bg-transparent text-[12px] text-foreground placeholder:text-muted-foreground outline-none w-full"
+                className="bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none w-full sm:text-[12px]"
               />
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-surface-hover md:hidden"
+              className="hidden h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-surface-hover sm:inline-flex md:hidden"
               aria-label="Close add filters"
             >
               <X className="h-4 w-4" />
@@ -151,9 +166,28 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
         </div>
 
         <div className="flex flex-1 min-h-0 flex-col sm:flex-row">
+          <div className="border-b border-border px-3 py-2 sm:hidden">
+            <div className="no-scrollbar flex gap-2 overflow-x-auto">
+              {FILTER_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`shrink-0 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                    activeCategory === cat.id
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-background text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="border-b border-border sm:border-b-0 sm:border-r sm:w-56">
             <div className="py-3 pl-3 pr-16 sm:pl-4 sm:pr-20">
-              <div className="flex flex-col gap-1">
+              <div className="hidden flex-col gap-1 sm:flex">
                 {FILTER_CATEGORIES.map((cat) => (
                   <button
                     key={cat.id}
@@ -179,11 +213,11 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
               return (
                 <label
                   key={filter.id}
-                  onClick={() => toggleFilter(filter.id)}
-                  className="group flex cursor-pointer items-start gap-3 px-5 py-1.5 transition-colors hover:bg-transparent sm:px-7 sm:py-3"
+                  onClick={() => handleFilterTap(filter.id)}
+                  className="group flex cursor-pointer items-start gap-3 px-4 py-2 transition-colors hover:bg-transparent sm:px-7 sm:py-3"
                 >
                   <div
-                    className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                    className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center transition-colors ${
                       checked
                         ? "bg-primary border-primary text-primary-foreground"
                         : "border-border hover:border-muted-foreground bg-secondary"
@@ -191,10 +225,14 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
                   >
                     {checked && <Check className="w-3 h-3" />}
                   </div>
-                  <div className="flex flex-col gap-0">
-                    <span className="text-[13px] text-foreground">{filter.label}</span>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[13px] text-foreground sm:text-[13px]">{filter.label}</span>
                     {hint ? (
-                      <span className="hidden text-[11px] text-muted-foreground group-hover:block">
+                      <span
+                        className={`text-[11px] text-muted-foreground ${
+                          activeHintId === filter.id ? "block sm:hidden" : "hidden"
+                        } sm:group-hover:block`}
+                      >
                         {hint}
                       </span>
                     ) : null}

@@ -65,7 +65,20 @@ const FilterSidebar = ({
   }, [values]);
 
   const toggleFilter = (id: string) => {
-    setExpandedFilters((prev) => ({ ...prev, [id]: !prev[id] }));
+    setExpandedFilters((prev) => {
+      const isOpen = Boolean(prev[id]);
+      const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches;
+
+      if (!isMobile) {
+        return { ...prev, [id]: !isOpen };
+      }
+
+      if (isOpen) {
+        return { ...prev, [id]: false };
+      }
+
+      return { [id]: true };
+    });
   };
 
   const updateRange = (filterId: string, key: "gte" | "lte", value: string) => {

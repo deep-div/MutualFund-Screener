@@ -363,7 +363,7 @@ const Navbar = () => {
         >
           <img src="/logo.png" alt="FundScreener logo" className="w-8 h-8" />
           <span className="hidden sm:inline">FundScreener</span>
-          <span className="sm:hidden">MFS</span>
+          <span className="sm:hidden">FundScreener</span>
         </Link>
 
         {/* CENTER: Nav + Search (Centered, no empty space) */}
