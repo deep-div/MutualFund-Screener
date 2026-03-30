@@ -215,10 +215,13 @@ backend/__marimo__/
 # Alembic
 backend/alembic/versions/
 backend/alembic/
-
+backend/alembic.ini
 # Rough
 backend/z_dump/
 
+# Git extra
+frontend/.gitignore
+backend/.gitignore
 
 # ==========================
 # Frontend (.gitignore sync)
