@@ -13,6 +13,7 @@ RUN apt-get update \
         gcc \
         libpq-dev \
         nginx \
+    && rm -f /etc/nginx/sites-enabled/default \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -28,9 +29,10 @@ RUN cd /app/frontend && npm ci
 COPY . /app
 
 RUN cd /app/frontend && npm run build
+RUN chmod +x /app/services.sh
 
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
-CMD ["sh", "-c", "set -e; cd /app/backend && alembic upgrade head; uvicorn app.main:app --host 0.0.0.0 --port 8000 & UVICORN_PID=$!; nginx -g 'daemon off;' & NGINX_PID=$!; wait -n $UVICORN_PID $NGINX_PID"]
+CMD ["sh", "-c", "set -e; /app/services.sh & SERVICES_PID=$!; nginx -g 'daemon off;' & NGINX_PID=$!; while kill -0 $SERVICES_PID 2>/dev/null && kill -0 $NGINX_PID 2>/dev/null; do sleep 1; done; kill $SERVICES_PID $NGINX_PID 2>/dev/null || true; wait $SERVICES_PID 2>/dev/null || true; wait $NGINX_PID 2>/dev/null || true; exit 1"]

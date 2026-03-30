@@ -142,7 +142,6 @@ backend/celerybeat.pid
 backend/*.sage.py
 
 # Environments
-backend/.env
 backend/.envrc
 backend/.venv
 backend/env/
@@ -248,5 +247,3 @@ frontend/*.njsproj
 frontend/*.sln
 frontend/*.sw?
 
-# Config files
-frontend/.env
