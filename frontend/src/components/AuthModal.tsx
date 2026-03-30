@@ -159,7 +159,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         <div className="p-8">
           {/* Header */}
           <div className="text-center mb-6">
-            <h2 className="text-xl font-bold text-foreground tracking-tight">MF Screener</h2>
+            <h2 className="text-xl font-bold text-foreground tracking-tight">FundScreener</h2>
             <p className="text-muted-foreground text-sm mt-1">
               {mode === "login" && "Sign in to your account"}
               {mode === "signup" && "Create a new account"}
