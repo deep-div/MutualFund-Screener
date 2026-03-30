@@ -370,7 +370,7 @@ const Navbar = () => {
         <div className="order-3 flex w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3 lg:order-none lg:flex-1 lg:justify-center lg:gap-8">
 
           {/* NAV ITEMS */}
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hidden">
+          <div className="-ml-1 sm:ml-0 flex items-center gap-2 overflow-x-auto scrollbar-hidden">
             {["All Screens", "New Screen"].map((item) => (
               <button
                 key={item}
