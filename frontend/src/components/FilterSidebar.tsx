@@ -37,13 +37,7 @@ const FilterSidebar = ({
   });
   const [showAddFilter, setShowAddFilter] = useState(false);
   const [subCategorySearch, setSubCategorySearch] = useState("");
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    equity: false,
-    debt: false,
-    hybrid: false,
-    commodity: false,
-    others: false,
-  });
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [draftRanges, setDraftRanges] = useState<Record<string, { gte?: number | ""; lte?: number | "" }>>({});
 
   const getSelectedList = (value?: string | string[]) => {
@@ -86,6 +80,31 @@ const FilterSidebar = ({
     if (allSubCategoriesForSelectedClasses.length === 0) return;
     onChangeValue("scheme_sub_category", { value: allSubCategoriesForSelectedClasses });
   }, [onChangeValue, values]);
+
+  useEffect(() => {
+    const selectedSchemeClass = getSelectedList(values["scheme_class"]?.value);
+    const selectedSubCategories = getSelectedList(values["scheme_sub_category"]?.value);
+
+    const selectedGroupIds = SCHEME_SUB_CATEGORY_GROUPS.filter((group) => {
+      const groupSchemeClass = group.schemeClassValue ?? group.label;
+      const groupHasSelectedSubCategory = selectedSubCategories.some((item) => group.options.includes(item));
+      return selectedSchemeClass.includes(groupSchemeClass) || groupHasSelectedSubCategory;
+    }).map((group) => group.id);
+
+    if (selectedGroupIds.length === 0) return;
+
+    setExpandedGroups((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      selectedGroupIds.forEach((groupId) => {
+        if (!next[groupId]) {
+          next[groupId] = true;
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [values]);
 
   const toggleFilter = (id: string) => {
     setExpandedFilters((prev) => {
@@ -444,6 +463,7 @@ const FilterSidebar = ({
                                   <div
                                     onClick={(event) => {
                                           event.stopPropagation();
+                                          setExpandedGroups((prev) => (prev[group.id] ? prev : { ...prev, [group.id]: true }));
                                           if (isGroupSelected) {
                                             const remainingSubCategories = selectedSubCategories.filter(
                                               (item) => !group.options.includes(item)
@@ -489,6 +509,9 @@ const FilterSidebar = ({
                                           <button
                                             key={option}
                                             onClick={() => {
+                                              setExpandedGroups((prev) =>
+                                                prev[group.id] ? prev : { ...prev, [group.id]: true }
+                                              );
                                               const nextSelected = isSelected
                                                 ? selectedSubCategories.filter((item) => item !== option)
                                                 : [...selectedSubCategories, option];
