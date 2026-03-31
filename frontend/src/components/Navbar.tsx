@@ -98,6 +98,7 @@ const Navbar = () => {
   const [defaultFiltersError, setDefaultFiltersError] = useState<string | null>(null);
   const [activeScreenGroup, setActiveScreenGroup] = useState<string>("saved");
   const [selectedExternalIds, setSelectedExternalIds] = useState<string[]>([]);
+  const [bulkSelectMode, setBulkSelectMode] = useState(false);
   const [deletingExternalIds, setDeletingExternalIds] = useState<string[]>([]);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [pendingDeleteExternalIds, setPendingDeleteExternalIds] = useState<string[]>([]);
@@ -333,11 +334,13 @@ const Navbar = () => {
     setSelectedExternalIds((prev) =>
       prev.filter((externalId) => activeUserCollection.some((item) => item.external_id === externalId))
     );
+    setBulkSelectMode(false);
   }, [activeScreenGroup, activeUserCollection]);
 
   useEffect(() => {
     if (!screenExplorerOpen) {
       setSelectedExternalIds([]);
+      setBulkSelectMode(false);
       setDeleteConfirmOpen(false);
       setPendingDeleteExternalIds([]);
     }
@@ -482,6 +485,7 @@ const Navbar = () => {
       setSavedFiltersTotal((prev) => Math.max(0, prev - normalizedExternalIds.length));
       setWatchlistFiltersTotal((prev) => Math.max(0, prev - normalizedExternalIds.length));
       setSelectedExternalIds((prev) => prev.filter((externalId) => !deletionSet.has(externalId)));
+      setBulkSelectMode(false);
       toast("Deleted", {
         description:
           normalizedExternalIds.length === 1
@@ -1017,16 +1021,38 @@ const Navbar = () => {
                   </h3>
                   <div className="flex items-center gap-2">
                     {isLoggedIn && isUserCollectionGroup && (
-                      <button
-                        className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-2.5 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                        onClick={() => void handleDeleteFilters(activeSelectedExternalIds)}
-                        disabled={activeSelectedExternalIds.length === 0 || isDeletingAny}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        <span>
-                          Delete {activeSelectedExternalIds.length > 0 ? `(${activeSelectedExternalIds.length})` : ""}
-                        </span>
-                      </button>
+                      bulkSelectMode ? (
+                        <>
+                          <button
+                            className="inline-flex items-center gap-1.5 rounded-md border border-red-200 px-2.5 py-1.5 text-[12px] font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                            onClick={() => void handleDeleteFilters(activeSelectedExternalIds)}
+                            disabled={activeSelectedExternalIds.length === 0 || isDeletingAny}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span>Delete {activeSelectedExternalIds.length > 0 ? `(${activeSelectedExternalIds.length})` : ""}</span>
+                          </button>
+                          <button
+                            className="rounded-md border border-slate-200 px-2.5 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
+                            onClick={() => {
+                              setBulkSelectMode(false);
+                              setSelectedExternalIds([]);
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          className="rounded-md border border-slate-200 px-2.5 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                          onClick={() => {
+                            setBulkSelectMode(true);
+                            setSelectedExternalIds([]);
+                          }}
+                          disabled={activeUserCollection.length === 0 || isDeletingAny}
+                        >
+                          Select
+                        </button>
+                      )
                     )}
                     <button
                       className="text-[12px] text-slate-500 hover:text-slate-700"
@@ -1091,8 +1117,14 @@ const Navbar = () => {
                           {savedFilters.map((item) => (
                             <div key={item.external_id} className="relative group">
                               <button
-                                className="w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 pl-11 pr-10 hover:bg-slate-50 transition-colors"
+                                className={`w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 ${
+                                  bulkSelectMode ? "pl-11 pr-3" : "pl-3 pr-10"
+                                } hover:bg-slate-50 transition-colors`}
                                 onClick={() => {
+                                  if (bulkSelectMode) {
+                                    toggleSelectedExternalId(item.external_id);
+                                    return;
+                                  }
                                   navigate(`/filters/${item.external_id}`);
                                   setScreenExplorerOpen(false);
                                 }}
@@ -1105,22 +1137,25 @@ const Navbar = () => {
                                   {item.description?.trim() || "No description"}
                                 </div>
                               </button>
-                              <input
-                                type="checkbox"
-                                aria-label={`Select ${item.name?.trim() || "screen"}`}
-                                checked={selectedExternalIds.includes(item.external_id)}
-                                onChange={() => toggleSelectedExternalId(item.external_id)}
-                                className="absolute left-3 top-3 h-4 w-4 rounded border-slate-300 text-[hsl(var(--nav))] focus:ring-[hsl(var(--nav))]"
-                              />
-                              <button
-                                type="button"
-                                className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto hover:bg-slate-100 hover:text-red-600 disabled:opacity-50"
-                                onClick={() => void handleDeleteFilters([item.external_id])}
-                                disabled={deletingExternalIds.includes(item.external_id)}
-                                aria-label={`Delete ${item.name?.trim() || "screen"}`}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
+                              {bulkSelectMode ? (
+                                <input
+                                  type="checkbox"
+                                  aria-label={`Select ${item.name?.trim() || "screen"}`}
+                                  checked={selectedExternalIds.includes(item.external_id)}
+                                  onChange={() => toggleSelectedExternalId(item.external_id)}
+                                  className="absolute left-3 top-3 h-4 w-4 rounded border-slate-300 text-[hsl(var(--nav))] focus:ring-[hsl(var(--nav))]"
+                                />
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto hover:bg-slate-100 hover:text-red-600 disabled:opacity-50"
+                                  onClick={() => void handleDeleteFilters([item.external_id])}
+                                  disabled={deletingExternalIds.includes(item.external_id)}
+                                  aria-label={`Delete ${item.name?.trim() || "screen"}`}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -1161,8 +1196,14 @@ const Navbar = () => {
                           {watchlistFilters.map((item) => (
                             <div key={item.external_id} className="relative group">
                               <button
-                                className="w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 pl-11 pr-10 hover:bg-slate-50 transition-colors"
+                                className={`w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 ${
+                                  bulkSelectMode ? "pl-11 pr-3" : "pl-3 pr-10"
+                                } hover:bg-slate-50 transition-colors`}
                                 onClick={() => {
+                                  if (bulkSelectMode) {
+                                    toggleSelectedExternalId(item.external_id);
+                                    return;
+                                  }
                                   navigate(`/filters/${item.external_id}`);
                                   setScreenExplorerOpen(false);
                                 }}
@@ -1175,22 +1216,25 @@ const Navbar = () => {
                                   {item.description?.trim() || "No description"}
                                 </div>
                               </button>
-                              <input
-                                type="checkbox"
-                                aria-label={`Select ${item.name?.trim() || "watchlist"}`}
-                                checked={selectedExternalIds.includes(item.external_id)}
-                                onChange={() => toggleSelectedExternalId(item.external_id)}
-                                className="absolute left-3 top-3 h-4 w-4 rounded border-slate-300 text-[hsl(var(--nav))] focus:ring-[hsl(var(--nav))]"
-                              />
-                              <button
-                                type="button"
-                                className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto hover:bg-slate-100 hover:text-red-600 disabled:opacity-50"
-                                onClick={() => void handleDeleteFilters([item.external_id])}
-                                disabled={deletingExternalIds.includes(item.external_id)}
-                                aria-label={`Delete ${item.name?.trim() || "watchlist"}`}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
+                              {bulkSelectMode ? (
+                                <input
+                                  type="checkbox"
+                                  aria-label={`Select ${item.name?.trim() || "watchlist"}`}
+                                  checked={selectedExternalIds.includes(item.external_id)}
+                                  onChange={() => toggleSelectedExternalId(item.external_id)}
+                                  className="absolute left-3 top-3 h-4 w-4 rounded border-slate-300 text-[hsl(var(--nav))] focus:ring-[hsl(var(--nav))]"
+                                />
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto hover:bg-slate-100 hover:text-red-600 disabled:opacity-50"
+                                  onClick={() => void handleDeleteFilters([item.external_id])}
+                                  disabled={deletingExternalIds.includes(item.external_id)}
+                                  aria-label={`Delete ${item.name?.trim() || "watchlist"}`}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              )}
                             </div>
                           ))}
                         </div>
