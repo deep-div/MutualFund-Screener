@@ -87,6 +87,12 @@ const Navbar = () => {
   const [savedFilters, setSavedFilters] = useState<SavedUserFilter[]>([]);
   const [savedFiltersTotal, setSavedFiltersTotal] = useState(0);
   const [savedFiltersHasMore, setSavedFiltersHasMore] = useState(false);
+  const [watchlistFiltersLoading, setWatchlistFiltersLoading] = useState(false);
+  const [watchlistFiltersLoadingMore, setWatchlistFiltersLoadingMore] = useState(false);
+  const [watchlistFiltersError, setWatchlistFiltersError] = useState<string | null>(null);
+  const [watchlistFilters, setWatchlistFilters] = useState<SavedUserFilter[]>([]);
+  const [watchlistFiltersTotal, setWatchlistFiltersTotal] = useState(0);
+  const [watchlistFiltersHasMore, setWatchlistFiltersHasMore] = useState(false);
   const [defaultFilterGroups, setDefaultFilterGroups] = useState<DefaultFilterGroup[]>([]);
   const [defaultFiltersLoading, setDefaultFiltersLoading] = useState(false);
   const [defaultFiltersError, setDefaultFiltersError] = useState<string | null>(null);
@@ -100,6 +106,8 @@ const Navbar = () => {
     () => defaultFilterGroups.find((group) => group.key === activeScreenGroup) ?? null,
     [defaultFilterGroups, activeScreenGroup]
   );
+  const isSavedGroup = activeScreenGroup === "saved";
+  const isWatchlistGroup = activeScreenGroup === "watchlist";
   const closeAndClearSearch = () => {
     setSearchOpen(false);
     setSearchFocused(false);
@@ -219,7 +227,7 @@ const Navbar = () => {
         const groups = Array.isArray(response?.groups) ? response.groups : [];
         setDefaultFilterGroups(groups);
         setActiveScreenGroup((prev) => {
-          if (prev === "saved" || groups.some((group) => group.key === prev)) return prev;
+          if (prev === "saved" || prev === "watchlist" || groups.some((group) => group.key === prev)) return prev;
           return isLoggedIn ? "saved" : groups[0]?.key ?? "saved";
         });
       } catch (error) {
@@ -260,6 +268,36 @@ const Navbar = () => {
       }
     };
     void loadSavedFilters();
+  }, [screenExplorerOpen, isLoggedIn, user]);
+
+  useEffect(() => {
+    if (!screenExplorerOpen || !isLoggedIn || !user) return;
+    const loadWatchlistFilters = async () => {
+      setWatchlistFiltersLoading(true);
+      setWatchlistFiltersError(null);
+      try {
+        const token = await user.getIdToken();
+        const response = await getUserFilters(token, {
+          limit: SAVED_FILTERS_BATCH_SIZE,
+          offset: 0,
+          screen_type: "watchlist",
+        });
+        const filters = Array.isArray(response?.filters) ? response.filters : [];
+        const hasTotal = typeof response?.total === "number";
+        const resolvedTotal = hasTotal ? (response?.total as number) : filters.length;
+        setWatchlistFilters(filters);
+        setWatchlistFiltersTotal(resolvedTotal);
+        setWatchlistFiltersHasMore(hasTotal ? filters.length < resolvedTotal : filters.length >= SAVED_FILTERS_BATCH_SIZE);
+      } catch (error) {
+        setWatchlistFilters([]);
+        setWatchlistFiltersTotal(0);
+        setWatchlistFiltersHasMore(false);
+        setWatchlistFiltersError(error instanceof Error ? error.message : "Failed to load watchlists.");
+      } finally {
+        setWatchlistFiltersLoading(false);
+      }
+    };
+    void loadWatchlistFilters();
   }, [screenExplorerOpen, isLoggedIn, user]);
 
   useEffect(() => {
@@ -339,6 +377,45 @@ const Navbar = () => {
       setSavedFiltersError(error instanceof Error ? error.message : "Failed to load more screens.");
     } finally {
       setSavedFiltersLoadingMore(false);
+    }
+  };
+
+  const handleLoadMoreWatchlistFilters = async () => {
+    if (!user || watchlistFiltersLoadingMore) return;
+    if (!watchlistFiltersHasMore) return;
+    const currentOffset = watchlistFilters.length;
+    if (watchlistFiltersTotal > 0 && currentOffset >= watchlistFiltersTotal) return;
+    setWatchlistFiltersLoadingMore(true);
+    try {
+      const token = await user.getIdToken();
+      const response = await getUserFilters(token, {
+        limit: SAVED_FILTERS_BATCH_SIZE,
+        offset: currentOffset,
+        screen_type: "watchlist",
+      });
+      const incoming = Array.isArray(response?.filters) ? response.filters : [];
+      let nextWatchlistFiltersCount = currentOffset;
+      setWatchlistFilters((prev) => {
+        const seen = new Set(prev.map((item) => item.external_id));
+        const dedupedIncoming = incoming.filter((item) => !seen.has(item.external_id));
+        const next = prev.concat(dedupedIncoming);
+        nextWatchlistFiltersCount = next.length;
+        return next;
+      });
+      if (typeof response?.total === "number") {
+        setWatchlistFiltersTotal(response.total);
+        setWatchlistFiltersHasMore(nextWatchlistFiltersCount < response.total);
+      } else {
+        setWatchlistFiltersHasMore(incoming.length >= SAVED_FILTERS_BATCH_SIZE);
+        if (incoming.length === 0) {
+          setWatchlistFiltersTotal(currentOffset);
+        }
+      }
+    } catch (error) {
+      setWatchlistFiltersHasMore(false);
+      setWatchlistFiltersError(error instanceof Error ? error.message : "Failed to load more watchlists.");
+    } finally {
+      setWatchlistFiltersLoadingMore(false);
     }
   };
 
@@ -774,6 +851,20 @@ const Navbar = () => {
                       <span className="text-[15px] font-medium">Saved</span>
                     </span>
                   </button>
+                  <button
+                    className={`shrink-0 md:w-full text-left px-3 py-2.5 rounded-md text-[14px] md:text-[15px] font-medium border transition-colors ${
+                      activeScreenGroup === "watchlist"
+                        ? "bg-white text-slate-900 border-slate-200"
+                        : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"
+                    }`}
+                    onClick={() => setActiveScreenGroup("watchlist")}
+                    disabled={!isLoggedIn}
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <ListChecks className="w-4 h-4 text-[hsl(var(--nav))]" />
+                      <span className="text-[15px] font-medium">Watchlist</span>
+                    </span>
+                  </button>
 
                   {defaultFilterGroups.map((group) => (
                     <button
@@ -795,8 +886,10 @@ const Navbar = () => {
               <div className="p-5 flex flex-col h-full min-h-0">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-[18px] font-semibold text-slate-900">
-                    {activeScreenGroup === "saved"
+                    {isSavedGroup
                       ? "Saved Screens"
+                      : isWatchlistGroup
+                      ? "Watchlists"
                       : selectedDefaultGroup?.label ?? "Default Screens"}
                   </h3>
                   <button
@@ -825,9 +918,9 @@ const Navbar = () => {
                       </button>
                     </div>
                   </div>
-                ) : defaultFiltersError && activeScreenGroup !== "saved" ? (
+                ) : defaultFiltersError && !isSavedGroup && !isWatchlistGroup ? (
                   <div className="text-[13px] text-red-500">{defaultFiltersError}</div>
-                ) : defaultFiltersLoading && activeScreenGroup !== "saved" ? (
+                ) : defaultFiltersLoading && !isSavedGroup && !isWatchlistGroup ? (
                   <div className="space-y-3">
                     {Array.from({ length: 6 }).map((_, index) => (
                       <div key={`default-filters-skel-${index}`} className="rounded-lg border border-slate-200 p-3">
@@ -836,7 +929,7 @@ const Navbar = () => {
                       </div>
                     ))}
                   </div>
-                ) : activeScreenGroup === "saved" ? (
+                ) : isSavedGroup ? (
                   !isLoggedIn ? (
                     <div className="text-[13px] text-slate-600">Sign in to view your saved screens.</div>
                   ) : savedFiltersLoading ? (
@@ -885,6 +978,58 @@ const Navbar = () => {
                             disabled={savedFiltersLoadingMore}
                           >
                             {savedFiltersLoadingMore ? "Loading..." : "Load more"}
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )
+                ) : isWatchlistGroup ? (
+                  !isLoggedIn ? (
+                    <div className="text-[13px] text-slate-600">Sign in to view your watchlists.</div>
+                  ) : watchlistFiltersLoading ? (
+                    <div className="space-y-3">
+                      {Array.from({ length: 6 }).map((_, index) => (
+                        <div key={`watchlist-filters-skel-${index}`} className="rounded-lg border border-slate-200 p-3">
+                          <Skeleton className="h-4 w-48 mb-2" />
+                          <Skeleton className="h-3 w-full" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : watchlistFiltersError ? (
+                    <div className="text-[13px] text-red-500">{watchlistFiltersError}</div>
+                  ) : watchlistFilters.length === 0 ? (
+                    <div className="text-[13px] text-slate-600">No watchlists found.</div>
+                  ) : (
+                    <>
+                      <div className="flex-1 min-h-0 pr-1 overflow-y-auto scrollbar-thin">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
+                          {watchlistFilters.map((item) => (
+                            <button
+                              key={item.external_id}
+                              className="w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 hover:bg-slate-50 transition-colors"
+                              onClick={() => {
+                                navigate(`/filters/${item.external_id}`);
+                                setScreenExplorerOpen(false);
+                              }}
+                            >
+                              <div className="text-[17px] leading-6 font-semibold text-slate-900">
+                                {item.name?.trim() || "Untitled Watchlist"}
+                              </div>
+                              <div className="text-[12px] text-slate-600 mt-1 line-clamp-2">
+                                {item.description?.trim() || "No description"}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {watchlistFiltersHasMore && (
+                        <div className="mt-4 pt-3 border-t border-slate-200 flex justify-center">
+                          <button
+                            className="px-4 py-2 bg-[#0f1729] text-white rounded-md text-[13px] font-medium hover:bg-[#0b1322] transition-colors disabled:opacity-50"
+                            onClick={() => void handleLoadMoreWatchlistFilters()}
+                            disabled={watchlistFiltersLoadingMore}
+                          >
+                            {watchlistFiltersLoadingMore ? "Loading..." : "Load more"}
                           </button>
                         </div>
                       )}

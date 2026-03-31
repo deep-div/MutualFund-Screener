@@ -619,9 +619,8 @@ const FundTable = ({
                           >
                             <div className="min-w-0">
                               <p className="truncate text-[13px] font-medium text-foreground">
-                                {watchlistSchemeNames[externalId] || externalId}
+                                {watchlistSchemeNames[externalId] || "Selected fund"}
                               </p>
-                              <p className="truncate text-[11px] text-muted-foreground">{externalId}</p>
                             </div>
                             <button
                               type="button"
