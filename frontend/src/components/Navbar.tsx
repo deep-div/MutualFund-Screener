@@ -621,7 +621,7 @@ const Navbar = () => {
                     </DropdownMenuItem>
                   </TooltipTrigger>
                   <TooltipContent side="right" align="start" className="max-w-[220px] text-[12px] leading-relaxed">
-                    Create a new screener with filters.
+                    Create a new screener.
                   </TooltipContent>
                 </Tooltip>
                 <Tooltip delayDuration={140}>
@@ -637,7 +637,7 @@ const Navbar = () => {
                     </DropdownMenuItem>
                   </TooltipTrigger>
                   <TooltipContent side="right" align="start" className="max-w-[220px] text-[12px] leading-relaxed">
-                    Save and track funds you care about.
+                    Save and track funds.
                   </TooltipContent>
                 </Tooltip>
               </DropdownMenuContent>
