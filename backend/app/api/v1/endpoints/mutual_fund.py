@@ -42,7 +42,7 @@ def list_schemes(
     offset: int = 0,
 ):
     return get_filtered_schemes(
-        filters=payload.filters,
+        screens=payload.screens,
         limit=limit,
         offset=offset,
         sort_field=payload.sort_field,

@@ -8,10 +8,10 @@ ALLOWED_OPERATORS = {"gte", "lte", "gt", "lt", "eq", "in"}
 
 ALL_COLUMNS = {c.name: getattr(SchemeMetaORM, c.name) for c in SchemeMetaORM.__table__.columns}
 
-"""Build SQLAlchemy filters dynamically using model columns"""
-def build_dynamic_filters(query, filters):
-    """Build validated SQLAlchemy filter conditions from model columns"""
-    for field, value in filters.items():
+"""Build SQLAlchemy screens dynamically using model columns"""
+def build_dynamic_screens(query, screens):
+    """Build validated SQLAlchemy screen conditions from model columns"""
+    for field, value in screens.items():
         if field not in ALL_COLUMNS:
             raise ValueError(f"Invalid filter field: {field}")
         column = ALL_COLUMNS[field]
@@ -59,13 +59,13 @@ def orm_to_dict(row):
     return {c.name: getattr(row, c.name) for c in row.__table__.columns}
 
 
-"""Fetch schemes using dynamic screener filters and sorting"""
-def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str, sort_order: str):
-    """Fetch schemes with filters, sorting, and pagination"""
+"""Fetch schemes using dynamic screener screens and sorting"""
+def get_filtered_schemes(screens: dict, limit: int, offset: int, sort_field: str, sort_order: str):
+    """Fetch schemes with screens, sorting, and pagination"""
     with get_session() as db:
         base_query = db.query(SchemeMetaORM)
-        if filters:
-            base_query = build_dynamic_filters(base_query, filters)
+        if screens:
+            base_query = build_dynamic_screens(base_query, screens)
         total = base_query.count()
 
         remove_fields = { 
@@ -87,7 +87,7 @@ def get_filtered_schemes(filters: dict, limit: int, offset: int, sort_field: str
                 agg_expressions.append(func.min(col).label(f"{name}__min"))
                 agg_expressions.append(func.max(col).label(f"{name}__max"))
 
-            # Compute min/max on the full table (no filters)
+            # Compute min/max on the full table (no screens)
             agg_row = db.query(*agg_expressions).select_from(SchemeMetaORM).first()
             if agg_row is not None:
                 for name in numeric_columns.keys():

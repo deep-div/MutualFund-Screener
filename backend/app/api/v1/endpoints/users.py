@@ -19,17 +19,6 @@ from app.domains.users.repository.write import (
 router = APIRouter()
 
 
-def _normalize_screen_payload(payload: dict | None) -> dict:
-    if not isinstance(payload, dict):
-        return {}
-    normalized = dict(payload)
-    if "screens" not in normalized and "filters" in normalized:
-        normalized["screens"] = normalized.pop("filters")
-    if "enabled_screens" not in normalized and "enabled_filters" in normalized:
-        normalized["enabled_screens"] = normalized.pop("enabled_filters")
-    return normalized
-
-
 def _get_claims_from_token(token: str) -> dict:
     try:
         claims = jwt.decode(token, options={"verify_signature": False})
@@ -119,7 +108,6 @@ def get_screens(
             cleaned = dict(item)
             cleaned.pop("uid", None)
             cleaned.pop("id", None)
-            cleaned["screens"] = _normalize_screen_payload(cleaned.get("screens"))
             sanitized_screens.append(cleaned)
         return {
             "screens": sanitized_screens,
@@ -134,23 +122,9 @@ def get_screens(
 @router.get("/users/screens/defaults")
 def get_default_screens():
     try:
-        groups = []
-        for group in DEFAULT_SCREEN_GROUPS:
-            transformed = dict(group)
-            legacy_screens = transformed.pop("screens", transformed.pop("filters", []))
-            normalized_screens = []
-            for screen in legacy_screens:
-                normalized_screen = dict(screen)
-                normalized_screen["screens"] = _normalize_screen_payload(
-                    normalized_screen.get("screens", normalized_screen.get("filters"))
-                )
-                normalized_screen.pop("filters", None)
-                normalized_screens.append(normalized_screen)
-            transformed["screens"] = normalized_screens
-            groups.append(transformed)
         return {
-            "groups": groups,
-            "group_count": len(groups),
+            "groups": DEFAULT_SCREEN_GROUPS,
+            "group_count": len(DEFAULT_SCREEN_GROUPS),
             "total": len(DEFAULT_SCREENS),
         }
     except Exception as exc:

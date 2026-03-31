@@ -3,11 +3,12 @@ from typing import Any
 
 
 class SchemeListRequest(BaseModel):
-    filters: dict[str, dict[str, Any]] = Field(
+    screens: dict[str, dict[str, Any]] = Field(
         default_factory=lambda: {
             "scheme_class": {"eq": "Equity"},
             "cagr_3y": {"gte": 15},
         },
+        validation_alias=AliasChoices("screens", "filters"),
         json_schema_extra={
             "example": {
                 "scheme_class": {"eq": "Equity"},
@@ -53,8 +54,6 @@ class UserScreenCreate(BaseModel):
     )
     screens: dict[str, Any] = Field(
         default_factory=dict,
-        validation_alias=AliasChoices("screens", "filters"),
-        serialization_alias="screens",
         examples=[
             {
                 "scheme_class": {"eq": "Equity"},
@@ -72,8 +71,6 @@ class UserScreenCreate(BaseModel):
     )
     enabled_screens: list[str] = Field(
         default_factory=list,
-        validation_alias=AliasChoices("enabled_screens", "enabled_filters"),
-        serialization_alias="enabled_screens",
         examples=[["scheme_class", "cagr_3y", "cagr_2y"]],
     )
     external_ids: list[str] = Field(
