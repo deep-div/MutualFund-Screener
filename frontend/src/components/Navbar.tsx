@@ -348,9 +348,17 @@ const Navbar = () => {
   }, [screenExplorerOpen]);
 
   const handleExploreClick = () => {
+    setCreateMenuOpen(false);
     navigate("/");
     setActiveScreenGroup("saved");
     setScreenExplorerOpen(true);
+  };
+
+  const handleCreateMenuOpenChange = (open: boolean) => {
+    if (open) {
+      setScreenExplorerOpen(false);
+    }
+    setCreateMenuOpen(open);
   };
 
   const handleCreateSelection = (type: "screen" | "watchlist") => {
@@ -590,10 +598,10 @@ const Navbar = () => {
               Explore
             </button>
 
-            <DropdownMenu open={createMenuOpen} onOpenChange={setCreateMenuOpen}>
+            <DropdownMenu open={createMenuOpen} onOpenChange={handleCreateMenuOpenChange}>
               <DropdownMenuTrigger asChild>
                 <button
-                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-[12px] font-medium text-white transition-colors sm:px-4 sm:text-[13px] lg:px-5 ${
+                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-[12px] font-medium text-white transition-colors outline-none ring-0 focus:outline-none focus-visible:outline-none focus-visible:ring-0 sm:px-4 sm:text-[13px] lg:px-5 ${
                     createMenuOpen
                       ? "bg-nav-hover text-white"
                       : "hover:bg-nav-hover/80 hover:text-white active:bg-nav-hover active:text-white"
