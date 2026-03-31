@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ChevronDown, LogOut, User, Bookmark, LayoutTemplate, ListChecks, Plus } from "lucide-react";
+import { Search, ChevronDown, LogOut, User, Bookmark, LayoutTemplate, ListChecks } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
@@ -394,7 +394,6 @@ const Navbar = () => {
                       : "hover:bg-nav-hover/80 hover:text-white active:bg-nav-hover active:text-white"
                   }`}
                 >
-                  <Plus className="h-3.5 w-3.5" />
                   <span>Create</span>
                   <ChevronDown className={`h-3.5 w-3.5 transition-transform ${createMenuOpen ? "rotate-180" : ""}`} />
                 </button>
