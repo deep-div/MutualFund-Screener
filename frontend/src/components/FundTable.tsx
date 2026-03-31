@@ -107,6 +107,12 @@ const FundTable = ({
     const words = trimmed.split(/\s+/);
     return words.slice(0, maxWords).join(" ");
   };
+
+  const limitTypedInputByWordCount = (input: string, maxWords: number) => {
+    const words = input.match(/\S+/g) ?? [];
+    if (words.length <= maxWords) return input;
+    return words.slice(0, maxWords).join(" ");
+  };
   const isWatchlist = builderType === "watchlist";
   const normalizedWatchlistExternalIds = useMemo(() => {
     const seen = new Set<string>();
@@ -495,7 +501,9 @@ const FundTable = ({
                   id="screen-title"
                   value={draftTitle}
                   placeholder={defaultTitle}
-                  onChange={(event) => setDraftTitle(limitByWordCount(event.target.value, TITLE_WORD_LIMIT))}
+                  onChange={(event) =>
+                    setDraftTitle(limitTypedInputByWordCount(event.target.value, TITLE_WORD_LIMIT))
+                  }
                 />
               </div>
               <div className="grid gap-4">
@@ -512,7 +520,7 @@ const FundTable = ({
                   rows={4}
                   className="w-full min-h-[132px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                   onChange={(event) =>
-                    setDraftDescription(limitByWordCount(event.target.value, DESCRIPTION_WORD_LIMIT))
+                    setDraftDescription(limitTypedInputByWordCount(event.target.value, DESCRIPTION_WORD_LIMIT))
                   }
                 />
               </div>
