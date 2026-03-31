@@ -805,7 +805,7 @@ const FundTable = ({
               {columns.map((col) => (
                 <col
                   key={String(col.key)}
-                  className={col.key === "scheme_sub_name" ? "w-[200px]" : "w-[140px]"}
+                  className={col.key === "scheme_sub_name" ? "w-[160px] sm:w-[200px]" : "w-[110px] sm:w-[140px]"}
                 />
               ))}
             </colgroup>
@@ -823,7 +823,7 @@ const FundTable = ({
                         setSortDir("desc");
                       }
                     }}
-                    className={`sticky top-0 z-20 px-3 py-3 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-normal break-words leading-normal table-header-bg bg-background shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group ${
+                    className={`sticky top-0 z-20 px-2 py-2.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-normal break-words leading-normal table-header-bg bg-background shadow-[0_1px_0_0_hsl(var(--border))] cursor-pointer select-none hover:text-foreground text-center group sm:px-3 sm:py-3 ${
                       col.key === "scheme_sub_name" ? "sticky left-0 z-40" : ""
                     }`}
                   >
@@ -846,7 +846,7 @@ const FundTable = ({
                   ? Array.from({ length: SKELETON_ROWS }).map((_, rowIndex) => (
                       <tr key={`skeleton-${rowIndex}`} className="border-b border-border">
                         {columns.map((col) => (
-                          <td key={`${rowIndex}-${String(col.key)}`} className="px-3 py-3">
+                          <td key={`${rowIndex}-${String(col.key)}`} className="px-2 py-2.5 sm:px-3 sm:py-3">
                             <Skeleton
                               className={`h-3 ${
                                 col.key === "scheme_sub_name"
@@ -875,11 +875,11 @@ const FundTable = ({
                             return (
                               <td
                                 key={String(col.key)}
-                                className={`px-3 py-3 transition-colors ${col.key === "scheme_sub_name" ? "sticky left-0 z-10 bg-background sticky-cell" : ""}`}
+                                className={`px-2 py-2.5 transition-colors sm:px-3 sm:py-3 ${col.key === "scheme_sub_name" ? "sticky left-0 z-10 bg-background sticky-cell" : ""}`}
                               >
                                 <Link
                                   to={schemePath}
-                                  className="block text-[13px] font-medium text-foreground hover:no-underline cursor-pointer"
+                                  className="block text-[12px] font-medium text-foreground hover:no-underline cursor-pointer sm:text-[13px]"
                                 >
                                   {typeof value === "string" && value ? value : "-"}
                                 </Link>
@@ -890,7 +890,7 @@ const FundTable = ({
                           return (
                             <td
                               key={String(col.key)}
-                              className={`px-3 py-3 text-[13px] text-center text-foreground ${
+                              className={`px-2 py-2.5 text-center text-[12px] text-foreground sm:px-3 sm:py-3 sm:text-[13px] ${
                                 col.key === "scheme_sub_name" ? "sticky left-0 z-10 bg-background text-left" : ""
                               }`}
                             >
