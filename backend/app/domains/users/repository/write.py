@@ -159,27 +159,39 @@ def update_user_screens(
 
 def delete_user_screen(uid: str, external_id: str) -> int:
     """Delete a saved screen and any linked watchlist rows. Returns rows deleted from user_screens."""
+    return delete_user_screens(uid=uid, external_ids=[external_id])
+
+
+def delete_user_screens(uid: str, external_ids: list[str]) -> int:
+    """Delete saved screens and linked watchlist rows by external_ids. Returns rows deleted from user_screens."""
     with get_session() as session:
         try:
-            target = (
-                session.query(UserScreenORM.id)
-                .filter(
-                    UserScreenORM.uid == uid,
-                    UserScreenORM.external_id == external_id,
-                )
-                .first()
-            )
-            if not target:
+            normalized_external_ids = _normalize_external_ids(external_ids)
+            if not normalized_external_ids:
                 session.commit()
                 return 0
 
+            targets = (
+                session.query(UserScreenORM.id)
+                .filter(
+                    UserScreenORM.uid == uid,
+                    UserScreenORM.external_id.in_(normalized_external_ids),
+                )
+                .all()
+            )
+            if not targets:
+                session.commit()
+                return 0
+
+            screen_ids = [row.id for row in targets]
+
             session.query(UserWatchlistORM).filter(
-                UserWatchlistORM.user_screen_id == target.id
+                UserWatchlistORM.user_screen_id.in_(screen_ids)
             ).delete(synchronize_session=False)
 
             deleted = (
                 session.query(UserScreenORM)
-                .filter(UserScreenORM.id == target.id)
+                .filter(UserScreenORM.id.in_(screen_ids))
                 .delete(synchronize_session=False)
             )
             session.commit()

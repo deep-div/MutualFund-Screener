@@ -10,7 +10,7 @@ from app.domains.users.repository.read import (
 from app.domains.users.default_screens import DEFAULT_SCREEN_GROUPS, DEFAULT_SCREENS
 from app.domains.users.repository.write import (
     add_user_screens,
-    delete_user_screen,
+    delete_user_screens,
     update_user_screens,
     upsert_user,
 )
@@ -32,6 +32,23 @@ def _get_uid_from_token(token: str) -> str:
     if not uid:
         raise HTTPException(status_code=400, detail="Invalid Firebase token: missing uid")
     return uid
+
+
+def _normalize_external_ids_input(external_ids: list[str] | None) -> list[str]:
+    if not external_ids:
+        return []
+    seen: set[str] = set()
+    normalized: list[str] = []
+    for item in external_ids:
+        if item is None:
+            continue
+        for part in str(item).split(","):
+            value = part.strip()
+            if not value or value in seen:
+                continue
+            seen.add(value)
+            normalized.append(value)
+    return normalized
 
 
 @router.post("/users", status_code=201)
@@ -154,14 +171,21 @@ def update_screens(external_id: str, payload: UserScreenCreate, token: str = Que
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to update user screens: {exc}")
 
-@router.delete("/users/screens/{external_id}", status_code=200)
-def delete_screen(external_id: str, token: str = Query(...)):
+@router.delete("/users/screens/remove", status_code=200)
+def delete_screen(
+    token: str = Query(...),
+    external_ids: list[str] = Query(...),
+):
     try:
         token_uid = _get_uid_from_token(token)
-        deleted = delete_user_screen(uid=token_uid, external_id=external_id)
+        normalized_external_ids = _normalize_external_ids_input(external_ids)
+        if not normalized_external_ids:
+            raise HTTPException(status_code=400, detail="No valid external_ids provided")
+
+        deleted = delete_user_screens(uid=token_uid, external_ids=normalized_external_ids)
         if not deleted:
-            raise HTTPException(status_code=404, detail="Screen not found")
-        return {"status": "ok"}
+            raise HTTPException(status_code=404, detail="Screens not found")
+        return {"status": "ok", "deleted_count": deleted}
     except HTTPException:
         raise
     except Exception as exc:
