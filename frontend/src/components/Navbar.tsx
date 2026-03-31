@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/sonner";
 
 const NAV_FORMATTER = new Intl.NumberFormat("en-IN", {
@@ -605,32 +606,40 @@ const Navbar = () => {
               <DropdownMenuContent
                 align="start"
                 sideOffset={10}
-                className="w-[260px] rounded-xl border border-slate-200 bg-white p-2 shadow-2xl"
+                className="w-[150px] rounded-xl border border-slate-200 bg-white p-1.5 shadow-2xl"
               >
-                <DropdownMenuItem
-                  className="group cursor-pointer rounded-lg px-3 py-2.5 focus:bg-slate-50"
-                  onClick={() => handleCreateSelection("screen")}
-                >
-                  <div className="mr-3 mt-0.5 rounded-md border border-slate-200 bg-slate-50 p-1.5 text-slate-700 group-focus:bg-white">
-                    <LayoutTemplate className="h-3.5 w-3.5" />
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[13px] font-semibold text-slate-900">Screen</span>
-                    <span className="text-[12px] text-slate-500">Create a new screener with filters.</span>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="group cursor-pointer rounded-lg px-3 py-2.5 focus:bg-slate-50"
-                  onClick={() => handleCreateSelection("watchlist")}
-                >
-                  <div className="mr-3 mt-0.5 rounded-md border border-slate-200 bg-slate-50 p-1.5 text-slate-700 group-focus:bg-white">
-                    <ListChecks className="h-3.5 w-3.5" />
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[13px] font-semibold text-slate-900">Watchlist</span>
-                    <span className="text-[12px] text-slate-500">Save and track funds you care about.</span>
-                  </div>
-                </DropdownMenuItem>
+                <Tooltip delayDuration={140}>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuItem
+                      className="group cursor-pointer rounded-lg px-2.5 py-2 text-[13px] font-semibold text-slate-900 focus:bg-slate-100 focus:text-slate-900 data-[highlighted]:bg-slate-100 data-[highlighted]:text-slate-900"
+                      onClick={() => handleCreateSelection("screen")}
+                    >
+                      <div className="mr-2 rounded-md border border-slate-200 bg-slate-50 p-1.5 text-slate-700 group-focus:bg-white">
+                        <LayoutTemplate className="h-3.5 w-3.5" />
+                      </div>
+                      <span>Screen</span>
+                    </DropdownMenuItem>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" align="start" className="max-w-[220px] text-[12px] leading-relaxed">
+                    Create a new screener with filters.
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip delayDuration={140}>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuItem
+                      className="group cursor-pointer rounded-lg px-2.5 py-2 text-[13px] font-semibold text-slate-900 focus:bg-slate-100 focus:text-slate-900 data-[highlighted]:bg-slate-100 data-[highlighted]:text-slate-900"
+                      onClick={() => handleCreateSelection("watchlist")}
+                    >
+                      <div className="mr-2 rounded-md border border-slate-200 bg-slate-50 p-1.5 text-slate-700 group-focus:bg-white">
+                        <ListChecks className="h-3.5 w-3.5" />
+                      </div>
+                      <span>Watchlist</span>
+                    </DropdownMenuItem>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" align="start" className="max-w-[220px] text-[12px] leading-relaxed">
+                    Save and track funds you care about.
+                  </TooltipContent>
+                </Tooltip>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
