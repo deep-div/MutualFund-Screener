@@ -2,7 +2,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from app.core.logging import logger
 from app.db.session import get_session
-from app.domains.users.models import UserORM, UserFilterORM
+from app.domains.users.models import UserORM, UserFilterORM, UserFilterSchemeORM
 from app.domains.users.utils import generate_external_id
 
 
@@ -36,6 +36,7 @@ def add_user_filters(
     sort_field: str | None = None,
     sort_order: str | None = None,
     enabled_filters: list[str] | None = None,
+    external_ids: list[str] | None = None,
 ) -> str:
     """Store applied filters for a user as a new entry. Returns external_id."""
     with get_session() as session:
@@ -66,6 +67,19 @@ def add_user_filters(
                 filters=filters_payload,
             )
             session.add(record)
+            session.flush()
+
+            scheme_external_ids = _normalize_external_ids(external_ids)
+            if scheme_external_ids:
+                session.add_all(
+                    [
+                        UserFilterSchemeORM(
+                            user_filter_id=record.id,
+                            scheme_external_id=scheme_external_id,
+                        )
+                        for scheme_external_id in scheme_external_ids
+                    ]
+                )
             session.commit()
             return external_id
         except Exception as e:
@@ -83,6 +97,7 @@ def update_user_filters(
     sort_field: str | None = None,
     sort_order: str | None = None,
     enabled_filters: list[str] | None = None,
+    external_ids: list[str] | None = None,
 ) -> int:
     """Update a saved filter for a user by external_id. Returns rows updated."""
     with get_session() as session:
@@ -95,23 +110,39 @@ def update_user_filters(
             if enabled_filters:
                 filters_payload["enabled_filters"] = enabled_filters
 
-            updated = (
+            target = (
                 session.query(UserFilterORM)
                 .filter(
                     UserFilterORM.uid == uid,
                     UserFilterORM.external_id == external_id,
                 )
-                .update(
-                    {
-                        "name": name,
-                        "description": description,
-                        "filters": filters_payload,
-                    },
-                    synchronize_session=False,
-                )
+                .first()
             )
+            if not target:
+                session.commit()
+                return 0
+
+            target.name = name
+            target.description = description
+            target.filters = filters_payload
+
+            if external_ids is not None:
+                session.query(UserFilterSchemeORM).filter(
+                    UserFilterSchemeORM.user_filter_id == target.id
+                ).delete(synchronize_session=False)
+                scheme_external_ids = _normalize_external_ids(external_ids)
+                if scheme_external_ids:
+                    session.add_all(
+                        [
+                            UserFilterSchemeORM(
+                                user_filter_id=target.id,
+                                scheme_external_id=scheme_external_id,
+                            )
+                            for scheme_external_id in scheme_external_ids
+                        ]
+                    )
             session.commit()
-            return updated
+            return 1
         except Exception as e:
             session.rollback()
             logger.error(f"Failed to update user filters | Error: {str(e)}", exc_info=True)
@@ -136,3 +167,19 @@ def delete_user_filter(uid: str, external_id: str) -> int:
             session.rollback()
             logger.error(f"Failed to delete user filter | Error: {str(e)}", exc_info=True)
             raise
+
+
+def _normalize_external_ids(external_ids: list[str] | None) -> list[str]:
+    if not external_ids:
+        return []
+    seen: set[str] = set()
+    normalized: list[str] = []
+    for external_id in external_ids:
+        if external_id is None:
+            continue
+        value = str(external_id).strip()
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        normalized.append(value)
+    return normalized

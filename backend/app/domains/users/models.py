@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, UniqueConstraint
 from sqlalchemy import DateTime
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
@@ -7,6 +7,7 @@ from app.db.base import Base
 
 TABLE_NAME_4 = "users"
 TABLE_NAME_6 = "user_filters"
+TABLE_NAME_7 = "user_filter_schemes"
 
 """Stores user profile information"""
 class UserORM(Base):
@@ -41,3 +42,22 @@ class UserFilterORM(Base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+
+
+"""Stores selected mutual fund external IDs linked to a saved screen/filter"""
+class UserFilterSchemeORM(Base):
+    __tablename__ = TABLE_NAME_7
+    __table_args__ = (
+        UniqueConstraint("user_filter_id", "scheme_external_id", name="uq_user_filter_scheme_external_id"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_filter_id = Column(
+        Integer,
+        ForeignKey(f"{TABLE_NAME_6}.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
+    )
+    scheme_external_id = Column(String(32), index=True, nullable=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

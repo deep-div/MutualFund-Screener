@@ -79,6 +79,7 @@ def add_filters(payload: UserFilterCreate, token: str = Query(...)):
             sort_field=payload.sort_field,
             sort_order=payload.sort_order,
             enabled_filters=payload.enabled_filters,
+            external_ids=payload.external_ids,
         )
         return {"status": "ok", "external_id": external_id}
     except Exception as exc:
@@ -137,6 +138,7 @@ def update_filters(external_id: str, payload: UserFilterCreate, token: str = Que
             sort_field=payload.sort_field,
             sort_order=payload.sort_order,
             enabled_filters=payload.enabled_filters,
+            external_ids=payload.external_ids,
         )
         if not updated:
             raise HTTPException(status_code=404, detail="Filter not found")

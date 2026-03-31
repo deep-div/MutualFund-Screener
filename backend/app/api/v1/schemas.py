@@ -38,6 +38,7 @@ class UserFilterCreate(BaseModel):
                 "sort_field": "cagr_3y",
                 "sort_order": "desc",
                 "enabled_filters": ["scheme_class", "cagr_3y", "cagr_2y"],
+                "external_ids": ["MFxjQnbK", "zOzN2Dil"],
             }
         }
     )
@@ -70,4 +71,8 @@ class UserFilterCreate(BaseModel):
     enabled_filters: list[str] = Field(
         default_factory=list,
         examples=[["scheme_class", "cagr_3y", "cagr_2y"]],
+    )
+    external_ids: list[str] = Field(
+        default_factory=list,
+        examples=[["MFxjQnbK", "zOzN2Dil"]],
     )
