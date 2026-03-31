@@ -353,12 +353,14 @@ const Navbar = () => {
     if (!isScreenerRoute) {
       navigate("/");
     }
+    setCreateMenuOpen(false);
     setActiveScreenGroup("saved");
     setScreenExplorerOpen(true);
   };
 
   const handleCreateSelection = (type: "screen" | "watchlist") => {
     setCreateMenuOpen(false);
+    setScreenExplorerOpen(false);
     if (!isLoggedIn) {
       toast("Sign in required", {
         description: "Please sign in to create and save new items.",
@@ -594,7 +596,15 @@ const Navbar = () => {
               Explore
             </button>
 
-            <DropdownMenu open={createMenuOpen} onOpenChange={setCreateMenuOpen}>
+            <DropdownMenu
+              open={createMenuOpen}
+              onOpenChange={(nextOpen) => {
+                setCreateMenuOpen(nextOpen);
+                if (nextOpen) {
+                  setScreenExplorerOpen(false);
+                }
+              }}
+            >
               <DropdownMenuTrigger asChild>
                 <button
                   className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-[12px] font-medium text-white transition-colors sm:px-4 sm:text-[13px] lg:px-5 ${
