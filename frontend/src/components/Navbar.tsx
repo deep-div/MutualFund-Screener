@@ -848,7 +848,7 @@ const Navbar = () => {
                   >
                     <span className="inline-flex items-center gap-2">
                       <Bookmark className="w-4 h-4 text-[hsl(var(--nav))] fill-[hsl(var(--nav))]" />
-                      <span className="text-[15px] font-medium">Saved</span>
+                      <span className="text-[15px] font-medium">Screens</span>
                     </span>
                   </button>
                   <button
