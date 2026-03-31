@@ -142,10 +142,10 @@ const FundTable = ({
     }
     try {
       const payload: {
-        filters: Record<string, Record<string, number | string | string[]>>;
+        screens: Record<string, Record<string, number | string | string[]>>;
         sort_field?: string;
         sort_order?: "asc" | "desc";
-      } = { filters };
+      } = { screens: filters };
       if (sortKey) {
         payload.sort_field = String(sortKey);
         payload.sort_order = sortDir;
@@ -285,15 +285,15 @@ const FundTable = ({
       const payload: {
         name: string;
         description: string;
-        filters: Record<string, Record<string, number | string | string[]>>;
+        screens: Record<string, Record<string, number | string | string[]>>;
         sort_field?: string;
         sort_order?: "asc" | "desc";
-        enabled_filters: string[];
+        enabled_screens: string[];
       } = {
         name: displayTitle,
         description: displayDescription,
-        filters,
-        enabled_filters: enabledFilters,
+        screens: filters,
+        enabled_screens: enabledFilters,
       };
       if (sortKey) {
         payload.sort_field = String(sortKey);

@@ -9,10 +9,10 @@ export const saveUserFilters = async (
   payload: {
     name: string;
     description: string;
-    filters: Record<string, Record<string, number | string | string[]>>;
+    screens: Record<string, Record<string, number | string | string[]>>;
     sort_field?: string;
     sort_order?: "asc" | "desc";
-    enabled_filters?: string[];
+    enabled_screens?: string[];
   }
 ) => {
   return apiPost("/api/v1/users/screens", payload, { params: { token: token } });
@@ -24,10 +24,10 @@ export const updateUserFilters = async (
   payload: {
     name: string;
     description: string;
-    filters: Record<string, Record<string, number | string | string[]>>;
+    screens: Record<string, Record<string, number | string | string[]>>;
     sort_field?: string;
     sort_order?: "asc" | "desc";
-    enabled_filters?: string[];
+    enabled_screens?: string[];
   }
 ) => {
   return apiPut(`/api/v1/users/screens/${externalId}`, payload, { params: { token: token } });
@@ -91,16 +91,16 @@ export interface DefaultFiltersResponse {
 }
 
 const normalizeSavedFilter = (item: BackendSavedUserFilter): SavedUserFilter => {
-  const source = item.filters ?? item.screens ?? {};
+  const source = item.screens ?? item.filters ?? {};
   return {
     external_id: item.external_id,
     name: item.name,
     description: item.description,
     filters: {
-      filters: source.filters ?? source.screens ?? {},
+      filters: source.screens ?? source.filters ?? {},
       sort_field: source.sort_field,
       sort_order: source.sort_order,
-      enabled_filters: source.enabled_filters ?? source.enabled_screens ?? [],
+      enabled_filters: source.enabled_screens ?? source.enabled_filters ?? [],
     },
     created_at: item.created_at,
     updated_at: item.updated_at,
@@ -136,6 +136,7 @@ export const getDefaultFilters = async () => {
       key: string;
       label: string;
       screens?: BackendSavedUserFilter[];
+      filters?: BackendSavedUserFilter[];
     }>;
     group_count?: number;
     total?: number;
@@ -145,7 +146,9 @@ export const getDefaultFilters = async () => {
       ? response.groups.map((group) => ({
           key: group.key,
           label: group.label,
-          filters: Array.isArray(group.screens) ? group.screens.map(normalizeSavedFilter) : [],
+          filters: Array.isArray(group.screens ?? group.filters)
+            ? (group.screens ?? group.filters ?? []).map(normalizeSavedFilter)
+            : [],
         }))
       : [],
     group_count: response?.group_count,

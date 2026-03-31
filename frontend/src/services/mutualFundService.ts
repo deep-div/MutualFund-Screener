@@ -164,7 +164,7 @@ export const getSchemeAnalytics = (externalId: string, options?: { signal?: Abor
 
 export const listSchemes = (
   payload: {
-    filters: Record<string, Record<string, number | string | string[]>>;
+    screens: Record<string, Record<string, number | string | string[]>>;
     sort_field?: string;
     sort_order?: "asc" | "desc";
   },
