@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { saveUserFilters, updateUserFilters } from "@/services/userService";
 const LIMIT = 15;
 const SKELETON_ROWS = 10;
-const DEFAULT_TITLE = "Mutual Fund Screener";
+const DEFAULT_TITLE = "Screener";
 const DEFAULT_DESCRIPTION =
   "Describe the purpose of this screen (e.g., tax-saving, growth, or tracking)";
 const USER_FILTER_ID_REGEX = /^[0-9a-f]{32}$/i;
