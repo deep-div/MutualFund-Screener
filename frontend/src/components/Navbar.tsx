@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ChevronDown, LogOut, User, Bookmark } from "lucide-react";
+import { Search, ChevronDown, LogOut, User, Bookmark, LayoutTemplate, ListChecks, Plus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
@@ -10,7 +10,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/sonner";
@@ -25,7 +24,6 @@ const LEADERBOARDS_LOADING_EVENT = "mf_leaderboards_loading";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 const SAVED_FILTERS_BATCH_SIZE = 10;
-type NavItem = "All Screens" | "New Screen";
 
 const formatNav = (value?: number | null) =>
   typeof value === "number" ? `₹${NAV_FORMATTER.format(value)}` : "—";
@@ -92,6 +90,7 @@ const Navbar = () => {
   const [defaultFiltersLoading, setDefaultFiltersLoading] = useState(false);
   const [defaultFiltersError, setDefaultFiltersError] = useState<string | null>(null);
   const [activeScreenGroup, setActiveScreenGroup] = useState<string>("saved");
+  const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const [bodyTopOffset, setBodyTopOffset] = useState(56);
   const navRef = useRef<HTMLElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
@@ -280,22 +279,28 @@ const Navbar = () => {
     return () => window.removeEventListener(OPEN_AUTH_MODAL_EVENT, handleOpenAuthModal);
   }, []);
 
-  const handleNavClick = (item: NavItem) => {
+  const handleExploreClick = () => {
     navigate("/");
-    if (item === "All Screens") {
-      setActiveScreenGroup(isLoggedIn ? "saved" : "saved");
-      setScreenExplorerOpen(true);
+    setActiveScreenGroup("saved");
+    setScreenExplorerOpen(true);
+  };
+
+  const handleCreateSelection = (type: "screen" | "watchlist") => {
+    setCreateMenuOpen(false);
+    if (!isLoggedIn) {
+      toast("Sign in required", {
+        description: "Please sign in to create and save new items.",
+      });
       return;
     }
-    if (item === "New Screen") {
-      if (!isLoggedIn) {
-        toast("Sign in required", {
-          description: "Please sign in to create and save a new screener.",
-        });
-        return;
-      }
+    if (type === "screen") {
+      navigate("/");
       window.dispatchEvent(new CustomEvent(NEW_SCREEN_EVENT));
+      return;
     }
+    toast("Watchlist creation is coming soon", {
+      description: "We are polishing this flow. Please check back soon.",
+    });
   };
 
   const handleLoadMoreSavedFilters = async () => {
@@ -373,15 +378,58 @@ const Navbar = () => {
 
           {/* NAV ITEMS */}
           <div className="-ml-1 sm:ml-0 flex items-center gap-2 overflow-x-auto scrollbar-hidden">
-            {["All Screens", "New Screen"].map((item) => (
-              <button
-                key={item}
-                className="whitespace-nowrap rounded-xl px-3 py-2 text-[12px] font-medium text-white transition-colors hover:bg-nav-hover/80 hover:text-white active:bg-nav-hover active:text-white sm:px-4 sm:text-[13px] lg:px-5"
-                onClick={() => handleNavClick(item as NavItem)}
+            <button
+              className="whitespace-nowrap rounded-xl px-3 py-2 text-[12px] font-medium text-white transition-colors hover:bg-nav-hover/80 hover:text-white active:bg-nav-hover active:text-white sm:px-4 sm:text-[13px] lg:px-5"
+              onClick={handleExploreClick}
+            >
+              Explore
+            </button>
+
+            <DropdownMenu open={createMenuOpen} onOpenChange={setCreateMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-[12px] font-medium text-white transition-colors sm:px-4 sm:text-[13px] lg:px-5 ${
+                    createMenuOpen
+                      ? "bg-nav-hover text-white"
+                      : "hover:bg-nav-hover/80 hover:text-white active:bg-nav-hover active:text-white"
+                  }`}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Create</span>
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${createMenuOpen ? "rotate-180" : ""}`} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                sideOffset={10}
+                className="w-[260px] rounded-xl border border-slate-200 bg-white p-2 shadow-2xl"
               >
-                {item}
-              </button>
-            ))}
+                <DropdownMenuItem
+                  className="group cursor-pointer rounded-lg px-3 py-2.5 focus:bg-slate-50"
+                  onClick={() => handleCreateSelection("screen")}
+                >
+                  <div className="mr-3 mt-0.5 rounded-md border border-slate-200 bg-slate-50 p-1.5 text-slate-700 group-focus:bg-white">
+                    <LayoutTemplate className="h-3.5 w-3.5" />
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[13px] font-semibold text-slate-900">Screen</span>
+                    <span className="text-[12px] text-slate-500">Create a new screener with filters.</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="group cursor-pointer rounded-lg px-3 py-2.5 focus:bg-slate-50"
+                  onClick={() => handleCreateSelection("watchlist")}
+                >
+                  <div className="mr-3 mt-0.5 rounded-md border border-slate-200 bg-slate-50 p-1.5 text-slate-700 group-focus:bg-white">
+                    <ListChecks className="h-3.5 w-3.5" />
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[13px] font-semibold text-slate-900">Watchlist</span>
+                    <span className="text-[12px] text-slate-500">Save and track funds you care about.</span>
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* SEARCH */}
