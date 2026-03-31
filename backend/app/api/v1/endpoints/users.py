@@ -11,6 +11,7 @@ from app.domains.users.default_screens import DEFAULT_SCREEN_GROUPS, DEFAULT_SCR
 from app.domains.users.repository.write import (
     add_user_filters,
     delete_user_filter,
+    delete_user_filter_scheme,
     update_user_filters,
     upsert_user,
 )
@@ -160,3 +161,25 @@ def delete_filter(external_id: str, token: str = Query(...)):
         raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to delete filter: {exc}")
+
+
+@router.delete("/users/filters/{filter_external_id}/schemes/{scheme_external_id}", status_code=200)
+def delete_filter_scheme(
+    filter_external_id: str,
+    scheme_external_id: str,
+    token: str = Query(...),
+):
+    try:
+        token_uid = _get_uid_from_token(token)
+        deleted = delete_user_filter_scheme(
+            uid=token_uid,
+            filter_external_id=filter_external_id,
+            scheme_external_id=scheme_external_id,
+        )
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Scheme not found in filter watchlist")
+        return {"status": "ok"}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to delete filter scheme: {exc}")

@@ -169,6 +169,38 @@ def delete_user_filter(uid: str, external_id: str) -> int:
             raise
 
 
+def delete_user_filter_scheme(uid: str, filter_external_id: str, scheme_external_id: str) -> int:
+    """Delete one selected scheme from a user's saved filter by external IDs."""
+    with get_session() as session:
+        try:
+            target_filter = (
+                session.query(UserFilterORM.id)
+                .filter(
+                    UserFilterORM.uid == uid,
+                    UserFilterORM.external_id == filter_external_id,
+                )
+                .first()
+            )
+            if not target_filter:
+                session.commit()
+                return 0
+
+            deleted = (
+                session.query(UserFilterSchemeORM)
+                .filter(
+                    UserFilterSchemeORM.user_filter_id == target_filter.id,
+                    UserFilterSchemeORM.scheme_external_id == scheme_external_id,
+                )
+                .delete(synchronize_session=False)
+            )
+            session.commit()
+            return deleted
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Failed to delete user filter scheme | Error: {str(e)}", exc_info=True)
+            raise
+
+
 def _normalize_external_ids(external_ids: list[str] | None) -> list[str]:
     if not external_ids:
         return []
