@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/sonner";
 
 const NAV_FORMATTER = new Intl.NumberFormat("en-IN", {
@@ -616,34 +617,42 @@ const Navbar = () => {
                 className="w-[360px] rounded-2xl border border-slate-200 bg-white p-2.5 shadow-2xl"
               >
                 <div className="grid grid-cols-2 gap-2">
-                  <DropdownMenuItem
-                    className="group min-h-[132px] cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 focus:bg-slate-50 focus:text-slate-900 data-[highlighted]:bg-slate-50 data-[highlighted]:text-slate-900"
-                    onClick={() => handleCreateSelection("screen")}
-                  >
-                    <div className="flex min-w-0 flex-col items-start">
-                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-slate-700">
-                        <LayoutTemplate className="h-4 w-4" />
-                      </div>
-                      <span className="mt-3 text-[13px] font-semibold leading-none">Screen</span>
-                      <span className="mt-2 text-[11px] leading-relaxed text-slate-500">
-                        Build a screener with custom filters.
-                      </span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="group min-h-[132px] cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 focus:bg-slate-50 focus:text-slate-900 data-[highlighted]:bg-slate-50 data-[highlighted]:text-slate-900"
-                    onClick={() => handleCreateSelection("watchlist")}
-                  >
-                    <div className="flex min-w-0 flex-col items-start">
-                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-slate-700">
-                        <ListChecks className="h-4 w-4" />
-                      </div>
-                      <span className="mt-3 text-[13px] font-semibold leading-none">Watchlist</span>
-                      <span className="mt-2 text-[11px] leading-relaxed text-slate-500">
-                        Track funds and monitor them over time.
-                      </span>
-                    </div>
-                  </DropdownMenuItem>
+                  <Tooltip delayDuration={130}>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuItem
+                        className="group min-h-[90px] cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 focus:bg-slate-50 focus:text-slate-900 data-[highlighted]:bg-slate-50 data-[highlighted]:text-slate-900"
+                        onClick={() => handleCreateSelection("screen")}
+                      >
+                        <div className="flex min-w-0 flex-col items-start gap-2">
+                          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-slate-700">
+                            <LayoutTemplate className="h-4 w-4" />
+                          </div>
+                          <span className="text-[13px] font-semibold leading-none">Screen</span>
+                        </div>
+                      </DropdownMenuItem>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" align="start" className="max-w-[210px] text-[12px] leading-relaxed">
+                      Build a screener with custom filters.
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip delayDuration={130}>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuItem
+                        className="group min-h-[90px] cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 focus:bg-slate-50 focus:text-slate-900 data-[highlighted]:bg-slate-50 data-[highlighted]:text-slate-900"
+                        onClick={() => handleCreateSelection("watchlist")}
+                      >
+                        <div className="flex min-w-0 flex-col items-start gap-2">
+                          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-slate-700">
+                            <ListChecks className="h-4 w-4" />
+                          </div>
+                          <span className="text-[13px] font-semibold leading-none">Watchlist</span>
+                        </div>
+                      </DropdownMenuItem>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" align="start" className="max-w-[210px] text-[12px] leading-relaxed">
+                      Track funds and monitor them over time.
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
