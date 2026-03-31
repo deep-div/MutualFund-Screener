@@ -8,7 +8,7 @@ class SchemeListRequest(BaseModel):
             "scheme_class": {"eq": "Equity"},
             "cagr_3y": {"gte": 15},
         },
-        validation_alias=AliasChoices("screens", "filters"),
+        validation_alias=AliasChoices("screens"),
         json_schema_extra={
             "example": {
                 "scheme_class": {"eq": "Equity"},
