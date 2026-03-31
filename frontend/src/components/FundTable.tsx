@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listSchemes, SchemeListItem, SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
 import { DEFAULT_ENABLED_FILTERS, FILTER_DEFINITIONS_BY_ID } from "@/data/filters";
-import { MoveUp, MoveDown, Pencil, Search, X } from "lucide-react";
+import { MoveUp, MoveDown, Pencil, Search, SlidersHorizontal, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,6 +38,8 @@ interface FundTableProps {
   filters: Record<string, Record<string, number | string | string[]>>;
   enabledFilters: string[];
   builderType?: BuilderType;
+  activeCount?: number;
+  onOpenMobileFilters?: () => void;
   onMetaChange?: (meta: Record<string, { min: number | null; max: number | null }> | undefined) => void;
   resetToken?: number;
   initialTitle?: string;
@@ -54,6 +56,8 @@ const FundTable = ({
   filters,
   enabledFilters,
   builderType = "screen",
+  activeCount = 0,
+  onOpenMobileFilters,
   onMetaChange,
   resetToken,
   initialTitle,
@@ -729,28 +733,38 @@ const FundTable = ({
                   </button>
                 )}
                 <div className="flex items-center gap-2">
-                <button
-                  className="rounded-md border border-border p-1.5 transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50 sm:p-2"
-                  onClick={openEditor}
-                  disabled={!user || saving}
-                  title={!user ? `Sign in to edit this ${resourceLabel}` : `Edit ${resourceLabel}`}
-                >
-                  <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-                </button>
-                <button
-                  className="rounded-md bg-[#0f1729] px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#0b1322] disabled:opacity-60 sm:px-4 sm:py-2 sm:text-[13px]"
-                  onClick={handleSave}
-                  disabled={!user || saving || !canSaveScreen}
-                  title={!user ? `Sign in to save this ${resourceLabel}` : undefined}
-                >
-                  {saving
-                    ? saveAction === "update"
-                      ? "Updating..."
-                      : "Saving..."
-                    : hasSavedScreen
-                      ? "Update"
-                      : "Save"}
-                </button>
+                  {onOpenMobileFilters && (
+                    <button
+                      type="button"
+                      onClick={onOpenMobileFilters}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium text-foreground sm:hidden"
+                    >
+                      <SlidersHorizontal className="h-3.5 w-3.5" />
+                      Filters ({activeCount})
+                    </button>
+                  )}
+                  <button
+                    className="rounded-md border border-border p-1.5 transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50 sm:p-2"
+                    onClick={openEditor}
+                    disabled={!user || saving}
+                    title={!user ? `Sign in to edit this ${resourceLabel}` : `Edit ${resourceLabel}`}
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                  <button
+                    className="rounded-md bg-[#0f1729] px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#0b1322] disabled:opacity-60 sm:px-4 sm:py-2 sm:text-[13px]"
+                    onClick={handleSave}
+                    disabled={!user || saving || !canSaveScreen}
+                    title={!user ? `Sign in to save this ${resourceLabel}` : undefined}
+                  >
+                    {saving
+                      ? saveAction === "update"
+                        ? "Updating..."
+                        : "Saving..."
+                      : hasSavedScreen
+                        ? "Update"
+                        : "Save"}
+                  </button>
                 </div>
               </div>
             </div>

@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getDefaultFilters, getUserFilters, SavedUserFilter } from "@/services/userService";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 const NEW_WATCHLIST_EVENT = "mf_new_watchlist_requested";
 type BuilderType = "screen" | "watchlist";
@@ -376,20 +376,12 @@ const Index = () => {
           </div>
         )}
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="border-b border-border px-3 py-2 lg:hidden">
-            <button
-              type="button"
-              onClick={() => setMobileFiltersOpen(true)}
-              className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-[12px] font-medium text-foreground"
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-              Filters ({activeCount})
-            </button>
-          </div>
           <FundTable
             filters={filtersPayload}
             enabledFilters={enabledFilters}
             builderType={builderType}
+            activeCount={activeCount}
+            onOpenMobileFilters={() => setMobileFiltersOpen(true)}
             resetToken={screenResetToken}
             initialTitle={initialScreenTitle}
             initialDescription={initialScreenDescription}
