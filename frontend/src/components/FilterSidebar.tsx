@@ -16,6 +16,7 @@ interface FilterSidebarProps {
   values: FilterValueMap;
   rangeMeta?: FilterRangeMeta;
   activeCount: number;
+  resetToken?: number;
   onChangeEnabled: (next: string[]) => void;
   onChangeValue: (id: string, next: { gte?: number | ""; lte?: number | ""; value?: string | string[] }) => void;
   onReset: () => void;
@@ -27,6 +28,7 @@ const FilterSidebar = ({
   values,
   rangeMeta,
   activeCount,
+  resetToken,
   onChangeEnabled,
   onChangeValue,
   onReset,
@@ -105,6 +107,11 @@ const FilterSidebar = ({
       return changed ? next : prev;
     });
   }, [values]);
+
+  useEffect(() => {
+    setExpandedGroups({});
+    setSubCategorySearch("");
+  }, [resetToken]);
 
   const toggleFilter = (id: string) => {
     setExpandedFilters((prev) => {

@@ -333,6 +333,7 @@ const Index = () => {
                 values={filterValues}
                 rangeMeta={rangeMeta}
                 activeCount={activeCount}
+                resetToken={screenResetToken}
                 onChangeEnabled={setEnabledFilters}
                 onChangeValue={handleValueChange}
                 onReset={handleResetAll}
@@ -364,6 +365,7 @@ const Index = () => {
                 values={filterValues}
                 rangeMeta={rangeMeta}
                 activeCount={activeCount}
+                resetToken={screenResetToken}
                 onChangeEnabled={setEnabledFilters}
                 onChangeValue={handleValueChange}
                 onReset={handleResetAll}
