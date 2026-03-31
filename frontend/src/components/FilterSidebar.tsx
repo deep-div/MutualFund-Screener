@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, Plus, Check } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import FilterAddModal from "./FilterAddModal";
@@ -17,6 +17,7 @@ interface FilterSidebarProps {
   rangeMeta?: FilterRangeMeta;
   activeCount: number;
   resetToken?: number;
+  savedFilterCollapseKey?: string | null;
   onChangeEnabled: (next: string[]) => void;
   onChangeValue: (id: string, next: { gte?: number | ""; lte?: number | ""; value?: string | string[] }) => void;
   onReset: () => void;
@@ -29,6 +30,7 @@ const FilterSidebar = ({
   rangeMeta,
   activeCount,
   resetToken,
+  savedFilterCollapseKey,
   onChangeEnabled,
   onChangeValue,
   onReset,
@@ -41,6 +43,7 @@ const FilterSidebar = ({
   const [subCategorySearch, setSubCategorySearch] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [draftRanges, setDraftRanges] = useState<Record<string, { gte?: number | ""; lte?: number | "" }>>({});
+  const lastCollapsedSavedFilterRef = useRef<string | null>(null);
 
   const getSelectedList = (value?: string | string[]) => {
     if (Array.isArray(value)) return value;
@@ -107,6 +110,30 @@ const FilterSidebar = ({
       return changed ? next : prev;
     });
   }, [values]);
+
+  useEffect(() => {
+    const normalizedKey = String(savedFilterCollapseKey ?? "").trim().toLowerCase();
+    if (!normalizedKey) {
+      lastCollapsedSavedFilterRef.current = null;
+      return;
+    }
+    if (lastCollapsedSavedFilterRef.current === normalizedKey) return;
+
+    const selectedSchemeClass = getSelectedList(values["scheme_class"]?.value);
+    const selectedSubCategories = getSelectedList(values["scheme_sub_category"]?.value);
+    const selectedGroupIds = SCHEME_SUB_CATEGORY_GROUPS.filter((group) => {
+      const groupSchemeClass = group.schemeClassValue ?? group.label;
+      const groupHasSelectedSubCategory = selectedSubCategories.some((item) => group.options.includes(item));
+      return selectedSchemeClass.includes(groupSchemeClass) || groupHasSelectedSubCategory;
+    }).map((group) => group.id);
+
+    const nextExpandedGroups = selectedGroupIds.reduce<Record<string, boolean>>((acc, groupId) => {
+      acc[groupId] = true;
+      return acc;
+    }, {});
+    setExpandedGroups(nextExpandedGroups);
+    lastCollapsedSavedFilterRef.current = normalizedKey;
+  }, [savedFilterCollapseKey, values]);
 
   useEffect(() => {
     setExpandedGroups({});

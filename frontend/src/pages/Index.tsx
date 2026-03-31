@@ -334,6 +334,7 @@ const Index = () => {
                 rangeMeta={rangeMeta}
                 activeCount={activeCount}
                 resetToken={screenResetToken}
+                savedFilterCollapseKey={restoredFilterExternalId}
                 onChangeEnabled={setEnabledFilters}
                 onChangeValue={handleValueChange}
                 onReset={handleResetAll}
@@ -366,6 +367,7 @@ const Index = () => {
                 rangeMeta={rangeMeta}
                 activeCount={activeCount}
                 resetToken={screenResetToken}
+                savedFilterCollapseKey={restoredFilterExternalId}
                 onChangeEnabled={setEnabledFilters}
                 onChangeValue={handleValueChange}
                 onReset={handleResetAll}
