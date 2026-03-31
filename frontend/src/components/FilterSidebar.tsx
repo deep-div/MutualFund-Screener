@@ -46,6 +46,12 @@ const FilterSidebar = ({
   });
   const [draftRanges, setDraftRanges] = useState<Record<string, { gte?: number | ""; lte?: number | "" }>>({});
 
+  const getSelectedList = (value?: string | string[]) => {
+    if (Array.isArray(value)) return value;
+    if (value) return [value];
+    return [];
+  };
+
   const filtersToRender = useMemo(() => {
     const unique = Array.from(new Set([...PINNED_FILTERS, ...enabledFilters]));
     return unique
@@ -63,6 +69,23 @@ const FilterSidebar = ({
     });
     setDraftRanges(next);
   }, [values]);
+
+  useEffect(() => {
+    const selectedSchemeClass = getSelectedList(values["scheme_class"]?.value);
+    const selectedSubCategories = getSelectedList(values["scheme_sub_category"]?.value);
+    if (selectedSchemeClass.length === 0) return;
+    if (selectedSubCategories.length > 0) return;
+
+    const allSubCategoriesForSelectedClasses = Array.from(
+      new Set(
+        SCHEME_SUB_CATEGORY_GROUPS.filter((group) =>
+          selectedSchemeClass.includes(group.schemeClassValue ?? group.label)
+        ).flatMap((group) => group.options)
+      )
+    );
+    if (allSubCategoriesForSelectedClasses.length === 0) return;
+    onChangeValue("scheme_sub_category", { value: allSubCategoriesForSelectedClasses });
+  }, [onChangeValue, values]);
 
   const toggleFilter = (id: string) => {
     setExpandedFilters((prev) => {
@@ -158,12 +181,6 @@ const FilterSidebar = ({
     onChangeValue(filterId, { value: nextValue });
   };
 
-  const getSelectedList = (value?: string | string[]) => {
-    if (Array.isArray(value)) return value;
-    if (value) return [value];
-    return [];
-  };
-
   const updateMulti = (filterId: string, nextValues: string[]) => {
     const uniqueValues = Array.from(new Set(nextValues));
     if (uniqueValues.length === 0) {
@@ -173,8 +190,18 @@ const FilterSidebar = ({
     onChangeValue(filterId, { value: uniqueValues });
   };
 
+  const deriveSchemeClassesFromSubCategories = (subCategories: string[]) => {
+    const nextSchemeClasses = SCHEME_SUB_CATEGORY_GROUPS
+      .filter((group) => subCategories.some((item) => group.options.includes(item)))
+      .map((group) => group.schemeClassValue ?? group.label);
+    return Array.from(new Set(nextSchemeClasses));
+  };
+
   const clearFilter = (filterId: string) => {
     onChangeValue(filterId, {});
+    if (filterId === "scheme_sub_category") {
+      onChangeValue("scheme_class", {});
+    }
     setDraftRanges((prev) => {
       if (!prev[filterId]) return prev;
       const next = { ...prev };
@@ -397,8 +424,13 @@ const FilterSidebar = ({
 
                               const isExpanded = expandedGroups[group.id];
                               const selectedSchemeClass = getSelectedList(values["scheme_class"]?.value);
+                              const selectedSubCategories = getSelectedList(currentValue.value);
                               const groupSchemeClass = group.schemeClassValue ?? group.label;
-                              const isGroupSelected = selectedSchemeClass.includes(groupSchemeClass);
+                              const hasGroupSubCategories = selectedSubCategories.some((item) =>
+                                group.options.includes(item)
+                              );
+                              const isGroupSelected =
+                                selectedSchemeClass.includes(groupSchemeClass) || hasGroupSubCategories;
 
                               return (
                                 <div key={group.id} className="space-y-2">
@@ -413,23 +445,20 @@ const FilterSidebar = ({
                                     onClick={(event) => {
                                           event.stopPropagation();
                                           if (isGroupSelected) {
-                                            const remainingSubCategories = getSelectedList(currentValue.value).filter(
+                                            const remainingSubCategories = selectedSubCategories.filter(
                                               (item) => !group.options.includes(item)
                                             );
                                             updateMulti(filter.id, remainingSubCategories);
-                                            updateMulti(
-                                              "scheme_class",
-                                              selectedSchemeClass.filter((item) => item !== groupSchemeClass)
-                                            );
+                                            updateMulti("scheme_class", deriveSchemeClassesFromSubCategories(remainingSubCategories));
                                           } else {
                                             const nextSubCategories = Array.from(
                                               new Set([
-                                                ...getSelectedList(currentValue.value),
+                                                ...selectedSubCategories,
                                                 ...group.options,
                                               ])
                                             );
                                             updateMulti(filter.id, nextSubCategories);
-                                            updateMulti("scheme_class", [...selectedSchemeClass, groupSchemeClass]);
+                                            updateMulti("scheme_class", deriveSchemeClassesFromSubCategories(nextSubCategories));
                                           }
                                         }}
                                         className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
@@ -455,7 +484,6 @@ const FilterSidebar = ({
                                   {isExpanded && (
                                     <div className="space-y-1 pl-6">
                                       {(groupSearch ? filteredOptions : group.options).map((option) => {
-                                        const selectedSubCategories = getSelectedList(currentValue.value);
                                         const isSelected = selectedSubCategories.includes(option);
                                         return (
                                           <button
@@ -465,23 +493,7 @@ const FilterSidebar = ({
                                                 ? selectedSubCategories.filter((item) => item !== option)
                                                 : [...selectedSubCategories, option];
                                               updateMulti(filter.id, nextSelected);
-
-                                              const hasGroupSelections = nextSelected.some((item) =>
-                                                group.options.includes(item)
-                                              );
-                                              if (hasGroupSelections) {
-                                                if (!selectedSchemeClass.includes(groupSchemeClass)) {
-                                                  updateMulti("scheme_class", [
-                                                    ...selectedSchemeClass,
-                                                    groupSchemeClass,
-                                                  ]);
-                                                }
-                                              } else if (selectedSchemeClass.includes(groupSchemeClass)) {
-                                                updateMulti(
-                                                  "scheme_class",
-                                                  selectedSchemeClass.filter((item) => item !== groupSchemeClass)
-                                                );
-                                              }
+                                              updateMulti("scheme_class", deriveSchemeClassesFromSubCategories(nextSelected));
                                             }}
                                             className="w-full min-w-0 flex items-center justify-start gap-2 px-1 py-1 text-[12px] text-foreground text-left hover:bg-surface-hover transition-colors"
                                             title={option}

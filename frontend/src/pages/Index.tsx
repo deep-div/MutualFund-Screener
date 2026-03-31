@@ -204,11 +204,12 @@ const Index = () => {
         const savedEnabledFilters = Array.isArray(selected.filters?.enabled_filters)
           ? selected.filters.enabled_filters.filter((id) => Boolean(FILTER_DEFINITIONS_BY_ID[id]))
           : [];
-        const derivedEnabledFilters = Array.from(
-          new Set([...DEFAULT_ENABLED_FILTERS, ...Object.keys(savedFilterMap)])
+        const restoredFilterIds = Object.keys(savedFilterMap).filter((id) => Boolean(FILTER_DEFINITIONS_BY_ID[id]));
+        const resolvedEnabledFilters = Array.from(
+          new Set([...PINNED_FILTERS, ...savedEnabledFilters, ...restoredFilterIds])
         );
 
-        setEnabledFilters(savedEnabledFilters.length > 0 ? savedEnabledFilters : derivedEnabledFilters);
+        setEnabledFilters(resolvedEnabledFilters.length > 0 ? resolvedEnabledFilters : DEFAULT_ENABLED_FILTERS);
         setFilterValues(restoredValues);
         setInitialScreenTitle(selected.name ?? "");
         setInitialScreenDescription(selected.description ?? "");
