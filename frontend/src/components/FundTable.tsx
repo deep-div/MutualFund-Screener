@@ -327,6 +327,7 @@ const FundTable = ({
   const editorNameLabel = isWatchlist ? "Watchlist Name" : "Screen Name";
   const resourceLabel = isWatchlist ? "watchlist" : "screen";
   const showEmptyWatchlistState = isWatchlist && !loading && normalizedWatchlistExternalIds.length === 0;
+  const shouldLockTableScroll = requiresAuthForFilters || showEmptyWatchlistState;
   const showingFrom = total > 0 ? 1 : 0;
   const savedFilterExternalId = activeSavedFilterId ?? routeSavedFilterId ?? null;
   const hasSavedScreen = Boolean(
@@ -789,7 +790,9 @@ const FundTable = ({
 
       <div className="flex-1 min-h-0">
         <div
-          className="relative h-full w-full overflow-auto scrollbar-thin"
+          className={`relative h-full w-full ${
+            shouldLockTableScroll ? "overflow-hidden" : "overflow-auto scrollbar-thin"
+          }`}
           onScroll={(event) => {
             const nextCollapsed = event.currentTarget.scrollTop > 24;
             setIsHeaderCollapsed((previous) =>
