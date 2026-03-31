@@ -693,8 +693,8 @@ const FundTable = ({
             isHeaderCollapsed ? "max-h-0 opacity-0" : "max-h-40 opacity-100 sm:max-h-28"
           }`}
         >
-          <div className="flex items-start justify-between gap-3 sm:gap-4">
-            <div className="flex-1 min-w-0 pr-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+            <div className="flex-1 min-w-0 sm:pr-2">
               <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2 sm:gap-y-1">
                 {headerLoading ? (
                   <>
@@ -703,29 +703,34 @@ const FundTable = ({
                   </>
                 ) : (
                   <>
-                    <h1 className="text-[18px] font-semibold text-foreground tracking-tight">
+                    <h1 className="text-[17px] font-semibold leading-tight tracking-tight text-foreground line-clamp-2 break-words sm:text-[18px] sm:line-clamp-none">
                       {displayTitle}
                     </h1>
-                    <p className="text-[13px] text-muted-foreground leading-relaxed">
+                    <p className="text-[12px] leading-5 text-muted-foreground line-clamp-2 break-words sm:text-[13px] sm:leading-relaxed sm:line-clamp-none">
                       {displayDescription}
                     </p>
                   </>
                 )}
               </div>
             </div>
-            <div className="shrink-0">
-              <div className="flex items-center gap-2 sm:justify-end">
+            <div className="w-full shrink-0 sm:w-auto">
+              <div
+                className={`flex w-full items-center gap-2 ${
+                  isWatchlist ? "justify-between" : "justify-end"
+                } sm:w-auto sm:justify-end`}
+              >
                 {isWatchlist && (
                   <button
-                    className="px-3 py-2 border border-border rounded-md text-[12px] font-medium hover:bg-surface-hover transition-colors"
+                    className="rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium transition-colors hover:bg-surface-hover sm:px-3 sm:py-2 sm:text-[12px]"
                     onClick={() => setWatchlistPickerOpen(true)}
                     title="Search and add funds"
                   >
                     Add Funds
                   </button>
                 )}
+                <div className="flex items-center gap-2">
                 <button
-                  className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-md border border-border p-1.5 transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50 sm:p-2"
                   onClick={openEditor}
                   disabled={!user || saving}
                   title={!user ? `Sign in to edit this ${resourceLabel}` : `Edit ${resourceLabel}`}
@@ -733,7 +738,7 @@ const FundTable = ({
                   <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
                 </button>
                 <button
-                  className="px-4 py-2 bg-[#0f1729] text-white rounded-md text-[13px] font-medium hover:bg-[#0b1322] transition-colors disabled:opacity-60"
+                  className="rounded-md bg-[#0f1729] px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#0b1322] disabled:opacity-60 sm:px-4 sm:py-2 sm:text-[13px]"
                   onClick={handleSave}
                   disabled={!user || saving || !canSaveScreen}
                   title={!user ? `Sign in to save this ${resourceLabel}` : undefined}
@@ -746,6 +751,7 @@ const FundTable = ({
                       ? "Update"
                       : "Save"}
                 </button>
+                </div>
               </div>
             </div>
           </div>
