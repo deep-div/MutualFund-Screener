@@ -167,6 +167,7 @@ export const listSchemes = (
     screens: Record<string, Record<string, number | string | string[]>>;
     sort_field?: string;
     sort_order?: "asc" | "desc";
+    scheme_external_id?: string[];
   },
   options?: { limit?: number; offset?: number; signal?: AbortSignal }
 ) =>

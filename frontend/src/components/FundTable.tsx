@@ -2,20 +2,25 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { listSchemes, SchemeListItem } from "@/services/mutualFundService";
+import { listSchemes, SchemeListItem, SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
 import { DEFAULT_ENABLED_FILTERS, FILTER_DEFINITIONS_BY_ID } from "@/data/filters";
-import { MoveUp, MoveDown, Pencil } from "lucide-react";
+import { MoveUp, MoveDown, Pencil, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveUserFilters, updateUserFilters } from "@/services/userService";
 const LIMIT = 15;
 const SKELETON_ROWS = 10;
-const DEFAULT_TITLE = "Screener";
-const DEFAULT_DESCRIPTION =
+const SCREEN_DEFAULT_TITLE = "Screener";
+const SCREEN_DEFAULT_DESCRIPTION =
   "Describe the purpose of this screen (e.g., tax-saving, growth, or tracking)";
+const WATCHLIST_DEFAULT_TITLE = "Watchlist";
+const WATCHLIST_DEFAULT_DESCRIPTION =
+  "Describe the purpose of this watchlist (e.g., long-term, high-risk, or SIP tracking)";
 const USER_FILTER_ID_REGEX = /^[0-9a-f]{32}$/i;
 const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
+const WATCHLIST_SEARCH_LIMIT = 12;
+type BuilderType = "screen" | "watchlist";
 
 const baseColumns: Array<{
   key: keyof SchemeListItem;
@@ -30,6 +35,7 @@ const baseColumns: Array<{
 interface FundTableProps {
   filters: Record<string, Record<string, number | string | string[]>>;
   enabledFilters: string[];
+  builderType?: BuilderType;
   onMetaChange?: (meta: Record<string, { min: number | null; max: number | null }> | undefined) => void;
   resetToken?: number;
   initialTitle?: string;
@@ -37,6 +43,7 @@ interface FundTableProps {
   initialUpdatedAt?: string | null;
   initialSortField?: string | null;
   initialSortOrder?: "asc" | "desc" | null;
+  initialExternalIds?: string[];
   restoredFilterExternalId?: string | null;
   onSavedFilterCreated?: (externalId: string) => Promise<void> | void;
 }
@@ -44,6 +51,7 @@ interface FundTableProps {
 const FundTable = ({
   filters,
   enabledFilters,
+  builderType = "screen",
   onMetaChange,
   resetToken,
   initialTitle,
@@ -51,6 +59,7 @@ const FundTable = ({
   initialUpdatedAt,
   initialSortField,
   initialSortOrder,
+  initialExternalIds,
   restoredFilterExternalId,
   onSavedFilterCreated,
 }: FundTableProps) => {
@@ -75,7 +84,30 @@ const FundTable = ({
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const [headerLoading, setHeaderLoading] = useState(false);
+  const [watchlistExternalIds, setWatchlistExternalIds] = useState<string[]>([]);
+  const [watchlistPickerOpen, setWatchlistPickerOpen] = useState(false);
+  const [watchlistSearchQuery, setWatchlistSearchQuery] = useState("");
+  const [watchlistSearchLoading, setWatchlistSearchLoading] = useState(false);
+  const [watchlistSearchError, setWatchlistSearchError] = useState<string | null>(null);
+  const [watchlistSearchResults, setWatchlistSearchResults] = useState<SchemeSearchItem[]>([]);
+  const [watchlistSchemeNames, setWatchlistSchemeNames] = useState<Record<string, string>>({});
   const fetchRequestIdRef = useRef(0);
+  const isWatchlist = builderType === "watchlist";
+  const normalizedWatchlistExternalIds = useMemo(() => {
+    const seen = new Set<string>();
+    const normalized: string[] = [];
+    watchlistExternalIds.forEach((externalId) => {
+      const value = String(externalId ?? "").trim();
+      if (!value || seen.has(value)) return;
+      seen.add(value);
+      normalized.push(value);
+    });
+    return normalized;
+  }, [watchlistExternalIds]);
+  const watchlistExternalIdsKey = useMemo(
+    () => JSON.stringify(normalizedWatchlistExternalIds),
+    [normalizedWatchlistExternalIds]
+  );
 
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
   const requiresAuthForFilters = useMemo(
@@ -124,9 +156,32 @@ const FundTable = ({
     return externalId ? `/${schemeSlug}/${externalId}` : "#";
   };
 
+  const addSchemeToWatchlist = (scheme: Pick<SchemeSearchItem, "external_id" | "scheme_sub_name">) => {
+    const externalId = String(scheme.external_id ?? "").trim();
+    if (!externalId) return;
+    setWatchlistExternalIds((prev) => (prev.includes(externalId) ? prev : [...prev, externalId]));
+    if (scheme.scheme_sub_name?.trim()) {
+      setWatchlistSchemeNames((prev) => ({ ...prev, [externalId]: scheme.scheme_sub_name.trim() }));
+    }
+  };
+
+  const removeSchemeFromWatchlist = (externalId: string) => {
+    const normalized = String(externalId ?? "").trim();
+    if (!normalized) return;
+    setWatchlistExternalIds((prev) => prev.filter((id) => id !== normalized));
+  };
+
   const fetchPage = async (nextOffset: number, append: boolean) => {
     const requestId = ++fetchRequestIdRef.current;
     if (requiresAuthForFilters) {
+      setLoading(false);
+      setError(null);
+      setItems([]);
+      setTotal(0);
+      onMetaChange?.(undefined);
+      return;
+    }
+    if (isWatchlist && normalizedWatchlistExternalIds.length === 0) {
       setLoading(false);
       setError(null);
       setItems([]);
@@ -150,10 +205,24 @@ const FundTable = ({
         payload.sort_field = String(sortKey);
         payload.sort_order = sortDir;
       }
+      if (isWatchlist) {
+        payload.scheme_external_id = normalizedWatchlistExternalIds;
+      }
       const response = await listSchemes(payload, { limit: LIMIT, offset: nextOffset });
       if (requestId !== fetchRequestIdRef.current) return;
       setTotal(response.total);
       setItems((prev) => (append ? [...prev, ...response.items] : response.items));
+      setWatchlistSchemeNames((prev) => {
+        const next = { ...prev };
+        response.items.forEach((item) => {
+          const extId = String(item.external_id ?? "").trim();
+          const name = String(item.scheme_sub_name ?? "").trim();
+          if (extId && name) {
+            next[extId] = name;
+          }
+        });
+        return next;
+      });
       if (!append && onMetaChange) {
         onMetaChange(response.meta);
       }
@@ -172,7 +241,7 @@ const FundTable = ({
 
   useEffect(() => {
     fetchPage(0, false);
-  }, [filterKey, sortKey, sortDir, requiresAuthForFilters]);
+  }, [filterKey, sortKey, sortDir, requiresAuthForFilters, isWatchlist, watchlistExternalIdsKey]);
 
   useEffect(() => {
     if (!editorOpen) return;
@@ -185,10 +254,52 @@ const FundTable = ({
     return () => window.removeEventListener("keydown", handleEscape);
   }, [editorOpen]);
 
+  useEffect(() => {
+    if (!watchlistPickerOpen) return;
+    const trimmed = watchlistSearchQuery.trim();
+    if (!trimmed) {
+      setWatchlistSearchResults([]);
+      setWatchlistSearchLoading(false);
+      setWatchlistSearchError(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setWatchlistSearchLoading(true);
+      setWatchlistSearchError(null);
+      try {
+        const response = await searchSchemes(trimmed, {
+          limit: WATCHLIST_SEARCH_LIMIT,
+          offset: 0,
+          signal: controller.signal,
+        });
+        setWatchlistSearchResults(Array.isArray(response.items) ? response.items : []);
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") return;
+        setWatchlistSearchResults([]);
+        setWatchlistSearchError("Search failed. Please try again.");
+      } finally {
+        setWatchlistSearchLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [watchlistSearchQuery, watchlistPickerOpen]);
+
   const canLoadMore = items.length < total;
-  const displayTitle = title.trim() || DEFAULT_TITLE;
-  const displayDescription = description.trim() || DEFAULT_DESCRIPTION;
+  const defaultTitle = isWatchlist ? WATCHLIST_DEFAULT_TITLE : SCREEN_DEFAULT_TITLE;
+  const defaultDescription = isWatchlist ? WATCHLIST_DEFAULT_DESCRIPTION : SCREEN_DEFAULT_DESCRIPTION;
+  const displayTitle = title.trim() || defaultTitle;
+  const displayDescription = description.trim() || defaultDescription;
   const canSaveScreen = title.trim().length > 0 && description.trim().length > 0;
+  const editorNameLabel = isWatchlist ? "Watchlist Name" : "Screen Name";
+  const resourceLabel = isWatchlist ? "watchlist" : "screen";
+  const showEmptyWatchlistState = isWatchlist && !loading && normalizedWatchlistExternalIds.length === 0;
+  const showingFrom = total > 0 ? 1 : 0;
   const savedFilterExternalId = activeSavedFilterId ?? routeSavedFilterId ?? null;
   const hasSavedScreen = Boolean(
     savedFilterExternalId && USER_FILTER_ID_REGEX.test(savedFilterExternalId.trim())
@@ -210,6 +321,11 @@ const FundTable = ({
     setSaveError(null);
     setActiveSavedFilterId(null);
     setLastUpdatedAt(null);
+    setWatchlistExternalIds([]);
+    setWatchlistPickerOpen(false);
+    setWatchlistSearchQuery("");
+    setWatchlistSearchResults([]);
+    setWatchlistSearchError(null);
     setHeaderLoading(true);
     const timer = window.setTimeout(() => setHeaderLoading(false), 250);
     return () => window.clearTimeout(timer);
@@ -242,6 +358,7 @@ const FundTable = ({
       setSortKey(null);
       setSortDir("desc");
     }
+    setWatchlistExternalIds(Array.isArray(initialExternalIds) ? initialExternalIds : []);
   }, [
     savedFilterExternalId,
     restoredFilterExternalId,
@@ -250,11 +367,12 @@ const FundTable = ({
     initialUpdatedAt,
     initialSortField,
     initialSortOrder,
+    initialExternalIds,
   ]);
 
   const openEditor = () => {
     if (!user) {
-      setSaveError("Please sign in to edit and save screens.");
+      setSaveError(`Please sign in to edit and save ${resourceLabel}s.`);
       return;
     }
     setSaveError(null);
@@ -273,7 +391,11 @@ const FundTable = ({
   const handleSave = async () => {
     setSaveError(null);
     if (!user) {
-      setSaveError("Please sign in to edit and save screens.");
+      setSaveError(`Please sign in to edit and save ${resourceLabel}s.`);
+      return;
+    }
+    if (isWatchlist && normalizedWatchlistExternalIds.length === 0) {
+      setSaveError("Add at least one fund before saving this watchlist.");
       return;
     }
     const shouldUpdateExisting = Boolean(savedFilterExternalId && hasSavedScreen);
@@ -289,11 +411,13 @@ const FundTable = ({
         sort_field?: string;
         sort_order?: "asc" | "desc";
         enabled_screens: string[];
+        external_ids: string[];
       } = {
         name: displayTitle,
         description: displayDescription,
         screens: filters,
         enabled_screens: enabledFilters,
+        external_ids: isWatchlist ? normalizedWatchlistExternalIds : [],
       };
       if (sortKey) {
         payload.sort_field = String(sortKey);
@@ -321,7 +445,7 @@ const FundTable = ({
         }
       }
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Failed to save filters.");
+      setSaveError(err instanceof Error ? err.message : `Failed to save ${resourceLabel}.`);
     } finally {
       setSaving(false);
       setSaveAction(null);
@@ -343,11 +467,11 @@ const FundTable = ({
           >
             <div className="grid gap-7">
               <div className="grid gap-4">
-                <Label htmlFor="screen-title">Name</Label>
+                <Label htmlFor="screen-title">{editorNameLabel}</Label>
                 <Input
                   id="screen-title"
                   value={draftTitle}
-                  placeholder={DEFAULT_TITLE}
+                  placeholder={defaultTitle}
                   onChange={(event) => setDraftTitle(event.target.value)}
                 />
               </div>
@@ -356,7 +480,7 @@ const FundTable = ({
                 <textarea
                   id="screen-description"
                   value={draftDescription}
-                  placeholder={DEFAULT_DESCRIPTION}
+                  placeholder={defaultDescription}
                   rows={4}
                   className="w-full min-h-[132px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                   onChange={(event) => setDraftDescription(event.target.value)}
@@ -376,6 +500,152 @@ const FundTable = ({
                   OK
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {watchlistPickerOpen && (
+        <div
+          className="fixed inset-0 z-[121] bg-black/45 flex items-center justify-center px-4"
+          onClick={() => setWatchlistPickerOpen(false)}
+        >
+          <div
+            className="w-[min(94vw,760px)] max-h-[88vh] overflow-hidden rounded-xl border border-border bg-[#fafafa] shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <div>
+                <h3 className="text-[16px] font-semibold text-foreground">Search and Add Funds</h3>
+                <p className="text-[12px] text-muted-foreground">
+                  Selected funds: {normalizedWatchlistExternalIds.length}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-surface-hover"
+                onClick={() => setWatchlistPickerOpen(false)}
+                aria-label="Close add funds dialog"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="grid gap-4 px-5 py-4">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={watchlistSearchQuery}
+                  onChange={(event) => setWatchlistSearchQuery(event.target.value)}
+                  placeholder="Search mutual funds to add"
+                  className="h-10 w-full rounded-md border border-border bg-background pl-9 pr-3 text-[13px] text-foreground outline-none ring-0 transition-colors placeholder:text-muted-foreground focus:border-primary"
+                />
+              </div>
+              <div className="grid max-h-[44vh] min-h-[220px] gap-4 overflow-hidden md:grid-cols-[1fr_1fr]">
+                <div className="rounded-lg border border-border bg-background">
+                  <div className="border-b border-border px-3 py-2 text-[12px] font-medium text-muted-foreground">
+                    Search Results
+                  </div>
+                  <div className="h-full max-h-[36vh] overflow-y-auto p-2">
+                    {watchlistSearchLoading ? (
+                      <div className="space-y-2 p-1">
+                        {Array.from({ length: 6 }).map((_, idx) => (
+                          <Skeleton key={`watchlist-search-${idx}`} className="h-10 w-full" />
+                        ))}
+                      </div>
+                    ) : watchlistSearchError ? (
+                      <p className="px-2 py-3 text-[12px] text-negative">{watchlistSearchError}</p>
+                    ) : watchlistSearchQuery.trim().length === 0 ? (
+                      <p className="px-2 py-3 text-[12px] text-muted-foreground">
+                        Type a fund name to search.
+                      </p>
+                    ) : watchlistSearchResults.length === 0 ? (
+                      <p className="px-2 py-3 text-[12px] text-muted-foreground">No funds found.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {watchlistSearchResults.map((scheme) => {
+                          const externalId = String(scheme.external_id ?? "").trim();
+                          const isAdded = normalizedWatchlistExternalIds.includes(externalId);
+                          return (
+                            <div
+                              key={externalId || scheme.scheme_sub_name}
+                              className="flex items-start justify-between gap-3 rounded-md border border-border bg-white px-3 py-2"
+                            >
+                              <div className="min-w-0">
+                                <p className="truncate text-[13px] font-medium text-foreground">
+                                  {scheme.scheme_sub_name}
+                                </p>
+                                <p className="truncate text-[11px] text-muted-foreground">
+                                  {scheme.scheme_sub_category}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                className={`shrink-0 rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                                  isAdded
+                                    ? "border border-border text-muted-foreground hover:bg-surface-hover"
+                                    : "bg-[#0f1729] text-white hover:bg-[#0b1322]"
+                                }`}
+                                onClick={() => {
+                                  if (!externalId) return;
+                                  if (isAdded) {
+                                    removeSchemeFromWatchlist(externalId);
+                                  } else {
+                                    addSchemeToWatchlist(scheme);
+                                  }
+                                }}
+                              >
+                                {isAdded ? "Remove" : "Add"}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border bg-background">
+                  <div className="border-b border-border px-3 py-2 text-[12px] font-medium text-muted-foreground">
+                    Selected Funds
+                  </div>
+                  <div className="h-full max-h-[36vh] overflow-y-auto p-2">
+                    {normalizedWatchlistExternalIds.length === 0 ? (
+                      <p className="px-2 py-3 text-[12px] text-muted-foreground">No funds selected yet.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {normalizedWatchlistExternalIds.map((externalId) => (
+                          <div
+                            key={`selected-${externalId}`}
+                            className="flex items-center justify-between gap-3 rounded-md border border-border bg-white px-3 py-2"
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate text-[13px] font-medium text-foreground">
+                                {watchlistSchemeNames[externalId] || externalId}
+                              </p>
+                              <p className="truncate text-[11px] text-muted-foreground">{externalId}</p>
+                            </div>
+                            <button
+                              type="button"
+                              className="shrink-0 rounded-md border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-surface-hover"
+                              onClick={() => removeSchemeFromWatchlist(externalId)}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end border-t border-border px-5 py-4">
+              <button
+                type="button"
+                className="rounded-md bg-[#0f1729] px-4 py-2 text-[12px] font-medium text-white hover:bg-[#0b1322] transition-colors"
+                onClick={() => setWatchlistPickerOpen(false)}
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>
@@ -408,11 +678,20 @@ const FundTable = ({
             </div>
             <div className="shrink-0">
               <div className="flex items-center gap-2 sm:justify-end">
+                {isWatchlist && (
+                  <button
+                    className="px-3 py-2 border border-border rounded-md text-[12px] font-medium hover:bg-surface-hover transition-colors"
+                    onClick={() => setWatchlistPickerOpen(true)}
+                    title="Search and add funds"
+                  >
+                    Add Funds
+                  </button>
+                )}
                 <button
                   className="p-2 border border-border rounded-md hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={openEditor}
                   disabled={!user || saving}
-                  title={!user ? "Sign in to edit this screen" : "Edit screen"}
+                  title={!user ? `Sign in to edit this ${resourceLabel}` : `Edit ${resourceLabel}`}
                 >
                   <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
                 </button>
@@ -420,7 +699,7 @@ const FundTable = ({
                   className="px-4 py-2 bg-[#0f1729] text-white rounded-md text-[13px] font-medium hover:bg-[#0b1322] transition-colors disabled:opacity-60"
                   onClick={handleSave}
                   disabled={!user || saving || !canSaveScreen}
-                  title={!user ? "Sign in to save this screen" : undefined}
+                  title={!user ? `Sign in to save this ${resourceLabel}` : undefined}
                 >
                   {saving
                     ? saveAction === "update"
@@ -437,7 +716,7 @@ const FundTable = ({
         <div className="mt-1 flex items-center justify-between gap-2">
           <p className="text-[13px]">
             <span className="text-muted-foreground">Showing </span>
-            <span className="text-primary font-medium">1 - {items.length}</span>
+            <span className="text-primary font-medium">{showingFrom} - {items.length}</span>
             <span className="text-muted-foreground"> of </span>
             <span className="text-primary font-medium">{total}</span>
             {/* <span className="text-muted-foreground"> results</span> */}
@@ -590,7 +869,24 @@ const FundTable = ({
           {!requiresAuthForFilters && error && (
             <div className="p-4 text-sm text-negative">{error}</div>
           )}
-          {!requiresAuthForFilters && !loading && items.length === 0 && !error && (
+          {!requiresAuthForFilters && showEmptyWatchlistState && !error && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center px-4">
+              <div className="w-full max-w-md rounded-xl border border-dashed border-border bg-background/95 p-6 text-center shadow-md">
+                <p className="text-[15px] font-semibold text-foreground">No funds added yet</p>
+                <p className="mt-2 text-[12px] text-muted-foreground">
+                  Build this watchlist by searching and adding funds you want to track.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setWatchlistPickerOpen(true)}
+                  className="mt-4 inline-flex items-center justify-center rounded-md bg-[#0f1729] px-4 py-2 text-[12px] font-medium text-white hover:bg-[#0b1322] transition-colors"
+                >
+                  Search and Add Funds
+                </button>
+              </div>
+            </div>
+          )}
+          {!requiresAuthForFilters && !loading && items.length === 0 && !error && !showEmptyWatchlistState && (
             <div className="p-4 text-sm text-muted-foreground">No schemes found.</div>
           )}
 

@@ -13,6 +13,7 @@ export const saveUserFilters = async (
     sort_field?: string;
     sort_order?: "asc" | "desc";
     enabled_screens?: string[];
+    external_ids?: string[];
   }
 ) => {
   return apiPost("/api/v1/users/screens", payload, { params: { token: token } });
@@ -28,6 +29,7 @@ export const updateUserFilters = async (
     sort_field?: string;
     sort_order?: "asc" | "desc";
     enabled_screens?: string[];
+    external_ids?: string[];
   }
 ) => {
   return apiPut(`/api/v1/users/screens/${externalId}`, payload, { params: { token: token } });
@@ -35,6 +37,8 @@ export const updateUserFilters = async (
 
 export interface SavedUserFilter {
   external_id: string;
+  screen_type?: "screen" | "watchlist" | null;
+  external_ids?: string[];
   name?: string | null;
   description?: string | null;
   filters: {
@@ -49,6 +53,8 @@ export interface SavedUserFilter {
 
 interface BackendSavedUserFilter {
   external_id: string;
+  screen_type?: "screen" | "watchlist" | null;
+  external_ids?: string[];
   name?: string | null;
   description?: string | null;
   screens?: {
@@ -94,6 +100,8 @@ const normalizeSavedFilter = (item: BackendSavedUserFilter): SavedUserFilter => 
   const source = item.screens ?? item.filters ?? {};
   return {
     external_id: item.external_id,
+    screen_type: item.screen_type,
+    external_ids: Array.isArray(item.external_ids) ? item.external_ids : [],
     name: item.name,
     description: item.description,
     filters: {

@@ -15,6 +15,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
+const NEW_WATCHLIST_EVENT = "mf_new_watchlist_requested";
+type BuilderType = "screen" | "watchlist";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
@@ -29,6 +31,8 @@ const Index = () => {
   const [initialScreenUpdatedAt, setInitialScreenUpdatedAt] = useState<string | null>(null);
   const [initialSortField, setInitialSortField] = useState<string | null>(null);
   const [initialSortOrder, setInitialSortOrder] = useState<"asc" | "desc" | null>(null);
+  const [initialExternalIds, setInitialExternalIds] = useState<string[]>([]);
+  const [builderType, setBuilderType] = useState<BuilderType>("screen");
   const [restoredFilterExternalId, setRestoredFilterExternalId] = useState<string | null>(null);
   const [restoringSavedFilter, setRestoringSavedFilter] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -154,6 +158,7 @@ const Index = () => {
 
   useEffect(() => {
     const handleNewScreen = () => {
+      setBuilderType("screen");
       setEnabledFilters(DEFAULT_ENABLED_FILTERS);
       setFilterValues({});
       try {
@@ -162,11 +167,30 @@ const Index = () => {
         // Ignore storage errors.
       }
       setRangeMeta({});
+      setInitialExternalIds([]);
+      setScreenResetToken((prev) => prev + 1);
+      setMobileFiltersOpen(false);
+    };
+    const handleNewWatchlist = () => {
+      setBuilderType("watchlist");
+      setEnabledFilters(DEFAULT_ENABLED_FILTERS);
+      setFilterValues({});
+      try {
+        sessionStorage.removeItem(sessionKey);
+      } catch {
+        // Ignore storage errors.
+      }
+      setRangeMeta({});
+      setInitialExternalIds([]);
       setScreenResetToken((prev) => prev + 1);
       setMobileFiltersOpen(false);
     };
     window.addEventListener(NEW_SCREEN_EVENT, handleNewScreen);
-    return () => window.removeEventListener(NEW_SCREEN_EVENT, handleNewScreen);
+    window.addEventListener(NEW_WATCHLIST_EVENT, handleNewWatchlist);
+    return () => {
+      window.removeEventListener(NEW_SCREEN_EVENT, handleNewScreen);
+      window.removeEventListener(NEW_WATCHLIST_EVENT, handleNewWatchlist);
+    };
   }, []);
 
   useEffect(() => {
@@ -177,6 +201,7 @@ const Index = () => {
       setInitialScreenUpdatedAt(null);
       setInitialSortField(null);
       setInitialSortOrder(null);
+      setInitialExternalIds([]);
     }
   }, [savedFilterId]);
 
@@ -216,6 +241,13 @@ const Index = () => {
         setInitialScreenUpdatedAt(selected.updated_at ?? null);
         setInitialSortField(selected.filters?.sort_field ?? null);
         setInitialSortOrder(selected.filters?.sort_order ?? null);
+        setInitialExternalIds(Array.isArray(selected.external_ids) ? selected.external_ids : []);
+        setBuilderType(
+          selected.screen_type === "watchlist" ||
+            (Array.isArray(selected.external_ids) && selected.external_ids.length > 0)
+            ? "watchlist"
+            : "screen"
+        );
         setRestoredFilterExternalId(selected.external_id);
       };
 
@@ -342,12 +374,14 @@ const Index = () => {
           <FundTable
             filters={filtersPayload}
             enabledFilters={enabledFilters}
+            builderType={builderType}
             resetToken={screenResetToken}
             initialTitle={initialScreenTitle}
             initialDescription={initialScreenDescription}
             initialUpdatedAt={initialScreenUpdatedAt}
             initialSortField={initialSortField}
             initialSortOrder={initialSortOrder}
+            initialExternalIds={initialExternalIds}
             restoredFilterExternalId={restoredFilterExternalId}
             onSavedFilterCreated={applySavedScreenByExternalId}
             onMetaChange={(meta) =>

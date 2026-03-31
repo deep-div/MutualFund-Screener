@@ -22,6 +22,7 @@ const NAV_FORMATTER = new Intl.NumberFormat("en-IN", {
 const LEADERBOARDS_SESSION_KEY = "mf_leaderboards_cache";
 const LEADERBOARDS_LOADING_EVENT = "mf_leaderboards_loading";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
+const NEW_WATCHLIST_EVENT = "mf_new_watchlist_requested";
 const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 const SAVED_FILTERS_BATCH_SIZE = 10;
 
@@ -298,9 +299,8 @@ const Navbar = () => {
       window.dispatchEvent(new CustomEvent(NEW_SCREEN_EVENT));
       return;
     }
-    toast("Watchlist creation is coming soon", {
-      description: "We are polishing this flow. Please check back soon.",
-    });
+    navigate("/");
+    window.dispatchEvent(new CustomEvent(NEW_WATCHLIST_EVENT));
   };
 
   const handleLoadMoreSavedFilters = async () => {
