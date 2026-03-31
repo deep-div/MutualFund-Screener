@@ -589,7 +589,7 @@ const Navbar = () => {
           {/* NAV ITEMS */}
           <div className="-ml-1 sm:ml-0 flex items-center gap-2 overflow-x-auto scrollbar-hidden">
             <button
-              className="whitespace-nowrap rounded-xl px-3 py-2 text-[12px] font-medium text-white transition-colors hover:bg-nav-hover/80 hover:text-white active:bg-nav-hover active:text-white sm:px-4 sm:text-[13px] lg:px-5"
+              className="min-h-10 whitespace-nowrap rounded-xl px-3 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-nav-hover/80 hover:text-white active:bg-nav-hover active:text-white sm:px-4 sm:text-[14px] lg:px-5 lg:text-[14px]"
               onClick={handleExploreClick}
             >
               Explore
@@ -606,7 +606,7 @@ const Navbar = () => {
             >
               <DropdownMenuTrigger asChild>
                 <button
-                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-[12px] font-medium text-white transition-colors sm:px-4 sm:text-[13px] lg:px-5 ${
+                  className={`inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-[13px] font-medium text-white transition-colors sm:px-4 sm:text-[14px] lg:px-5 lg:text-[14px] ${
                     createMenuOpen
                       ? "bg-nav-hover text-white"
                       : "hover:bg-nav-hover/80 hover:text-white active:bg-nav-hover active:text-white"
@@ -921,11 +921,11 @@ const Navbar = () => {
           ) : isLoggedIn ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 text-[13px] text-nav-foreground">
-                  <div className="w-7 h-7 rounded-full bg-primary/30 flex items-center justify-center text-[11px] font-medium">
-                    {(user?.displayName || user?.email || "A")[0]?.toUpperCase()}
+                <button className="flex items-center gap-2.5 text-[13px] text-nav-foreground">
+                  <div className="w-8 h-8 rounded-full bg-primary/30 grid place-items-center text-[12px] font-semibold leading-none">
+                    <span className="leading-none">{(user?.displayName || user?.email || "A")[0]?.toUpperCase()}</span>
                   </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-nav-foreground/60" />
+                  <ChevronDown className="w-4 h-4 text-nav-foreground/60" />
                 </button>
               </DropdownMenuTrigger>
 
