@@ -47,6 +47,30 @@ export interface SavedUserFilter {
   updated_at?: string;
 }
 
+interface BackendSavedUserFilter {
+  external_id: string;
+  name?: string | null;
+  description?: string | null;
+  screens?: {
+    screens?: Record<string, Record<string, number | string | string[]>>;
+    filters?: Record<string, Record<string, number | string | string[]>>;
+    sort_field?: string;
+    sort_order?: "asc" | "desc";
+    enabled_screens?: string[];
+    enabled_filters?: string[];
+  };
+  filters?: {
+    screens?: Record<string, Record<string, number | string | string[]>>;
+    filters?: Record<string, Record<string, number | string | string[]>>;
+    sort_field?: string;
+    sort_order?: "asc" | "desc";
+    enabled_screens?: string[];
+    enabled_filters?: string[];
+  };
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface UserFiltersResponse {
   filters: SavedUserFilter[];
   total?: number;
@@ -66,12 +90,29 @@ export interface DefaultFiltersResponse {
   total?: number;
 }
 
+const normalizeSavedFilter = (item: BackendSavedUserFilter): SavedUserFilter => {
+  const source = item.filters ?? item.screens ?? {};
+  return {
+    external_id: item.external_id,
+    name: item.name,
+    description: item.description,
+    filters: {
+      filters: source.filters ?? source.screens ?? {},
+      sort_field: source.sort_field,
+      sort_order: source.sort_order,
+      enabled_filters: source.enabled_filters ?? source.enabled_screens ?? [],
+    },
+    created_at: item.created_at,
+    updated_at: item.updated_at,
+  };
+};
+
 export const getUserFilters = async (
   token: string,
   options?: { limit?: number; offset?: number }
 ) => {
   const response = await apiGet<{
-    screens: SavedUserFilter[];
+    screens: BackendSavedUserFilter[];
     total?: number;
     limit?: number | null;
     offset?: number;
@@ -81,7 +122,7 @@ export const getUserFilters = async (
     offset: options?.offset,
   });
   return {
-    filters: Array.isArray(response?.screens) ? response.screens : [],
+    filters: Array.isArray(response?.screens) ? response.screens.map(normalizeSavedFilter) : [],
     total: response?.total,
     limit: response?.limit,
     offset: response?.offset,
@@ -93,7 +134,7 @@ export const getDefaultFilters = async () => {
     groups: Array<{
       key: string;
       label: string;
-      screens?: SavedUserFilter[];
+      screens?: BackendSavedUserFilter[];
     }>;
     group_count?: number;
     total?: number;
@@ -103,7 +144,7 @@ export const getDefaultFilters = async () => {
       ? response.groups.map((group) => ({
           key: group.key,
           label: group.label,
-          filters: Array.isArray(group.screens) ? group.screens : [],
+          filters: Array.isArray(group.screens) ? group.screens.map(normalizeSavedFilter) : [],
         }))
       : [],
     group_count: response?.group_count,

@@ -14,7 +14,7 @@ const SKELETON_ROWS = 10;
 const DEFAULT_TITLE = "Mutual Fund Screener";
 const DEFAULT_DESCRIPTION =
   "Describe the purpose of this screen (e.g., tax-saving, growth, or tracking)";
-const USER_FILTER_ID_REGEX = /^[0-9A-Za-z]{8}$/;
+const USER_FILTER_ID_REGEX = /^[0-9a-f]{32}$/i;
 const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 
 const baseColumns: Array<{
