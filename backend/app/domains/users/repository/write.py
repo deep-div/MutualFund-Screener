@@ -2,7 +2,13 @@ from sqlalchemy.dialects.postgresql import insert
 
 from app.core.logging import logger
 from app.db.session import get_session
-from app.domains.users.models import UserORM, UserScreenORM, UserWatchlistORM
+from app.domains.users.models import (
+    SCREEN_TYPE_SCREEN,
+    SCREEN_TYPE_WATCHLIST,
+    UserORM,
+    UserScreenORM,
+    UserWatchlistORM,
+)
 from app.domains.users.utils import generate_external_id
 
 
@@ -80,6 +86,7 @@ def add_user_screens(
                         for scheme_external_id in scheme_external_ids
                     ]
                 )
+            record.screen_type = _derive_screen_type(scheme_external_ids)
             session.commit()
             return external_id
         except Exception as e:
@@ -141,6 +148,7 @@ def update_user_screens(
                             for scheme_external_id in scheme_external_ids
                         ]
                     )
+                target.screen_type = _derive_screen_type(scheme_external_ids)
             session.commit()
             return 1
         except Exception as e:
@@ -193,6 +201,18 @@ def delete_user_watchlist_scheme(uid: str, screen_external_id: str, scheme_exter
                 )
                 .delete(synchronize_session=False)
             )
+            if deleted:
+                remaining = (
+                    session.query(UserWatchlistORM.id)
+                    .filter(UserWatchlistORM.user_screen_id == target_screen.id)
+                    .count()
+                )
+                next_type = SCREEN_TYPE_WATCHLIST if remaining > 0 else SCREEN_TYPE_SCREEN
+                (
+                    session.query(UserScreenORM)
+                    .filter(UserScreenORM.id == target_screen.id)
+                    .update({"screen_type": next_type}, synchronize_session=False)
+                )
             session.commit()
             return deleted
         except Exception as e:
@@ -215,3 +235,7 @@ def _normalize_external_ids(external_ids: list[str] | None) -> list[str]:
         seen.add(value)
         normalized.append(value)
     return normalized
+
+
+def _derive_screen_type(scheme_external_ids: list[str]) -> str:
+    return SCREEN_TYPE_WATCHLIST if scheme_external_ids else SCREEN_TYPE_SCREEN

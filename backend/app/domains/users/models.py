@@ -8,6 +8,8 @@ from app.db.base import Base
 TABLE_NAME_4 = "users"
 TABLE_NAME_6 = "user_screens"
 TABLE_NAME_7 = "user_watchlist"
+SCREEN_TYPE_SCREEN = "screen"
+SCREEN_TYPE_WATCHLIST = "watchlist"
 
 """Stores user profile information"""
 class UserORM(Base):
@@ -38,6 +40,7 @@ class UserScreenORM(Base):
     external_id = Column(String(32), index=True, nullable=False, unique=True)
     name = Column(String)
     description = Column(String)
+    screen_type = Column(String(16), nullable=False, server_default=SCREEN_TYPE_SCREEN, index=True)
     screens = Column(JSONB, nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())

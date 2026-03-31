@@ -103,11 +103,17 @@ def get_screens(
     token: str = Query(...),
     limit: int | None = Query(None, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    screen_type: str | None = Query(None, pattern="^(screen|watchlist)$"),
 ):
     try:
         token_uid = _get_uid_from_token(token)
-        screens = get_user_screens_paginated(token_uid, limit=limit, offset=offset)
-        total = count_user_screens(token_uid)
+        screens = get_user_screens_paginated(
+            token_uid,
+            limit=limit,
+            offset=offset,
+            screen_type=screen_type,
+        )
+        total = count_user_screens(token_uid, screen_type=screen_type)
         sanitized_screens = []
         for item in screens:
             cleaned = dict(item)

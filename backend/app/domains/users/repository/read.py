@@ -8,19 +8,26 @@ def orm_to_dict(row):
     return {c.name: getattr(row, c.name) for c in row.__table__.columns}
 
 
-def get_user_screens(uid: str):
+def get_user_screens(uid: str, screen_type: str | None = None):
     """Fetch screen records for a user."""
     with get_session() as db:
         rows = (
             db.query(UserScreenORM)
             .filter(UserScreenORM.uid == uid)
             .order_by(UserScreenORM.created_at.desc())
-            .all()
         )
+        if screen_type:
+            rows = rows.filter(UserScreenORM.screen_type == screen_type)
+        rows = rows.all()
         return _attach_external_ids(db, rows)
 
 
-def get_user_screens_paginated(uid: str, limit: int | None = None, offset: int = 0):
+def get_user_screens_paginated(
+    uid: str,
+    limit: int | None = None,
+    offset: int = 0,
+    screen_type: str | None = None,
+):
     """Fetch screen records for a user with optional pagination."""
     with get_session() as db:
         query = (
@@ -28,6 +35,8 @@ def get_user_screens_paginated(uid: str, limit: int | None = None, offset: int =
             .filter(UserScreenORM.uid == uid)
             .order_by(UserScreenORM.created_at.desc())
         )
+        if screen_type:
+            query = query.filter(UserScreenORM.screen_type == screen_type)
         if offset > 0:
             query = query.offset(offset)
         if limit is not None:
@@ -36,10 +45,13 @@ def get_user_screens_paginated(uid: str, limit: int | None = None, offset: int =
         return _attach_external_ids(db, rows)
 
 
-def count_user_screens(uid: str) -> int:
+def count_user_screens(uid: str, screen_type: str | None = None) -> int:
     """Count screen records for a user."""
     with get_session() as db:
-        return db.query(UserScreenORM).filter(UserScreenORM.uid == uid).count()
+        query = db.query(UserScreenORM).filter(UserScreenORM.uid == uid)
+        if screen_type:
+            query = query.filter(UserScreenORM.screen_type == screen_type)
+        return query.count()
 
 
 def _attach_external_ids(db, rows: list[UserScreenORM]) -> list[dict]:
