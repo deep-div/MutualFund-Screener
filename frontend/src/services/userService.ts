@@ -109,7 +109,7 @@ const normalizeSavedFilter = (item: BackendSavedUserFilter): SavedUserFilter => 
 
 export const getUserFilters = async (
   token: string,
-  options?: { limit?: number; offset?: number }
+  options?: { limit?: number; offset?: number; screen_type?: string }
 ) => {
   const response = await apiGet<{
     screens: BackendSavedUserFilter[];
@@ -120,6 +120,7 @@ export const getUserFilters = async (
     token,
     limit: options?.limit,
     offset: options?.offset,
+    screen_type: options?.screen_type,
   });
   return {
     filters: Array.isArray(response?.screens) ? response.screens.map(normalizeSavedFilter) : [],

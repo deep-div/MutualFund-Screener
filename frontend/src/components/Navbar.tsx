@@ -242,6 +242,7 @@ const Navbar = () => {
         const response = await getUserFilters(token, {
           limit: SAVED_FILTERS_BATCH_SIZE,
           offset: 0,
+          screen_type: "screen",
         });
         const filters = Array.isArray(response?.filters) ? response.filters : [];
         const hasTotal = typeof response?.total === "number";
@@ -308,6 +309,7 @@ const Navbar = () => {
       const response = await getUserFilters(token, {
         limit: SAVED_FILTERS_BATCH_SIZE,
         offset: currentOffset,
+        screen_type: "screen",
       });
       const incoming = Array.isArray(response?.filters) ? response.filters : [];
       let nextSavedFiltersCount = currentOffset;
