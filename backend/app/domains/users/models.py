@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, BigInteger, ForeignKey, UniqueConstraint, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy import DateTime
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
@@ -6,9 +6,7 @@ from sqlalchemy.sql import func
 from app.db.base import Base
 
 TABLE_NAME_4 = "users"
-TABLE_NAME_5 = "user_watchlist"
 TABLE_NAME_6 = "user_filters"
-TABLE_NAME_1 = "mutual_fund_screener"
 
 """Stores user profile information"""
 class UserORM(Base):
@@ -23,39 +21,6 @@ class UserORM(Base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
-
-
-"""Stores watchlist items per user"""
-class UserWatchlistORM(Base):
-    __tablename__ = TABLE_NAME_5
-
-    id = Column(Integer, primary_key=True, index=True)
-    uid = Column(
-        String,
-        ForeignKey(f"{TABLE_NAME_4}.uid", ondelete="CASCADE"),
-        index=True,
-        nullable=False
-    )
-    scheme_id = Column(
-        Integer,
-        ForeignKey(f"{TABLE_NAME_1}.id", ondelete="CASCADE"),
-        index=True,
-        nullable=False
-    )
-    external_id = Column(String(32), index=True, nullable=False, unique=True)
-    scheme_code = Column(BigInteger, index=True, nullable=False)
-    watchlist_name = Column(String, nullable=False)
-
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
-
-    __table_args__ = (
-        UniqueConstraint(
-            "uid",
-            "watchlist_name",
-            "scheme_id",
-        ),
-    )
 
 
 """Stores applied filter JSON per user"""

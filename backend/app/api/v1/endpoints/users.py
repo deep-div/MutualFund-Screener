@@ -6,16 +6,12 @@ from app.api.v1.schemas import UserFilterCreate
 from app.domains.users.repository.read import (
     count_user_filters,
     get_user_filters_paginated,
-    get_user_watchlist,
 )
 from app.domains.users.default_screens import DEFAULT_SCREEN_GROUPS, DEFAULT_SCREENS
 from app.domains.users.repository.write import (
     add_user_filters,
-    add_watchlist_item,
     delete_user_filter,
-    delete_watchlist_item,
     update_user_filters,
-    update_watchlist_name,
     upsert_user,
 )
 
@@ -70,69 +66,6 @@ def create_or_update_user(
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to upsert user: {exc}")
 
-
-@router.post("/users/watchlist", status_code=201)
-def add_to_watchlist(
-    token: str = Query(...),
-    external_id: str = Query(..., min_length=8, max_length=8),
-    watchlist_name: str = Query("default"),
-):
-    try:
-        token_uid = _get_uid_from_token(token)
-        add_watchlist_item(uid=token_uid, scheme_external_id=external_id, watchlist_name=watchlist_name)
-        return {"status": "ok"}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to add watchlist item: {exc}")
-
-
-@router.get("/users/watchlist")
-def get_watchlist(token: str = Query(...)):
-    try:
-        token_uid = _get_uid_from_token(token)
-        return {
-            "uid": token_uid,
-            "watchlist": get_user_watchlist(token_uid),
-        }
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch watchlist: {exc}")
-
-
-@router.put("/users/watchlist", status_code=200)
-def rename_watchlist(
-    token: str = Query(...),
-    old_name: str = Query(...),
-    new_name: str = Query(...),
-):
-    try:
-        token_uid = _get_uid_from_token(token)
-        updated = update_watchlist_name(uid=token_uid, old_name=old_name, new_name=new_name)
-        if not updated:
-            raise HTTPException(status_code=404, detail="Watchlist not found")
-        return {"status": "ok"}
-    except HTTPException:
-        raise
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to rename watchlist: {exc}")
-
-
-@router.delete("/users/watchlist", status_code=200)
-def delete_from_watchlist(
-    token: str = Query(...),
-    external_id: str = Query(..., min_length=8, max_length=8),
-    watchlist_name: str = Query("default"),
-):
-    try:
-        token_uid = _get_uid_from_token(token)
-        deleted = delete_watchlist_item(
-            uid=token_uid, scheme_external_id=external_id, watchlist_name=watchlist_name
-        )
-        if not deleted:
-            raise HTTPException(status_code=404, detail="Watchlist item not found")
-        return {"status": "ok"}
-    except HTTPException:
-        raise
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to delete watchlist item: {exc}")
 
 @router.post("/users/filters", status_code=201)
 def add_filters(payload: UserFilterCreate, token: str = Query(...)):

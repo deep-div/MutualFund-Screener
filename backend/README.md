@@ -1,7 +1,7 @@
 # Mutual Fund Screener - Backend
 
 FastAPI backend for the Mutual Fund Screener project.  
-It provides screening/search APIs, analytics APIs, user watchlist/filter APIs, and a protected data pipeline trigger.
+It provides screening/search APIs, analytics APIs, user filter APIs, and a protected data pipeline trigger.
 
 ## Tech Stack
 
@@ -95,10 +95,6 @@ Base prefix: `/api/v1`
 - `GET /schemes/leaderboards`
 - `GET /schemes/{external_id}/analytics`
 - `POST /users`
-- `POST /users/watchlist`
-- `GET /users/watchlist`
-- `PUT /users/watchlist`
-- `DELETE /users/watchlist`
 - `POST /users/filters`
 - `GET /users/filters`
 - `GET /users/filters/defaults`
