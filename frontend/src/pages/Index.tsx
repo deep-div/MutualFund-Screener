@@ -166,7 +166,13 @@ const Index = () => {
         // Ignore storage errors.
       }
       setRangeMeta({});
+      setInitialScreenTitle("");
+      setInitialScreenDescription("");
+      setInitialScreenUpdatedAt(null);
+      setInitialSortField(null);
+      setInitialSortOrder(null);
       setInitialExternalIds([]);
+      setRestoredFilterExternalId(null);
       setScreenResetToken((prev) => prev + 1);
       setMobileFiltersOpen(false);
     };
@@ -180,7 +186,13 @@ const Index = () => {
         // Ignore storage errors.
       }
       setRangeMeta({});
+      setInitialScreenTitle("");
+      setInitialScreenDescription("");
+      setInitialScreenUpdatedAt(null);
+      setInitialSortField(null);
+      setInitialSortOrder(null);
       setInitialExternalIds([]);
+      setRestoredFilterExternalId(null);
       setScreenResetToken((prev) => prev + 1);
       setMobileFiltersOpen(false);
     };
