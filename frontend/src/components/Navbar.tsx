@@ -1089,7 +1089,7 @@ const Navbar = () => {
                       >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
                           {savedFilters.map((item) => (
-                            <div key={item.external_id} className="relative">
+                            <div key={item.external_id} className="relative group">
                               <button
                                 className="w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 pl-11 pr-10 hover:bg-slate-50 transition-colors"
                                 onClick={() => {
@@ -1114,7 +1114,7 @@ const Navbar = () => {
                               />
                               <button
                                 type="button"
-                                className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-red-600 disabled:opacity-50"
+                                className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto hover:bg-slate-100 hover:text-red-600 disabled:opacity-50"
                                 onClick={() => void handleDeleteFilters([item.external_id])}
                                 disabled={deletingExternalIds.includes(item.external_id)}
                                 aria-label={`Delete ${item.name?.trim() || "screen"}`}
@@ -1159,7 +1159,7 @@ const Navbar = () => {
                       <div className="flex-1 min-h-0 pr-1 overflow-y-auto scrollbar-thin">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
                           {watchlistFilters.map((item) => (
-                            <div key={item.external_id} className="relative">
+                            <div key={item.external_id} className="relative group">
                               <button
                                 className="w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 pl-11 pr-10 hover:bg-slate-50 transition-colors"
                                 onClick={() => {
@@ -1184,7 +1184,7 @@ const Navbar = () => {
                               />
                               <button
                                 type="button"
-                                className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-red-600 disabled:opacity-50"
+                                className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto hover:bg-slate-100 hover:text-red-600 disabled:opacity-50"
                                 onClick={() => void handleDeleteFilters([item.external_id])}
                                 disabled={deletingExternalIds.includes(item.external_id)}
                                 aria-label={`Delete ${item.name?.trim() || "watchlist"}`}
