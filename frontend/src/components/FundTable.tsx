@@ -544,14 +544,14 @@ const FundTable = ({
       )}
       {watchlistPickerOpen && (
         <div
-          className="fixed inset-0 z-[121] bg-black/45 flex items-center justify-center px-4"
+          className="fixed inset-0 z-[121] flex items-center justify-center bg-black/45 px-3 sm:px-4"
           onClick={() => setWatchlistPickerOpen(false)}
         >
           <div
-            className="w-[min(94vw,760px)] max-h-[88vh] overflow-hidden rounded-xl border border-border bg-[#fafafa] shadow-2xl"
+            className="flex w-full max-w-[760px] max-h-[88vh] flex-col overflow-hidden rounded-xl border border-border bg-[#fafafa] shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5 sm:py-4">
               <div>
                 <h3 className="text-[16px] font-semibold text-foreground">Search and Add Funds</h3>
                 <p className="text-[12px] text-muted-foreground">
@@ -567,7 +567,7 @@ const FundTable = ({
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="grid gap-4 px-5 py-4">
+            <div className="grid flex-1 min-h-0 gap-3 overflow-y-auto px-4 py-3 sm:gap-4 sm:px-5 sm:py-4 scrollbar-mobile-hidden">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <input
@@ -578,12 +578,12 @@ const FundTable = ({
                   className="h-10 w-full rounded-md border border-border bg-background pl-9 pr-3 text-[13px] text-foreground outline-none ring-0 transition-colors placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>
-              <div className="grid max-h-[44vh] min-h-[220px] gap-4 overflow-hidden md:grid-cols-[1fr_1fr]">
-                <div className="rounded-lg border border-border bg-background">
+              <div className="grid gap-3 md:grid-cols-[1fr_1fr] md:max-h-[44vh] md:min-h-[220px] md:gap-4 md:overflow-hidden">
+                <div className="flex min-h-0 flex-col rounded-lg border border-border bg-background">
                   <div className="border-b border-border px-3 py-2 text-[12px] font-medium text-muted-foreground">
                     Search Results
                   </div>
-                  <div className="h-full max-h-[36vh] overflow-y-auto p-2">
+                  <div className="min-h-[160px] max-h-[28vh] overflow-y-auto p-2 md:h-full md:min-h-0 md:max-h-[36vh] scrollbar-mobile-hidden">
                     {watchlistSearchLoading ? (
                       <div className="space-y-2 p-1">
                         {Array.from({ length: 6 }).map((_, idx) => (
@@ -641,11 +641,11 @@ const FundTable = ({
                     )}
                   </div>
                 </div>
-                <div className="rounded-lg border border-border bg-background">
+                <div className="flex min-h-0 flex-col rounded-lg border border-border bg-background">
                   <div className="border-b border-border px-3 py-2 text-[12px] font-medium text-muted-foreground">
                     Selected Funds
                   </div>
-                  <div className="h-full max-h-[36vh] overflow-y-auto p-2">
+                  <div className="min-h-[160px] max-h-[28vh] overflow-y-auto p-2 md:h-full md:min-h-0 md:max-h-[36vh] scrollbar-mobile-hidden">
                     {normalizedWatchlistExternalIds.length === 0 ? (
                       <p className="px-2 py-3 text-[12px] text-muted-foreground">No funds selected yet.</p>
                     ) : (
@@ -675,7 +675,7 @@ const FundTable = ({
                 </div>
               </div>
             </div>
-            <div className="flex justify-end border-t border-border px-5 py-4">
+            <div className="flex shrink-0 justify-end border-t border-border px-4 py-3 sm:px-5 sm:py-4">
               <button
                 type="button"
                 className="rounded-md bg-[#0f1729] px-4 py-2 text-[12px] font-medium text-white hover:bg-[#0b1322] transition-colors"
