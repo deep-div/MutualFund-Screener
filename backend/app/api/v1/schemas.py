@@ -24,6 +24,13 @@ class SchemeListRequest(BaseModel):
         default="desc",
         examples=["desc", "asc"],
     )
+    scheme_external_id: list[str] | None = Field(
+        default=None,
+        validation_alias=AliasChoices("scheme_external_id", "scheme_external_ids", "external_ids"),
+        json_schema_extra={
+            "example": ["Zl5IRYPK", "sf7obiu3"],
+        },
+    )
 
 
 class UserScreenCreate(BaseModel):

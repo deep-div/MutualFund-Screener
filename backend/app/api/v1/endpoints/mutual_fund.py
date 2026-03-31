@@ -41,12 +41,14 @@ def list_schemes(
     limit: int = 10,
     offset: int = 0,
 ):
+    scheme_external_ids = [ext_id for ext_id in (payload.scheme_external_id or []) if ext_id]
     return get_filtered_schemes(
         screens=payload.screens,
         limit=limit,
         offset=offset,
         sort_field=payload.sort_field,
         sort_order=payload.sort_order,
+        scheme_external_ids=scheme_external_ids,
     )
 
 

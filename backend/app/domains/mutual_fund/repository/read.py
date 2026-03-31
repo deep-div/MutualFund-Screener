@@ -60,12 +60,21 @@ def orm_to_dict(row):
 
 
 """Fetch schemes using dynamic screener screens and sorting"""
-def get_filtered_schemes(screens: dict, limit: int, offset: int, sort_field: str, sort_order: str):
+def get_filtered_schemes(
+    screens: dict,
+    limit: int,
+    offset: int,
+    sort_field: str,
+    sort_order: str,
+    scheme_external_ids: list[str] | None = None,
+):
     """Fetch schemes with screens, sorting, and pagination"""
     with get_session() as db:
         base_query = db.query(SchemeMetaORM)
         if screens:
             base_query = build_dynamic_screens(base_query, screens)
+        if scheme_external_ids:
+            base_query = base_query.filter(SchemeMetaORM.external_id.in_(scheme_external_ids))
         total = base_query.count()
 
         remove_fields = { 
