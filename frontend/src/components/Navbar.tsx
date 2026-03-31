@@ -514,7 +514,7 @@ const Navbar = () => {
       {screenExplorerOpen && (
         <div
           className="fixed left-0 right-0 bottom-0 bg-black/40 z-[58]"
-          style={{ top: `${bodyTopOffset}px` }}
+          style={{ top: `${Math.max(0, bodyTopOffset - 1)}px` }}
           onClick={() => setScreenExplorerOpen(false)}
         />
       )}
@@ -965,7 +965,7 @@ const Navbar = () => {
       {screenExplorerOpen && (
         <div
           className="fixed left-0 right-0 bottom-0 z-[75] flex items-center justify-center px-3 py-0 pointer-events-none"
-          style={{ top: `${bodyTopOffset}px` }}
+          style={{ top: `${Math.max(0, bodyTopOffset - 1)}px` }}
         >
           <div className="pointer-events-auto h-full w-full max-w-[860px] overflow-hidden rounded-xl border border-slate-200 bg-background shadow-2xl md:rounded-2xl">
             <div className="grid h-full grid-cols-1 md:grid-cols-[220px_1fr]">
