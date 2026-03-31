@@ -244,7 +244,7 @@ const FilterSidebar = ({
             const isExpanded = Boolean(expandedFilters[filter.id]);
             return (
               <div key={filter.id} className="border-b border-border">
-                <div className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-hover transition-colors">
+                <div className="group w-full flex items-center justify-between px-4 py-3 hover:bg-surface-hover transition-colors">
                   <button
                     onClick={() => toggleFilter(filter.id)}
                     className="flex-1 text-left text-[13px] font-semibold text-foreground"
@@ -255,7 +255,7 @@ const FilterSidebar = ({
                     {!filter.pinned && (
                       <button
                         onClick={() => removeFilter(filter.id)}
-                        className="text-[11px] font-medium text-muted-foreground hover:text-negative"
+                        className="text-[11px] font-medium text-muted-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 hover:text-negative"
                       >
                         Remove
                       </button>

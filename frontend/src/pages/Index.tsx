@@ -140,7 +140,6 @@ const Index = () => {
   }, [enabledFilters, filterValues]);
 
   const handleResetAll = () => {
-    setEnabledFilters(PINNED_FILTERS);
     setFilterValues({});
     try {
       sessionStorage.removeItem(sessionKey);
