@@ -99,6 +99,40 @@
     height: 0;
     display: none;
   }
+  .scrollbar-mobile-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-mobile-hidden::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+  @media (min-width: 768px) {
+    .scrollbar-mobile-hidden {
+      scrollbar-width: thin;
+      scrollbar-color: hsl(var(--border)) transparent;
+      -ms-overflow-style: auto;
+    }
+    .scrollbar-mobile-hidden::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+      display: block;
+      background: transparent;
+    }
+    .scrollbar-mobile-hidden::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .scrollbar-mobile-hidden::-webkit-scrollbar-thumb,
+    .scrollbar-mobile-hidden::-webkit-scrollbar-thumb:vertical,
+    .scrollbar-mobile-hidden::-webkit-scrollbar-thumb:horizontal {
+      background: hsl(var(--border));
+      border-radius: 2px;
+    }
+    .scrollbar-mobile-hidden::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+  }
 
   .range-track {
     height: 16px;

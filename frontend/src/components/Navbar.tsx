@@ -968,12 +968,12 @@ const Navbar = () => {
           style={{ top: `${Math.max(0, bodyTopOffset - 1)}px` }}
         >
           <div className="pointer-events-auto h-full w-full max-w-[860px] overflow-hidden rounded-xl border border-slate-200 bg-background shadow-2xl md:rounded-2xl">
-            <div className="grid h-full grid-cols-1 md:grid-cols-[220px_1fr]">
-              <div className="border-b border-slate-200 bg-[#f1f1f1] p-4 md:border-b-0 md:border-r">
-                <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-600 mb-5">Screen Categories</p>
-                <div className="flex gap-2 overflow-x-auto pb-1 md:block md:space-y-3 md:overflow-visible md:pb-0">
+            <div className="flex h-full flex-col md:grid md:grid-cols-[220px_1fr]">
+              <div className="border-b border-slate-200 bg-[#f1f1f1] p-3 md:border-b-0 md:border-r md:p-4">
+                <p className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-slate-600 md:mb-5">Screen Categories</p>
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-mobile-hidden md:block md:space-y-3 md:overflow-visible md:pb-0">
                   <button
-                    className={`shrink-0 md:w-full text-left px-3 py-2.5 rounded-md text-[14px] md:text-[15px] font-medium border transition-colors ${
+                    className={`shrink-0 rounded-md border px-2.5 py-2 text-left text-[14px] font-medium transition-colors md:w-full md:px-3 md:py-2.5 md:text-[15px] ${
                       activeScreenGroup === "saved"
                         ? "bg-white text-slate-900 border-slate-200"
                         : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"
@@ -987,7 +987,7 @@ const Navbar = () => {
                     </span>
                   </button>
                   <button
-                    className={`shrink-0 md:w-full text-left px-3 py-2.5 rounded-md text-[14px] md:text-[15px] font-medium border transition-colors ${
+                    className={`shrink-0 rounded-md border px-2.5 py-2 text-left text-[14px] font-medium transition-colors md:w-full md:px-3 md:py-2.5 md:text-[15px] ${
                       activeScreenGroup === "watchlist"
                         ? "bg-white text-slate-900 border-slate-200"
                         : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"
@@ -1004,7 +1004,7 @@ const Navbar = () => {
                   {defaultFilterGroups.map((group) => (
                     <button
                       key={group.key}
-                      className={`shrink-0 md:w-full text-left px-3 py-2.5 rounded-md text-[14px] md:text-[15px] font-medium border transition-colors ${
+                      className={`shrink-0 rounded-md border px-2.5 py-2 text-left text-[14px] font-medium transition-colors md:w-full md:px-3 md:py-2.5 md:text-[15px] ${
                         activeScreenGroup === group.key
                           ? "bg-white text-slate-900 border-slate-200"
                           : "bg-transparent text-slate-600 border-transparent hover:bg-white/70"
@@ -1018,7 +1018,7 @@ const Navbar = () => {
                 </div>
               </div>
 
-              <div className="p-5 flex flex-col h-full min-h-0">
+              <div className="flex min-h-0 flex-1 flex-col p-4 md:h-full md:p-5">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-[18px] font-semibold text-slate-900">
                     {isSavedGroup
@@ -1118,8 +1118,8 @@ const Navbar = () => {
                     <div className="text-[13px] text-slate-600">No saved screens found.</div>
                   ) : (
                     <>
-                    <div
-                        className="flex-1 min-h-0 pr-1 overflow-y-auto scrollbar-thin"
+                      <div
+                        className="flex-1 min-h-0 pr-1 overflow-y-auto scrollbar-mobile-hidden"
                       >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
                           {savedFilters.map((item) => (
@@ -1199,7 +1199,7 @@ const Navbar = () => {
                     <div className="text-[13px] text-slate-600">No watchlists found.</div>
                   ) : (
                     <>
-                      <div className="flex-1 min-h-0 pr-1 overflow-y-auto scrollbar-thin">
+                      <div className="flex-1 min-h-0 pr-1 overflow-y-auto scrollbar-mobile-hidden">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
                           {watchlistFilters.map((item) => (
                             <div key={item.external_id} className="relative group">
@@ -1263,7 +1263,7 @@ const Navbar = () => {
                 ) : !selectedDefaultGroup || selectedDefaultGroup.filters.length === 0 ? (
                   <div className="text-[13px] text-slate-600">No screens available in this category.</div>
                 ) : (
-                  <div className="flex-1 min-h-0 pr-1 overflow-y-auto scrollbar-thin">
+                  <div className="flex-1 min-h-0 pr-1 overflow-y-auto scrollbar-mobile-hidden">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
                       {selectedDefaultGroup.filters.map((item) => (
                         <button
