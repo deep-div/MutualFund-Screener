@@ -158,15 +158,28 @@ def update_user_screens(
 
 
 def delete_user_screen(uid: str, external_id: str) -> int:
-    """Delete a saved screen for a user by external_id. Returns rows deleted."""
+    """Delete a saved screen and any linked watchlist rows. Returns rows deleted from user_screens."""
     with get_session() as session:
         try:
-            deleted = (
-                session.query(UserScreenORM)
+            target = (
+                session.query(UserScreenORM.id)
                 .filter(
                     UserScreenORM.uid == uid,
                     UserScreenORM.external_id == external_id,
                 )
+                .first()
+            )
+            if not target:
+                session.commit()
+                return 0
+
+            session.query(UserWatchlistORM).filter(
+                UserWatchlistORM.user_screen_id == target.id
+            ).delete(synchronize_session=False)
+
+            deleted = (
+                session.query(UserScreenORM)
+                .filter(UserScreenORM.id == target.id)
                 .delete(synchronize_session=False)
             )
             session.commit()
@@ -174,50 +187,6 @@ def delete_user_screen(uid: str, external_id: str) -> int:
         except Exception as e:
             session.rollback()
             logger.error(f"Failed to delete user screen | Error: {str(e)}", exc_info=True)
-            raise
-
-
-def delete_user_watchlist_scheme(uid: str, screen_external_id: str, scheme_external_id: str) -> int:
-    """Delete one selected scheme from a user's saved watchlist by external IDs."""
-    with get_session() as session:
-        try:
-            target_screen = (
-                session.query(UserScreenORM.id)
-                .filter(
-                    UserScreenORM.uid == uid,
-                    UserScreenORM.external_id == screen_external_id,
-                )
-                .first()
-            )
-            if not target_screen:
-                session.commit()
-                return 0
-
-            deleted = (
-                session.query(UserWatchlistORM)
-                .filter(
-                    UserWatchlistORM.user_screen_id == target_screen.id,
-                    UserWatchlistORM.scheme_external_id == scheme_external_id,
-                )
-                .delete(synchronize_session=False)
-            )
-            if deleted:
-                remaining = (
-                    session.query(UserWatchlistORM.id)
-                    .filter(UserWatchlistORM.user_screen_id == target_screen.id)
-                    .count()
-                )
-                next_type = SCREEN_TYPE_WATCHLIST if remaining > 0 else SCREEN_TYPE_SCREEN
-                (
-                    session.query(UserScreenORM)
-                    .filter(UserScreenORM.id == target_screen.id)
-                    .update({"screen_type": next_type}, synchronize_session=False)
-                )
-            session.commit()
-            return deleted
-        except Exception as e:
-            session.rollback()
-            logger.error(f"Failed to delete user watchlist scheme | Error: {str(e)}", exc_info=True)
             raise
 
 
