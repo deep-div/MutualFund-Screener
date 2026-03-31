@@ -25,7 +25,7 @@ class SchemeListRequest(BaseModel):
     )
 
 
-class UserFilterCreate(BaseModel):
+class UserScreenCreate(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {

@@ -6,8 +6,8 @@ from sqlalchemy.sql import func
 from app.db.base import Base
 
 TABLE_NAME_4 = "users"
-TABLE_NAME_6 = "user_filters"
-TABLE_NAME_7 = "user_filter_schemes"
+TABLE_NAME_6 = "user_screens"
+TABLE_NAME_7 = "user_watchlist"
 
 """Stores user profile information"""
 class UserORM(Base):
@@ -24,8 +24,8 @@ class UserORM(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
 
-"""Stores applied filter JSON per user"""
-class UserFilterORM(Base):
+"""Stores applied screen JSON per user"""
+class UserScreenORM(Base):
     __tablename__ = TABLE_NAME_6
 
     id = Column(Integer, primary_key=True, index=True)
@@ -44,15 +44,15 @@ class UserFilterORM(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
 
-"""Stores selected mutual fund external IDs linked to a saved screen/filter"""
-class UserFilterSchemeORM(Base):
+"""Stores selected mutual fund external IDs linked to a saved screen"""
+class UserWatchlistORM(Base):
     __tablename__ = TABLE_NAME_7
     __table_args__ = (
-        UniqueConstraint("user_filter_id", "scheme_external_id", name="uq_user_filter_scheme_external_id"),
+        UniqueConstraint("user_screen_id", "scheme_external_id", name="uq_user_watchlist_scheme_external_id"),
     )
 
     id = Column(Integer, primary_key=True, index=True)
-    user_filter_id = Column(
+    user_screen_id = Column(
         Integer,
         ForeignKey(f"{TABLE_NAME_6}.id", ondelete="CASCADE"),
         index=True,

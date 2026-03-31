@@ -2,7 +2,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from app.core.logging import logger
 from app.db.session import get_session
-from app.domains.users.models import UserORM, UserFilterORM, UserFilterSchemeORM
+from app.domains.users.models import UserORM, UserScreenORM, UserWatchlistORM
 from app.domains.users.utils import generate_external_id
 
 
@@ -28,7 +28,7 @@ def upsert_user(user: dict) -> None:
             raise
 
 
-def add_user_filters(
+def add_user_screens(
     uid: str,
     filters: dict,
     name: str | None = None,
@@ -38,7 +38,7 @@ def add_user_filters(
     enabled_filters: list[str] | None = None,
     external_ids: list[str] | None = None,
 ) -> str:
-    """Store applied filters for a user as a new entry. Returns external_id."""
+    """Store applied screens for a user as a new entry. Returns external_id."""
     with get_session() as session:
         try:
             filters_payload = {"filters": filters or {}}
@@ -52,14 +52,14 @@ def add_user_filters(
             while external_id is None:
                 candidate = generate_external_id()
                 exists = (
-                    session.query(UserFilterORM.id)
-                    .filter(UserFilterORM.external_id == candidate)
+                    session.query(UserScreenORM.id)
+                    .filter(UserScreenORM.external_id == candidate)
                     .first()
                 )
                 if not exists:
                     external_id = candidate
 
-            record = UserFilterORM(
+            record = UserScreenORM(
                 uid=uid,
                 external_id=external_id,
                 name=name,
@@ -73,8 +73,8 @@ def add_user_filters(
             if scheme_external_ids:
                 session.add_all(
                     [
-                        UserFilterSchemeORM(
-                            user_filter_id=record.id,
+                        UserWatchlistORM(
+                            user_screen_id=record.id,
                             scheme_external_id=scheme_external_id,
                         )
                         for scheme_external_id in scheme_external_ids
@@ -84,11 +84,11 @@ def add_user_filters(
             return external_id
         except Exception as e:
             session.rollback()
-            logger.error(f"Failed to add user filters | Error: {str(e)}", exc_info=True)
+            logger.error(f"Failed to add user screens | Error: {str(e)}", exc_info=True)
             raise
 
 
-def update_user_filters(
+def update_user_screens(
     uid: str,
     external_id: str,
     filters: dict,
@@ -99,7 +99,7 @@ def update_user_filters(
     enabled_filters: list[str] | None = None,
     external_ids: list[str] | None = None,
 ) -> int:
-    """Update a saved filter for a user by external_id. Returns rows updated."""
+    """Update a saved screen for a user by external_id. Returns rows updated."""
     with get_session() as session:
         try:
             filters_payload = {"filters": filters or {}}
@@ -111,10 +111,10 @@ def update_user_filters(
                 filters_payload["enabled_filters"] = enabled_filters
 
             target = (
-                session.query(UserFilterORM)
+                session.query(UserScreenORM)
                 .filter(
-                    UserFilterORM.uid == uid,
-                    UserFilterORM.external_id == external_id,
+                    UserScreenORM.uid == uid,
+                    UserScreenORM.external_id == external_id,
                 )
                 .first()
             )
@@ -127,15 +127,15 @@ def update_user_filters(
             target.filters = filters_payload
 
             if external_ids is not None:
-                session.query(UserFilterSchemeORM).filter(
-                    UserFilterSchemeORM.user_filter_id == target.id
+                session.query(UserWatchlistORM).filter(
+                    UserWatchlistORM.user_screen_id == target.id
                 ).delete(synchronize_session=False)
                 scheme_external_ids = _normalize_external_ids(external_ids)
                 if scheme_external_ids:
                     session.add_all(
                         [
-                            UserFilterSchemeORM(
-                                user_filter_id=target.id,
+                            UserWatchlistORM(
+                                user_screen_id=target.id,
                                 scheme_external_id=scheme_external_id,
                             )
                             for scheme_external_id in scheme_external_ids
@@ -145,19 +145,19 @@ def update_user_filters(
             return 1
         except Exception as e:
             session.rollback()
-            logger.error(f"Failed to update user filters | Error: {str(e)}", exc_info=True)
+            logger.error(f"Failed to update user screens | Error: {str(e)}", exc_info=True)
             raise
 
 
-def delete_user_filter(uid: str, external_id: str) -> int:
-    """Delete a saved filter for a user by external_id. Returns rows deleted."""
+def delete_user_screen(uid: str, external_id: str) -> int:
+    """Delete a saved screen for a user by external_id. Returns rows deleted."""
     with get_session() as session:
         try:
             deleted = (
-                session.query(UserFilterORM)
+                session.query(UserScreenORM)
                 .filter(
-                    UserFilterORM.uid == uid,
-                    UserFilterORM.external_id == external_id,
+                    UserScreenORM.uid == uid,
+                    UserScreenORM.external_id == external_id,
                 )
                 .delete(synchronize_session=False)
             )
@@ -165,31 +165,31 @@ def delete_user_filter(uid: str, external_id: str) -> int:
             return deleted
         except Exception as e:
             session.rollback()
-            logger.error(f"Failed to delete user filter | Error: {str(e)}", exc_info=True)
+            logger.error(f"Failed to delete user screen | Error: {str(e)}", exc_info=True)
             raise
 
 
-def delete_user_filter_scheme(uid: str, filter_external_id: str, scheme_external_id: str) -> int:
-    """Delete one selected scheme from a user's saved filter by external IDs."""
+def delete_user_watchlist_scheme(uid: str, screen_external_id: str, scheme_external_id: str) -> int:
+    """Delete one selected scheme from a user's saved watchlist by external IDs."""
     with get_session() as session:
         try:
-            target_filter = (
-                session.query(UserFilterORM.id)
+            target_screen = (
+                session.query(UserScreenORM.id)
                 .filter(
-                    UserFilterORM.uid == uid,
-                    UserFilterORM.external_id == filter_external_id,
+                    UserScreenORM.uid == uid,
+                    UserScreenORM.external_id == screen_external_id,
                 )
                 .first()
             )
-            if not target_filter:
+            if not target_screen:
                 session.commit()
                 return 0
 
             deleted = (
-                session.query(UserFilterSchemeORM)
+                session.query(UserWatchlistORM)
                 .filter(
-                    UserFilterSchemeORM.user_filter_id == target_filter.id,
-                    UserFilterSchemeORM.scheme_external_id == scheme_external_id,
+                    UserWatchlistORM.user_screen_id == target_screen.id,
+                    UserWatchlistORM.scheme_external_id == scheme_external_id,
                 )
                 .delete(synchronize_session=False)
             )
@@ -197,7 +197,7 @@ def delete_user_filter_scheme(uid: str, filter_external_id: str, scheme_external
             return deleted
         except Exception as e:
             session.rollback()
-            logger.error(f"Failed to delete user filter scheme | Error: {str(e)}", exc_info=True)
+            logger.error(f"Failed to delete user watchlist scheme | Error: {str(e)}", exc_info=True)
             raise
 
 

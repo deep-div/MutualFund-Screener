@@ -15,7 +15,7 @@ export const saveUserFilters = async (
     enabled_filters?: string[];
   }
 ) => {
-  return apiPost("/api/v1/users/filters", payload, { params: { token: token } });
+  return apiPost("/api/v1/users/screens", payload, { params: { token: token } });
 };
 
 export const updateUserFilters = async (
@@ -30,7 +30,7 @@ export const updateUserFilters = async (
     enabled_filters?: string[];
   }
 ) => {
-  return apiPut(`/api/v1/users/filters/${externalId}`, payload, { params: { token: token } });
+  return apiPut(`/api/v1/users/screens/${externalId}`, payload, { params: { token: token } });
 };
 
 export interface SavedUserFilter {
@@ -70,13 +70,43 @@ export const getUserFilters = async (
   token: string,
   options?: { limit?: number; offset?: number }
 ) => {
-  return apiGet<UserFiltersResponse>("/api/v1/users/filters", {
+  const response = await apiGet<{
+    screens: SavedUserFilter[];
+    total?: number;
+    limit?: number | null;
+    offset?: number;
+  }>("/api/v1/users/screens", {
     token,
     limit: options?.limit,
     offset: options?.offset,
   });
+  return {
+    filters: Array.isArray(response?.screens) ? response.screens : [],
+    total: response?.total,
+    limit: response?.limit,
+    offset: response?.offset,
+  } satisfies UserFiltersResponse;
 };
 
 export const getDefaultFilters = async () => {
-  return apiGet<DefaultFiltersResponse>("/api/v1/users/filters/defaults");
+  const response = await apiGet<{
+    groups: Array<{
+      key: string;
+      label: string;
+      screens?: SavedUserFilter[];
+    }>;
+    group_count?: number;
+    total?: number;
+  }>("/api/v1/users/screens/defaults");
+  return {
+    groups: Array.isArray(response?.groups)
+      ? response.groups.map((group) => ({
+          key: group.key,
+          label: group.label,
+          filters: Array.isArray(group.screens) ? group.screens : [],
+        }))
+      : [],
+    group_count: response?.group_count,
+    total: response?.total,
+  } satisfies DefaultFiltersResponse;
 };

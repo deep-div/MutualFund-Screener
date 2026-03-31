@@ -2,17 +2,17 @@ from fastapi import APIRouter, HTTPException, Query
 import jwt
 from jwt import PyJWTError
 
-from app.api.v1.schemas import UserFilterCreate
+from app.api.v1.schemas import UserScreenCreate
 from app.domains.users.repository.read import (
-    count_user_filters,
-    get_user_filters_paginated,
+    count_user_screens,
+    get_user_screens_paginated,
 )
 from app.domains.users.default_screens import DEFAULT_SCREEN_GROUPS, DEFAULT_SCREENS
 from app.domains.users.repository.write import (
-    add_user_filters,
-    delete_user_filter,
-    delete_user_filter_scheme,
-    update_user_filters,
+    add_user_screens,
+    delete_user_screen,
+    delete_user_watchlist_scheme,
+    update_user_screens,
     upsert_user,
 )
 
@@ -68,11 +68,11 @@ def create_or_update_user(
         raise HTTPException(status_code=500, detail=f"Failed to upsert user: {exc}")
 
 
-@router.post("/users/filters", status_code=201)
-def add_filters(payload: UserFilterCreate, token: str = Query(...)):
+@router.post("/users/screens", status_code=201)
+def add_screens(payload: UserScreenCreate, token: str = Query(...)):
     try:
         token_uid = _get_uid_from_token(token)
-        external_id = add_user_filters(
+        external_id = add_user_screens(
             uid=token_uid,
             filters=payload.filters,
             name=payload.name,
@@ -84,53 +84,58 @@ def add_filters(payload: UserFilterCreate, token: str = Query(...)):
         )
         return {"status": "ok", "external_id": external_id}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to add user filters: {exc}")
+        raise HTTPException(status_code=500, detail=f"Failed to add user screens: {exc}")
 
 
-@router.get("/users/filters")
-def get_filters(
+@router.get("/users/screens")
+def get_screens(
     token: str = Query(...),
     limit: int | None = Query(None, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ):
     try:
         token_uid = _get_uid_from_token(token)
-        filters = get_user_filters_paginated(token_uid, limit=limit, offset=offset)
-        total = count_user_filters(token_uid)
-        sanitized_filters = []
-        for item in filters:
+        screens = get_user_screens_paginated(token_uid, limit=limit, offset=offset)
+        total = count_user_screens(token_uid)
+        sanitized_screens = []
+        for item in screens:
             cleaned = dict(item)
             cleaned.pop("uid", None)
             cleaned.pop("id", None)
-            sanitized_filters.append(cleaned)
+            sanitized_screens.append(cleaned)
         return {
-            "filters": sanitized_filters,
+            "screens": sanitized_screens,
             "total": total,
             "limit": limit,
             "offset": offset,
         }
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch filters: {exc}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch screens: {exc}")
 
 
-@router.get("/users/filters/defaults")
-def get_default_filters():
+@router.get("/users/screens/defaults")
+def get_default_screens():
     try:
+        groups = []
+        for group in DEFAULT_SCREEN_GROUPS:
+            transformed = dict(group)
+            transformed["screens"] = transformed.pop("filters", [])
+            groups.append(transformed)
         return {
-            "groups": DEFAULT_SCREEN_GROUPS,
-            "group_count": len(DEFAULT_SCREEN_GROUPS),
+            "groups": groups,
+            "group_count": len(groups),
             "total": len(DEFAULT_SCREENS),
         }
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch default filters: {exc}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch default screens: {exc}")
 
 
 
-@router.put("/users/filters/{external_id}", status_code=200)
-def update_filters(external_id: str, payload: UserFilterCreate, token: str = Query(...)):
+@router.put("/users/screens/{external_id}", status_code=200)
+def update_screens(external_id: str, payload: UserScreenCreate, token: str = Query(...)):
     try:
         token_uid = _get_uid_from_token(token)
-        updated = update_user_filters(
+        updated = update_user_screens(
             uid=token_uid,
             external_id=external_id,
             filters=payload.filters,
@@ -142,44 +147,44 @@ def update_filters(external_id: str, payload: UserFilterCreate, token: str = Que
             external_ids=payload.external_ids,
         )
         if not updated:
-            raise HTTPException(status_code=404, detail="Filter not found")
+            raise HTTPException(status_code=404, detail="Screen not found")
         return {"status": "ok", "external_id": external_id}
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to update user filters: {exc}")
+        raise HTTPException(status_code=500, detail=f"Failed to update user screens: {exc}")
 
-@router.delete("/users/filters/{external_id}", status_code=200)
-def delete_filter(external_id: str, token: str = Query(...)):
+@router.delete("/users/screens/{external_id}", status_code=200)
+def delete_screen(external_id: str, token: str = Query(...)):
     try:
         token_uid = _get_uid_from_token(token)
-        deleted = delete_user_filter(uid=token_uid, external_id=external_id)
+        deleted = delete_user_screen(uid=token_uid, external_id=external_id)
         if not deleted:
-            raise HTTPException(status_code=404, detail="Filter not found")
+            raise HTTPException(status_code=404, detail="Screen not found")
         return {"status": "ok"}
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to delete filter: {exc}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete screen: {exc}")
 
 
-@router.delete("/users/filters/{filter_external_id}/schemes/{scheme_external_id}", status_code=200)
-def delete_filter_scheme(
-    filter_external_id: str,
+@router.delete("/users/screens/{screen_external_id}/watchlist/{scheme_external_id}", status_code=200)
+def delete_watchlist_scheme(
+    screen_external_id: str,
     scheme_external_id: str,
     token: str = Query(...),
 ):
     try:
         token_uid = _get_uid_from_token(token)
-        deleted = delete_user_filter_scheme(
+        deleted = delete_user_watchlist_scheme(
             uid=token_uid,
-            filter_external_id=filter_external_id,
+            screen_external_id=screen_external_id,
             scheme_external_id=scheme_external_id,
         )
         if not deleted:
-            raise HTTPException(status_code=404, detail="Scheme not found in filter watchlist")
+            raise HTTPException(status_code=404, detail="Scheme not found in screen watchlist")
         return {"status": "ok"}
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to delete filter scheme: {exc}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete watchlist scheme: {exc}")
