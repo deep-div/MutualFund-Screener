@@ -88,3 +88,8 @@ export const apiPut = <T, B = unknown>(
   body?: B,
   options?: { params?: Record<string, string | number | boolean | undefined>; headers?: HeadersInit; signal?: AbortSignal }
 ) => request<T>("PUT", path, { body, ...options });
+
+export const apiDelete = <T>(
+  path: string,
+  options?: { params?: Record<string, string | number | boolean | undefined>; headers?: HeadersInit; signal?: AbortSignal }
+) => request<T>("DELETE", path, options);

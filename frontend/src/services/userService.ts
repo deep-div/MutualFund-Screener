@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut } from "@/lib/apiClient";
+import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/apiClient";
 
 export const syncUser = async (token: string) => {
   return apiPost("/api/v1/users", undefined, { params: { token: token } });
@@ -33,6 +33,25 @@ export const updateUserFilters = async (
   }
 ) => {
   return apiPut(`/api/v1/users/screens/${externalId}`, payload, { params: { token: token } });
+};
+
+export const deleteUserFilters = async (token: string, externalIds: string[]) => {
+  const normalized = Array.from(
+    new Set(
+      externalIds
+        .map((id) => String(id ?? "").trim())
+        .filter((id) => id.length > 0)
+    )
+  );
+  if (normalized.length === 0) {
+    return { status: "ok", deleted_count: 0 };
+  }
+  return apiDelete<{ status: string; deleted_count?: number }>("/api/v1/users/screens/remove", {
+    params: {
+      token,
+      external_ids: normalized.join(","),
+    },
+  });
 };
 
 export interface SavedUserFilter {

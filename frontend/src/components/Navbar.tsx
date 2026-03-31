@@ -1,10 +1,10 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ChevronDown, LogOut, User, Bookmark, LayoutTemplate, ListChecks } from "lucide-react";
+import { Search, ChevronDown, LogOut, User, Bookmark, LayoutTemplate, ListChecks, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
-import { DefaultFilterGroup, SavedUserFilter, getDefaultFilters, getUserFilters } from "@/services/userService";
+import { DefaultFilterGroup, SavedUserFilter, deleteUserFilters, getDefaultFilters, getUserFilters } from "@/services/userService";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
@@ -97,6 +97,10 @@ const Navbar = () => {
   const [defaultFiltersLoading, setDefaultFiltersLoading] = useState(false);
   const [defaultFiltersError, setDefaultFiltersError] = useState<string | null>(null);
   const [activeScreenGroup, setActiveScreenGroup] = useState<string>("saved");
+  const [selectedExternalIds, setSelectedExternalIds] = useState<string[]>([]);
+  const [deletingExternalIds, setDeletingExternalIds] = useState<string[]>([]);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pendingDeleteExternalIds, setPendingDeleteExternalIds] = useState<string[]>([]);
   const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const [bodyTopOffset, setBodyTopOffset] = useState(56);
   const navRef = useRef<HTMLElement | null>(null);
@@ -108,6 +112,13 @@ const Navbar = () => {
   );
   const isSavedGroup = activeScreenGroup === "saved";
   const isWatchlistGroup = activeScreenGroup === "watchlist";
+  const isUserCollectionGroup = isSavedGroup || isWatchlistGroup;
+  const activeUserCollection = isSavedGroup ? savedFilters : isWatchlistGroup ? watchlistFilters : [];
+  const activeSelectedExternalIds = selectedExternalIds.filter((externalId) =>
+    activeUserCollection.some((item) => item.external_id === externalId)
+  );
+  const isDeletingAny = deletingExternalIds.length > 0;
+  const pendingDeleteCount = pendingDeleteExternalIds.length;
   const closeAndClearSearch = () => {
     setSearchOpen(false);
     setSearchFocused(false);
@@ -318,6 +329,20 @@ const Navbar = () => {
     return () => window.removeEventListener(OPEN_AUTH_MODAL_EVENT, handleOpenAuthModal);
   }, []);
 
+  useEffect(() => {
+    setSelectedExternalIds((prev) =>
+      prev.filter((externalId) => activeUserCollection.some((item) => item.external_id === externalId))
+    );
+  }, [activeScreenGroup, activeUserCollection]);
+
+  useEffect(() => {
+    if (!screenExplorerOpen) {
+      setSelectedExternalIds([]);
+      setDeleteConfirmOpen(false);
+      setPendingDeleteExternalIds([]);
+    }
+  }, [screenExplorerOpen]);
+
   const handleExploreClick = () => {
     navigate("/");
     setActiveScreenGroup("saved");
@@ -419,6 +444,61 @@ const Navbar = () => {
     }
   };
 
+  const toggleSelectedExternalId = (externalId: string) => {
+    const normalized = externalId.trim();
+    if (!normalized) return;
+    setSelectedExternalIds((prev) =>
+      prev.includes(normalized) ? prev.filter((id) => id !== normalized) : [...prev, normalized]
+    );
+  };
+
+  const handleDeleteFilters = (externalIds: string[]) => {
+    const normalizedExternalIds = Array.from(
+      new Set(
+        externalIds
+          .map((externalId) => externalId.trim())
+          .filter((externalId) => externalId.length > 0)
+      )
+    );
+    if (normalizedExternalIds.length === 0) return;
+    setPendingDeleteExternalIds(normalizedExternalIds);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDeleteFilters = async () => {
+    if (!user) return;
+    const normalizedExternalIds = pendingDeleteExternalIds;
+    if (normalizedExternalIds.length === 0) {
+      setDeleteConfirmOpen(false);
+      return;
+    }
+    setDeletingExternalIds((prev) => Array.from(new Set([...prev, ...normalizedExternalIds])));
+    try {
+      const token = await user.getIdToken();
+      await deleteUserFilters(token, normalizedExternalIds);
+      const deletionSet = new Set(normalizedExternalIds);
+      setSavedFilters((prev) => prev.filter((item) => !deletionSet.has(item.external_id)));
+      setWatchlistFilters((prev) => prev.filter((item) => !deletionSet.has(item.external_id)));
+      setSavedFiltersTotal((prev) => Math.max(0, prev - normalizedExternalIds.length));
+      setWatchlistFiltersTotal((prev) => Math.max(0, prev - normalizedExternalIds.length));
+      setSelectedExternalIds((prev) => prev.filter((externalId) => !deletionSet.has(externalId)));
+      toast("Deleted", {
+        description:
+          normalizedExternalIds.length === 1
+            ? "Item deleted successfully."
+            : `${normalizedExternalIds.length} items deleted successfully.`,
+      });
+      setDeleteConfirmOpen(false);
+      setPendingDeleteExternalIds([]);
+    } catch (error) {
+      toast("Delete failed", {
+        description: error instanceof Error ? error.message : "Unable to delete selected items.",
+      });
+    } finally {
+      setDeletingExternalIds((prev) => prev.filter((id) => !normalizedExternalIds.includes(id)));
+    }
+  };
+
   return (
     <>
       {screenExplorerOpen && (
@@ -433,6 +513,49 @@ const Navbar = () => {
           className="fixed inset-0 bg-black/60 z-[55]"
           onClick={closeAndClearSearch}
         />
+      )}
+      {deleteConfirmOpen && (
+        <div
+          className="fixed inset-0 z-[130] bg-black/55 flex items-center justify-center px-4"
+          onClick={() => {
+            if (isDeletingAny) return;
+            setDeleteConfirmOpen(false);
+            setPendingDeleteExternalIds([]);
+          }}
+        >
+          <div
+            className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 className="text-[17px] font-semibold text-slate-900">Delete confirmation</h3>
+            <p className="mt-2 text-[13px] text-slate-600 leading-relaxed">
+              {pendingDeleteCount > 1
+                ? `Are you sure you want to delete ${pendingDeleteCount} selected items? This action cannot be undone.`
+                : "Are you sure you want to delete this item? This action cannot be undone."}
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                className="rounded-md border border-slate-200 px-3 py-2 text-[12px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                onClick={() => {
+                  setDeleteConfirmOpen(false);
+                  setPendingDeleteExternalIds([]);
+                }}
+                disabled={isDeletingAny}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="rounded-md bg-red-600 px-3 py-2 text-[12px] font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                onClick={() => void handleConfirmDeleteFilters()}
+                disabled={isDeletingAny}
+              >
+                {isDeletingAny ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <nav
@@ -892,12 +1015,26 @@ const Navbar = () => {
                       ? "Watchlists"
                       : selectedDefaultGroup?.label ?? "Default Screens"}
                   </h3>
-                  <button
-                    className="text-[12px] text-slate-500 hover:text-slate-700"
-                    onClick={() => setScreenExplorerOpen(false)}
-                  >
-                    Close
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {isLoggedIn && isUserCollectionGroup && (
+                      <button
+                        className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-2.5 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                        onClick={() => void handleDeleteFilters(activeSelectedExternalIds)}
+                        disabled={activeSelectedExternalIds.length === 0 || isDeletingAny}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>
+                          Delete {activeSelectedExternalIds.length > 0 ? `(${activeSelectedExternalIds.length})` : ""}
+                        </span>
+                      </button>
+                    )}
+                    <button
+                      className="text-[12px] text-slate-500 hover:text-slate-700"
+                      onClick={() => setScreenExplorerOpen(false)}
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
 
                 {!isLoggedIn ? (
@@ -952,21 +1089,39 @@ const Navbar = () => {
                       >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
                           {savedFilters.map((item) => (
-                            <button
-                              key={item.external_id}
-                              className="w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 hover:bg-slate-50 transition-colors"
-                              onClick={() => {
-                                navigate(`/filters/${item.external_id}`);
-                                setScreenExplorerOpen(false);
-                              }}
-                            >
-                              <div className="text-[17px] leading-6 font-semibold text-slate-900">
-                                {item.name?.trim() || "Untitled Screen"}
-                              </div>
-                              <div className="text-[12px] text-slate-600 mt-1 line-clamp-2">
-                                {item.description?.trim() || "No description"}
-                              </div>
-                            </button>
+                            <div key={item.external_id} className="relative">
+                              <button
+                                className="w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 pl-11 pr-10 hover:bg-slate-50 transition-colors"
+                                onClick={() => {
+                                  navigate(`/filters/${item.external_id}`);
+                                  setScreenExplorerOpen(false);
+                                }}
+                                disabled={deletingExternalIds.includes(item.external_id)}
+                              >
+                                <div className="text-[17px] leading-6 font-semibold text-slate-900">
+                                  {item.name?.trim() || "Untitled Screen"}
+                                </div>
+                                <div className="text-[12px] text-slate-600 mt-1 line-clamp-2">
+                                  {item.description?.trim() || "No description"}
+                                </div>
+                              </button>
+                              <input
+                                type="checkbox"
+                                aria-label={`Select ${item.name?.trim() || "screen"}`}
+                                checked={selectedExternalIds.includes(item.external_id)}
+                                onChange={() => toggleSelectedExternalId(item.external_id)}
+                                className="absolute left-3 top-3 h-4 w-4 rounded border-slate-300 text-[hsl(var(--nav))] focus:ring-[hsl(var(--nav))]"
+                              />
+                              <button
+                                type="button"
+                                className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-red-600 disabled:opacity-50"
+                                onClick={() => void handleDeleteFilters([item.external_id])}
+                                disabled={deletingExternalIds.includes(item.external_id)}
+                                aria-label={`Delete ${item.name?.trim() || "screen"}`}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -1004,21 +1159,39 @@ const Navbar = () => {
                       <div className="flex-1 min-h-0 pr-1 overflow-y-auto scrollbar-thin">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
                           {watchlistFilters.map((item) => (
-                            <button
-                              key={item.external_id}
-                              className="w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 hover:bg-slate-50 transition-colors"
-                              onClick={() => {
-                                navigate(`/filters/${item.external_id}`);
-                                setScreenExplorerOpen(false);
-                              }}
-                            >
-                              <div className="text-[17px] leading-6 font-semibold text-slate-900">
-                                {item.name?.trim() || "Untitled Watchlist"}
-                              </div>
-                              <div className="text-[12px] text-slate-600 mt-1 line-clamp-2">
-                                {item.description?.trim() || "No description"}
-                              </div>
-                            </button>
+                            <div key={item.external_id} className="relative">
+                              <button
+                                className="w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 pl-11 pr-10 hover:bg-slate-50 transition-colors"
+                                onClick={() => {
+                                  navigate(`/filters/${item.external_id}`);
+                                  setScreenExplorerOpen(false);
+                                }}
+                                disabled={deletingExternalIds.includes(item.external_id)}
+                              >
+                                <div className="text-[17px] leading-6 font-semibold text-slate-900">
+                                  {item.name?.trim() || "Untitled Watchlist"}
+                                </div>
+                                <div className="text-[12px] text-slate-600 mt-1 line-clamp-2">
+                                  {item.description?.trim() || "No description"}
+                                </div>
+                              </button>
+                              <input
+                                type="checkbox"
+                                aria-label={`Select ${item.name?.trim() || "watchlist"}`}
+                                checked={selectedExternalIds.includes(item.external_id)}
+                                onChange={() => toggleSelectedExternalId(item.external_id)}
+                                className="absolute left-3 top-3 h-4 w-4 rounded border-slate-300 text-[hsl(var(--nav))] focus:ring-[hsl(var(--nav))]"
+                              />
+                              <button
+                                type="button"
+                                className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-red-600 disabled:opacity-50"
+                                onClick={() => void handleDeleteFilters([item.external_id])}
+                                disabled={deletingExternalIds.includes(item.external_id)}
+                                aria-label={`Delete ${item.name?.trim() || "watchlist"}`}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
                           ))}
                         </div>
                       </div>
