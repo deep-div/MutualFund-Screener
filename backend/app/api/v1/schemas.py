@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import AliasChoices, BaseModel, Field, ConfigDict
 from typing import Any
 
 
@@ -31,13 +31,13 @@ class UserScreenCreate(BaseModel):
             "example": {
                 "name": "High Growth Equity",
                 "description": "Equity funds with 3Y CAGR >= 15",
-                "filters": {
+                "screens": {
                     "scheme_class": {"eq": "Equity"},
                     "cagr_3y": {"gte": 15},
                 },
                 "sort_field": "cagr_3y",
                 "sort_order": "desc",
-                "enabled_filters": ["scheme_class", "cagr_3y", "cagr_2y"],
+                "enabled_screens": ["scheme_class", "cagr_3y", "cagr_2y"],
                 "external_ids": ["MFxjQnbK", "zOzN2Dil"],
             }
         }
@@ -51,8 +51,10 @@ class UserScreenCreate(BaseModel):
         default=None,
         examples=["Equity funds with 3Y CAGR >= 15"],
     )
-    filters: dict[str, Any] = Field(
+    screens: dict[str, Any] = Field(
         default_factory=dict,
+        validation_alias=AliasChoices("screens", "filters"),
+        serialization_alias="screens",
         examples=[
             {
                 "scheme_class": {"eq": "Equity"},
@@ -68,8 +70,10 @@ class UserScreenCreate(BaseModel):
         default=None,
         examples=["desc", "asc"],
     )
-    enabled_filters: list[str] = Field(
+    enabled_screens: list[str] = Field(
         default_factory=list,
+        validation_alias=AliasChoices("enabled_screens", "enabled_filters"),
+        serialization_alias="enabled_screens",
         examples=[["scheme_class", "cagr_3y", "cagr_2y"]],
     )
     external_ids: list[str] = Field(

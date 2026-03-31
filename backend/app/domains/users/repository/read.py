@@ -47,14 +47,14 @@ def _attach_external_ids(db, rows: list[UserScreenORM]) -> list[dict]:
         return []
 
     output = [orm_to_dict(row) for row in rows]
-    filter_ids = [row["id"] for row in output]
+    screen_ids = [row["id"] for row in output]
     scheme_rows = (
         db.query(UserWatchlistORM.user_screen_id, UserWatchlistORM.scheme_external_id)
-        .filter(UserWatchlistORM.user_screen_id.in_(filter_ids))
+        .filter(UserWatchlistORM.user_screen_id.in_(screen_ids))
         .all()
     )
 
-    external_ids_by_screen: dict[int, list[str]] = {screen_id: [] for screen_id in filter_ids}
+    external_ids_by_screen: dict[int, list[str]] = {screen_id: [] for screen_id in screen_ids}
     for user_screen_id, scheme_external_id in scheme_rows:
         external_ids_by_screen[user_screen_id].append(scheme_external_id)
 

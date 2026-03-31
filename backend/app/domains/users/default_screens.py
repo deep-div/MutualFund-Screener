@@ -3,8 +3,8 @@ EQUITY_DEFAULT_SCREENS = [
         "external_id": "equity-large-cap-core",
         "name": "Equity Large Cap Core",
         "description": "Core large-cap oriented funds with steadier risk and dependable medium-term growth.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Equity"]},
                 "scheme_sub_category": {"in": ["Large Cap Fund"]},
                 "cagr_3y": {"gte": 11},
@@ -13,7 +13,7 @@ EQUITY_DEFAULT_SCREENS = [
             },
             "sort_field": "cagr_3y",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "time_since_inception_years",
                 "cagr_1y",
@@ -31,8 +31,8 @@ EQUITY_DEFAULT_SCREENS = [
         "external_id": "equity-large-mid-blend",
         "name": "Equity Large & Mid Blend",
         "description": "Large and mid-cap blend funds balancing growth with controlled downside.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Equity"]},
                 "scheme_sub_category": {"in": ["Large & Mid Cap Fund"]},
                 "cagr_3y": {"gte": 12},
@@ -41,7 +41,7 @@ EQUITY_DEFAULT_SCREENS = [
             },
             "sort_field": "cagr_5y",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "time_since_inception_years",
                 "cagr_1y",
@@ -59,8 +59,8 @@ EQUITY_DEFAULT_SCREENS = [
         "external_id": "equity-mid-cap-momentum",
         "name": "Equity Mid Cap Momentum",
         "description": "Mid-cap funds with stronger growth trend while keeping risk metrics in check.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Equity"]},
                 "scheme_sub_category": {"in": ["Mid Cap Fund"]},
                 "cagr_3y": {"gte": 14},
@@ -69,7 +69,7 @@ EQUITY_DEFAULT_SCREENS = [
             },
             "sort_field": "cagr_3y",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "abs_3m",
                 "abs_6m",
@@ -88,8 +88,8 @@ EQUITY_DEFAULT_SCREENS = [
         "external_id": "equity-small-cap-growth",
         "name": "Equity Small Cap Growth",
         "description": "Small-cap funds with high return potential and acceptable drawdown profile.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Equity"]},
                 "scheme_sub_category": {"in": ["Small Cap Fund"]},
                 "cagr_3y": {"gte": 15},
@@ -99,7 +99,7 @@ EQUITY_DEFAULT_SCREENS = [
             },
             "sort_field": "cagr_5y",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "abs_3m",
                 "abs_6m",
@@ -118,8 +118,8 @@ EQUITY_DEFAULT_SCREENS = [
         "external_id": "equity-flexi-cap-all-weather",
         "name": "Equity Flexi Cap All Weather",
         "description": "Flexi-cap funds with strong consistency and moderate downside behavior.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Equity"]},
                 "scheme_sub_category": {"in": ["Flexi Cap Fund"]},
                 "cagr_3y": {"gte": 12},
@@ -129,7 +129,7 @@ EQUITY_DEFAULT_SCREENS = [
             },
             "sort_field": "cagr_5y",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_3y",
                 "cagr_5y",
@@ -146,8 +146,8 @@ EQUITY_DEFAULT_SCREENS = [
         "external_id": "equity-multi-cap-diversified",
         "name": "Equity Multi Cap Diversified",
         "description": "Multi-cap funds focused on diversified long-term performance with balanced risk.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Equity"]},
                 "scheme_sub_category": {"in": ["Multi Cap Fund"]},
                 "cagr_3y": {"gte": 12},
@@ -156,7 +156,7 @@ EQUITY_DEFAULT_SCREENS = [
             },
             "sort_field": "sharpe",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "time_since_inception_years",
                 "cagr_1y",
@@ -174,8 +174,8 @@ EQUITY_DEFAULT_SCREENS = [
         "external_id": "equity-value-contra",
         "name": "Equity Value & Contra",
         "description": "Value and contra styles filtered for favorable medium-term risk-adjusted returns.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Equity"]},
                 "scheme_sub_category": {"in": ["Value Fund", "Contra Fund"]},
                 "cagr_3y": {"gte": 11},
@@ -184,7 +184,7 @@ EQUITY_DEFAULT_SCREENS = [
             },
             "sort_field": "sharpe",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -201,8 +201,8 @@ EQUITY_DEFAULT_SCREENS = [
         "external_id": "equity-index-core",
         "name": "Equity Index Core",
         "description": "Index-oriented equity funds with decent long-term returns and lower volatility preference.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Equity"]},
                 "scheme_sub_category": {"in": ["Index Fund"]},
                 "cagr_3y": {"gte": 10},
@@ -211,7 +211,7 @@ EQUITY_DEFAULT_SCREENS = [
             },
             "sort_field": "volatility",
             "sort_order": "asc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -231,8 +231,8 @@ DEBT_DEFAULT_SCREENS = [
         "external_id": "debt-liquid-safety",
         "name": "Debt Liquid Safety",
         "description": "Liquid and overnight funds for short-horizon parking with lower drawdown.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Debt"]},
                 "scheme_sub_category": {"in": ["Liquid Fund", "Overnight Fund"]},
                 "cagr_1y": {"gte": 5},
@@ -241,7 +241,7 @@ DEBT_DEFAULT_SCREENS = [
             },
             "sort_field": "mdd_one_year_pct",
             "sort_order": "asc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "time_since_inception_years",
                 "abs_1m",
@@ -260,8 +260,8 @@ DEBT_DEFAULT_SCREENS = [
         "external_id": "debt-short-duration",
         "name": "Debt Short Duration",
         "description": "Short-duration debt funds with balanced accrual and manageable risk.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Debt"]},
                 "scheme_sub_category": {
                     "in": ["Ultra Short Duration Fund", "Low Duration Fund", "Short Duration Fund"]
@@ -272,7 +272,7 @@ DEBT_DEFAULT_SCREENS = [
             },
             "sort_field": "cagr_3y",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -290,8 +290,8 @@ DEBT_DEFAULT_SCREENS = [
         "external_id": "debt-money-market-stable",
         "name": "Debt Money Market Stable",
         "description": "Money market focused debt funds with lower volatility and stable outcomes.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Debt"]},
                 "scheme_sub_category": {"in": ["Money Market Fund"]},
                 "cagr_1y": {"gte": 5.5},
@@ -300,7 +300,7 @@ DEBT_DEFAULT_SCREENS = [
             },
             "sort_field": "volatility",
             "sort_order": "asc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "abs_1m",
@@ -318,8 +318,8 @@ DEBT_DEFAULT_SCREENS = [
         "external_id": "debt-corporate-bond-quality",
         "name": "Debt Corporate Bond Quality",
         "description": "Corporate bond funds screened for consistency and improved risk-adjusted returns.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Debt"]},
                 "scheme_sub_category": {"in": ["Corporate Bond Fund"]},
                 "cagr_3y": {"gte": 6.5},
@@ -328,7 +328,7 @@ DEBT_DEFAULT_SCREENS = [
             },
             "sort_field": "sharpe",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -346,8 +346,8 @@ DEBT_DEFAULT_SCREENS = [
         "external_id": "debt-banking-psu-accrual",
         "name": "Debt Banking & PSU Accrual",
         "description": "Banking and PSU debt funds targeting accrual with limited downside.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Debt"]},
                 "scheme_sub_category": {"in": ["Banking and PSU Fund"]},
                 "cagr_3y": {"gte": 6.5},
@@ -356,7 +356,7 @@ DEBT_DEFAULT_SCREENS = [
             },
             "sort_field": "cagr_3y",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -373,8 +373,8 @@ DEBT_DEFAULT_SCREENS = [
         "external_id": "debt-gilt-defensive",
         "name": "Debt Gilt Defensive",
         "description": "Gilt funds with a defensive tilt using drawdown and volatility controls.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Debt"]},
                 "scheme_sub_category": {"in": ["Gilt Fund"]},
                 "cagr_3y": {"gte": 6},
@@ -383,7 +383,7 @@ DEBT_DEFAULT_SCREENS = [
             },
             "sort_field": "mdd_three_year_pct",
             "sort_order": "asc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -399,8 +399,8 @@ DEBT_DEFAULT_SCREENS = [
         "external_id": "debt-dynamic-bond-all-weather",
         "name": "Debt Dynamic Bond All Weather",
         "description": "Dynamic bond funds filtered for balanced return and downside management.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Debt"]},
                 "scheme_sub_category": {"in": ["Dynamic Bond Fund"]},
                 "cagr_3y": {"gte": 6.5},
@@ -409,7 +409,7 @@ DEBT_DEFAULT_SCREENS = [
             },
             "sort_field": "sortino",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -429,8 +429,8 @@ HYBRID_DEFAULT_SCREENS = [
         "external_id": "hybrid-aggressive-growth",
         "name": "Hybrid Aggressive Growth",
         "description": "Aggressive hybrid funds with stronger growth and acceptable downside control.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Hybrid"]},
                 "scheme_sub_category": {"in": ["Aggressive Hybrid Fund"]},
                 "cagr_3y": {"gte": 10.5},
@@ -439,7 +439,7 @@ HYBRID_DEFAULT_SCREENS = [
             },
             "sort_field": "cagr_3y",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "time_since_inception_years",
                 "cagr_1y",
@@ -456,8 +456,8 @@ HYBRID_DEFAULT_SCREENS = [
         "external_id": "hybrid-balanced-consistency",
         "name": "Hybrid Balanced Consistency",
         "description": "Balanced hybrid funds screened for steadier performance and lower volatility.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Hybrid"]},
                 "scheme_sub_category": {"in": ["Balanced Hybrid Fund"]},
                 "cagr_3y": {"gte": 8.5},
@@ -466,7 +466,7 @@ HYBRID_DEFAULT_SCREENS = [
             },
             "sort_field": "mdd_three_year_pct",
             "sort_order": "asc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -482,8 +482,8 @@ HYBRID_DEFAULT_SCREENS = [
         "external_id": "hybrid-conservative-defense",
         "name": "Hybrid Conservative Defense",
         "description": "Conservative hybrid allocation with focus on lower risk and drawdown.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Hybrid"]},
                 "scheme_sub_category": {"in": ["Conservative Hybrid Fund"]},
                 "cagr_3y": {"gte": 7},
@@ -492,7 +492,7 @@ HYBRID_DEFAULT_SCREENS = [
             },
             "sort_field": "volatility",
             "sort_order": "asc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "time_since_inception_years",
                 "cagr_1y",
@@ -509,8 +509,8 @@ HYBRID_DEFAULT_SCREENS = [
         "external_id": "hybrid-dynamic-allocation",
         "name": "Hybrid Dynamic Allocation",
         "description": "Dynamic asset allocation funds with balanced return-to-risk profile.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Hybrid"]},
                 "scheme_sub_category": {"in": ["Dynamic Asset Allocation Fund"]},
                 "cagr_3y": {"gte": 8.5},
@@ -519,7 +519,7 @@ HYBRID_DEFAULT_SCREENS = [
             },
             "sort_field": "sortino",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -535,8 +535,8 @@ HYBRID_DEFAULT_SCREENS = [
         "external_id": "hybrid-equity-savings",
         "name": "Hybrid Equity Savings",
         "description": "Equity savings funds with relatively lower drawdown and stable medium-term returns.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Hybrid"]},
                 "scheme_sub_category": {"in": ["Equity Savings Fund"]},
                 "cagr_3y": {"gte": 7.5},
@@ -545,7 +545,7 @@ HYBRID_DEFAULT_SCREENS = [
             },
             "sort_field": "mdd_three_year_pct",
             "sort_order": "asc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -560,8 +560,8 @@ HYBRID_DEFAULT_SCREENS = [
         "external_id": "hybrid-multi-asset",
         "name": "Hybrid Multi Asset",
         "description": "Multi-asset allocation funds targeting diversification and smoother risk-adjusted returns.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Hybrid"]},
                 "scheme_sub_category": {"in": ["Multi Asset Allocation Fund"]},
                 "cagr_3y": {"gte": 8.5},
@@ -570,7 +570,7 @@ HYBRID_DEFAULT_SCREENS = [
             },
             "sort_field": "sharpe",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -585,8 +585,8 @@ HYBRID_DEFAULT_SCREENS = [
         "external_id": "hybrid-arbitrage-stable",
         "name": "Hybrid Arbitrage Stable",
         "description": "Arbitrage funds prioritizing capital stability and lower volatility.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Hybrid"]},
                 "scheme_sub_category": {"in": ["Arbitrage Fund"]},
                 "cagr_1y": {"gte": 5.5},
@@ -595,7 +595,7 @@ HYBRID_DEFAULT_SCREENS = [
             },
             "sort_field": "volatility",
             "sort_order": "asc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "volatility",
@@ -613,8 +613,8 @@ GOLD_DEFAULT_SCREENS = [
         "external_id": "gold-low-drawdown",
         "name": "Gold Low Drawdown",
         "description": "Gold commodity funds filtered for lower drawdown behavior over 1Y and 3Y.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Commodity"]},
                 "scheme_sub_category": {"in": ["Gold"]},
                 "mdd_one_year_pct": {"lte": 16},
@@ -622,7 +622,7 @@ GOLD_DEFAULT_SCREENS = [
             },
             "sort_field": "mdd_one_year_pct",
             "sort_order": "asc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -639,8 +639,8 @@ GOLD_DEFAULT_SCREENS = [
         "external_id": "gold-risk-adjusted",
         "name": "Gold Risk Adjusted",
         "description": "Gold-focused screens balancing returns with risk-adjusted ratios.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Commodity"]},
                 "scheme_sub_category": {"in": ["Gold"]},
                 "cagr_3y": {"gte": 7},
@@ -649,7 +649,7 @@ GOLD_DEFAULT_SCREENS = [
             },
             "sort_field": "sharpe",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -664,15 +664,15 @@ GOLD_DEFAULT_SCREENS = [
         "external_id": "silver-core",
         "name": "Silver Core Allocation",
         "description": "Silver commodity funds for growth-oriented satellite commodity exposure.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Commodity"]},
                 "scheme_sub_category": {"in": ["Silver"]},
                 "cagr_1y": {"gte": 6},
             },
             "sort_field": "cagr_1y",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -688,8 +688,8 @@ GOLD_DEFAULT_SCREENS = [
         "external_id": "commodity-diversified",
         "name": "Commodity Diversified",
         "description": "Commodity basket across gold and silver with focus on balanced risk-return.",
-        "filters": {
-            "filters": {
+        "screens": {
+            "screens": {
                 "scheme_class": {"in": ["Commodity"]},
                 "scheme_sub_category": {"in": ["Gold", "Silver"]},
                 "cagr_3y": {"gte": 6.5},
@@ -697,7 +697,7 @@ GOLD_DEFAULT_SCREENS = [
             },
             "sort_field": "cagr_3y",
             "sort_order": "desc",
-            "enabled_filters": [
+            "enabled_screens": [
                 "scheme_sub_category",
                 "cagr_1y",
                 "cagr_3y",
@@ -711,10 +711,10 @@ GOLD_DEFAULT_SCREENS = [
 ]
 
 DEFAULT_SCREEN_GROUPS = [
-    {"key": "equity", "label": "Equity Focused", "filters": EQUITY_DEFAULT_SCREENS},
-    {"key": "debt", "label": "Debt Focused", "filters": DEBT_DEFAULT_SCREENS},
-    {"key": "gold", "label": "Gold Focused", "filters": GOLD_DEFAULT_SCREENS},
-    {"key": "hybrid", "label": "Hybrid Focused", "filters": HYBRID_DEFAULT_SCREENS},
+    {"key": "equity", "label": "Equity Focused", "screens": EQUITY_DEFAULT_SCREENS},
+    {"key": "debt", "label": "Debt Focused", "screens": DEBT_DEFAULT_SCREENS},
+    {"key": "gold", "label": "Gold Focused", "screens": GOLD_DEFAULT_SCREENS},
+    {"key": "hybrid", "label": "Hybrid Focused", "screens": HYBRID_DEFAULT_SCREENS},
 ]
 
 DEFAULT_SCREENS = [
@@ -723,4 +723,5 @@ DEFAULT_SCREENS = [
     *GOLD_DEFAULT_SCREENS,
     *HYBRID_DEFAULT_SCREENS,
 ]
+
 

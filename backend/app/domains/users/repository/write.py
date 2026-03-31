@@ -30,24 +30,24 @@ def upsert_user(user: dict) -> None:
 
 def add_user_screens(
     uid: str,
-    filters: dict,
+    screens: dict,
     name: str | None = None,
     description: str | None = None,
     sort_field: str | None = None,
     sort_order: str | None = None,
-    enabled_filters: list[str] | None = None,
+    enabled_screens: list[str] | None = None,
     external_ids: list[str] | None = None,
 ) -> str:
     """Store applied screens for a user as a new entry. Returns external_id."""
     with get_session() as session:
         try:
-            filters_payload = {"filters": filters or {}}
+            screens_payload = {"screens": screens or {}}
             if sort_field:
-                filters_payload["sort_field"] = sort_field
+                screens_payload["sort_field"] = sort_field
             if sort_order:
-                filters_payload["sort_order"] = sort_order
-            if enabled_filters:
-                filters_payload["enabled_filters"] = enabled_filters
+                screens_payload["sort_order"] = sort_order
+            if enabled_screens:
+                screens_payload["enabled_screens"] = enabled_screens
             external_id = None
             while external_id is None:
                 candidate = generate_external_id()
@@ -64,7 +64,7 @@ def add_user_screens(
                 external_id=external_id,
                 name=name,
                 description=description,
-                filters=filters_payload,
+                screens=screens_payload,
             )
             session.add(record)
             session.flush()
@@ -91,24 +91,24 @@ def add_user_screens(
 def update_user_screens(
     uid: str,
     external_id: str,
-    filters: dict,
+    screens: dict,
     name: str | None = None,
     description: str | None = None,
     sort_field: str | None = None,
     sort_order: str | None = None,
-    enabled_filters: list[str] | None = None,
+    enabled_screens: list[str] | None = None,
     external_ids: list[str] | None = None,
 ) -> int:
     """Update a saved screen for a user by external_id. Returns rows updated."""
     with get_session() as session:
         try:
-            filters_payload = {"filters": filters or {}}
+            screens_payload = {"screens": screens or {}}
             if sort_field:
-                filters_payload["sort_field"] = sort_field
+                screens_payload["sort_field"] = sort_field
             if sort_order:
-                filters_payload["sort_order"] = sort_order
-            if enabled_filters:
-                filters_payload["enabled_filters"] = enabled_filters
+                screens_payload["sort_order"] = sort_order
+            if enabled_screens:
+                screens_payload["enabled_screens"] = enabled_screens
 
             target = (
                 session.query(UserScreenORM)
@@ -124,7 +124,7 @@ def update_user_screens(
 
             target.name = name
             target.description = description
-            target.filters = filters_payload
+            target.screens = screens_payload
 
             if external_ids is not None:
                 session.query(UserWatchlistORM).filter(

@@ -19,6 +19,17 @@ from app.domains.users.repository.write import (
 router = APIRouter()
 
 
+def _normalize_screen_payload(payload: dict | None) -> dict:
+    if not isinstance(payload, dict):
+        return {}
+    normalized = dict(payload)
+    if "screens" not in normalized and "filters" in normalized:
+        normalized["screens"] = normalized.pop("filters")
+    if "enabled_screens" not in normalized and "enabled_filters" in normalized:
+        normalized["enabled_screens"] = normalized.pop("enabled_filters")
+    return normalized
+
+
 def _get_claims_from_token(token: str) -> dict:
     try:
         claims = jwt.decode(token, options={"verify_signature": False})
@@ -74,12 +85,12 @@ def add_screens(payload: UserScreenCreate, token: str = Query(...)):
         token_uid = _get_uid_from_token(token)
         external_id = add_user_screens(
             uid=token_uid,
-            filters=payload.filters,
+            screens=payload.screens,
             name=payload.name,
             description=payload.description,
             sort_field=payload.sort_field,
             sort_order=payload.sort_order,
-            enabled_filters=payload.enabled_filters,
+            enabled_screens=payload.enabled_screens,
             external_ids=payload.external_ids,
         )
         return {"status": "ok", "external_id": external_id}
@@ -102,6 +113,7 @@ def get_screens(
             cleaned = dict(item)
             cleaned.pop("uid", None)
             cleaned.pop("id", None)
+            cleaned["screens"] = _normalize_screen_payload(cleaned.get("screens"))
             sanitized_screens.append(cleaned)
         return {
             "screens": sanitized_screens,
@@ -119,7 +131,16 @@ def get_default_screens():
         groups = []
         for group in DEFAULT_SCREEN_GROUPS:
             transformed = dict(group)
-            transformed["screens"] = transformed.pop("filters", [])
+            legacy_screens = transformed.pop("screens", transformed.pop("filters", []))
+            normalized_screens = []
+            for screen in legacy_screens:
+                normalized_screen = dict(screen)
+                normalized_screen["screens"] = _normalize_screen_payload(
+                    normalized_screen.get("screens", normalized_screen.get("filters"))
+                )
+                normalized_screen.pop("filters", None)
+                normalized_screens.append(normalized_screen)
+            transformed["screens"] = normalized_screens
             groups.append(transformed)
         return {
             "groups": groups,
@@ -138,12 +159,12 @@ def update_screens(external_id: str, payload: UserScreenCreate, token: str = Que
         updated = update_user_screens(
             uid=token_uid,
             external_id=external_id,
-            filters=payload.filters,
+            screens=payload.screens,
             name=payload.name,
             description=payload.description,
             sort_field=payload.sort_field,
             sort_order=payload.sort_order,
-            enabled_filters=payload.enabled_filters,
+            enabled_screens=payload.enabled_screens,
             external_ids=payload.external_ids,
         )
         if not updated:
