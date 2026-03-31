@@ -17,6 +17,8 @@ const SCREEN_DEFAULT_DESCRIPTION =
 const WATCHLIST_DEFAULT_TITLE = "Watchlist";
 const WATCHLIST_DEFAULT_DESCRIPTION =
   "Describe the purpose of this watchlist (e.g., long-term, high-risk, or SIP tracking)";
+const TITLE_WORD_LIMIT = 8;
+const DESCRIPTION_WORD_LIMIT = 25;
 const USER_FILTER_ID_REGEX = /^[0-9a-f]{32}$/i;
 const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 const WATCHLIST_SEARCH_LIMIT = 12;
@@ -92,6 +94,19 @@ const FundTable = ({
   const [watchlistSearchResults, setWatchlistSearchResults] = useState<SchemeSearchItem[]>([]);
   const [watchlistSchemeNames, setWatchlistSchemeNames] = useState<Record<string, string>>({});
   const fetchRequestIdRef = useRef(0);
+
+  const countWords = (input: string) => {
+    const trimmed = input.trim();
+    if (!trimmed) return 0;
+    return trimmed.split(/\s+/).length;
+  };
+
+  const limitByWordCount = (input: string, maxWords: number) => {
+    const trimmed = input.trim();
+    if (!trimmed) return "";
+    const words = trimmed.split(/\s+/);
+    return words.slice(0, maxWords).join(" ");
+  };
   const isWatchlist = builderType === "watchlist";
   const normalizedWatchlistExternalIds = useMemo(() => {
     const seen = new Set<string>();
@@ -234,8 +249,9 @@ const FundTable = ({
         setTotal(0);
       }
     } finally {
-      if (requestId !== fetchRequestIdRef.current) return;
-      setLoading(false);
+      if (requestId === fetchRequestIdRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -296,6 +312,8 @@ const FundTable = ({
   const displayTitle = title.trim() || defaultTitle;
   const displayDescription = description.trim() || defaultDescription;
   const canSaveScreen = title.trim().length > 0 && description.trim().length > 0;
+  const draftTitleWordCount = countWords(draftTitle);
+  const draftDescriptionWordCount = countWords(draftDescription);
   const editorNameLabel = isWatchlist ? "Watchlist Name" : "Screen Name";
   const resourceLabel = isWatchlist ? "watchlist" : "screen";
   const showEmptyWatchlistState = isWatchlist && !loading && normalizedWatchlistExternalIds.length === 0;
@@ -376,14 +394,14 @@ const FundTable = ({
       return;
     }
     setSaveError(null);
-    setDraftTitle(title);
-    setDraftDescription(description);
+    setDraftTitle(limitByWordCount(title, TITLE_WORD_LIMIT));
+    setDraftDescription(limitByWordCount(description, DESCRIPTION_WORD_LIMIT));
     setEditorOpen(true);
   };
 
   const applyDraft = () => {
-    setTitle(draftTitle.trim());
-    setDescription(draftDescription.trim());
+    setTitle(limitByWordCount(draftTitle, TITLE_WORD_LIMIT));
+    setDescription(limitByWordCount(draftDescription, DESCRIPTION_WORD_LIMIT));
     setSaveError(null);
     setEditorOpen(false);
   };
@@ -467,23 +485,35 @@ const FundTable = ({
           >
             <div className="grid gap-7">
               <div className="grid gap-4">
-                <Label htmlFor="screen-title">{editorNameLabel}</Label>
+                <div className="flex items-center justify-between gap-3">
+                  <Label htmlFor="screen-title">{editorNameLabel}</Label>
+                  <span className="text-[11px] text-muted-foreground">
+                    {draftTitleWordCount}/{TITLE_WORD_LIMIT} words
+                  </span>
+                </div>
                 <Input
                   id="screen-title"
                   value={draftTitle}
                   placeholder={defaultTitle}
-                  onChange={(event) => setDraftTitle(event.target.value)}
+                  onChange={(event) => setDraftTitle(limitByWordCount(event.target.value, TITLE_WORD_LIMIT))}
                 />
               </div>
               <div className="grid gap-4">
-                <Label htmlFor="screen-description">Description</Label>
+                <div className="flex items-center justify-between gap-3">
+                  <Label htmlFor="screen-description">Description</Label>
+                  <span className="text-[11px] text-muted-foreground">
+                    {draftDescriptionWordCount}/{DESCRIPTION_WORD_LIMIT} words
+                  </span>
+                </div>
                 <textarea
                   id="screen-description"
                   value={draftDescription}
                   placeholder={defaultDescription}
                   rows={4}
                   className="w-full min-h-[132px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                  onChange={(event) => setDraftDescription(event.target.value)}
+                  onChange={(event) =>
+                    setDraftDescription(limitByWordCount(event.target.value, DESCRIPTION_WORD_LIMIT))
+                  }
                 />
               </div>
               <div className="flex justify-end gap-4 pt-3">
