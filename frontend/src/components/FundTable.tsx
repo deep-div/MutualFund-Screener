@@ -23,6 +23,7 @@ const USER_FILTER_ID_REGEX = /^[0-9a-f]{32}$/i;
 const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 const WATCHLIST_SEARCH_LIMIT = 12;
 const MOBILE_WATCHLIST_PICKER_HISTORY_KEY = "__mf_mobile_watchlist_picker_popup";
+const CLOSE_MOBILE_WATCHLIST_PICKER_EVENT = "mf_close_mobile_watchlist_picker";
 const TRACKER_SCHEME_CLASS_LABELS: Record<string, string> = {
   equity: "Equity",
   debt: "Debt",
@@ -341,6 +342,16 @@ const FundTable = ({
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, [watchlistPickerOpen]);
+
+  useEffect(() => {
+    const isMobileViewport = () => window.matchMedia("(max-width: 639px)").matches;
+    const handleCloseWatchlistPicker = () => {
+      if (!isMobileViewport()) return;
+      setWatchlistPickerOpen(false);
+    };
+    window.addEventListener(CLOSE_MOBILE_WATCHLIST_PICKER_EVENT, handleCloseWatchlistPicker);
+    return () => window.removeEventListener(CLOSE_MOBILE_WATCHLIST_PICKER_EVENT, handleCloseWatchlistPicker);
+  }, []);
 
   useEffect(() => {
     const isMobileViewport = () => window.matchMedia("(max-width: 639px)").matches;

@@ -25,6 +25,7 @@ const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 const NEW_WATCHLIST_EVENT = "mf_new_watchlist_requested";
 const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 const OPEN_MOBILE_FILTERS_EVENT = "mf_open_mobile_filters";
+const CLOSE_MOBILE_WATCHLIST_PICKER_EVENT = "mf_close_mobile_watchlist_picker";
 const SAVED_FILTERS_BATCH_SIZE = 10;
 const MOBILE_EXPLORE_HISTORY_KEY = "__mf_mobile_explore_popup";
 
@@ -142,6 +143,11 @@ const Navbar = () => {
     window.dispatchEvent(new CustomEvent(OPEN_MOBILE_FILTERS_EVENT, { detail: { open } }));
   };
 
+  const closeMobileWatchlistPicker = () => {
+    if (!window.matchMedia("(max-width: 639px)").matches) return;
+    window.dispatchEvent(new CustomEvent(CLOSE_MOBILE_WATCHLIST_PICKER_EVENT));
+  };
+
   const openSearchPanel = () => {
     setSearchFocused(true);
     setSearchOpen(true);
@@ -157,6 +163,7 @@ const Navbar = () => {
     closeSearchPanel();
     closeNavigationPopups();
     setMobileFiltersOpenState(false);
+    closeMobileWatchlistPicker();
   };
 
   const openAuthModal = () => {
