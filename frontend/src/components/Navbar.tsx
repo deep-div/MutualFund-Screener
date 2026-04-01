@@ -336,10 +336,6 @@ const Navbar = () => {
 
   useEffect(() => {
     const syncBodyTopOffset = () => {
-      if (window.innerWidth < 768) {
-        setBodyTopOffset(0);
-        return;
-      }
       const navBottom = navRef.current?.getBoundingClientRect().bottom;
       if (typeof navBottom === "number" && Number.isFinite(navBottom)) {
         setBodyTopOffset(Math.max(0, Math.round(navBottom)));

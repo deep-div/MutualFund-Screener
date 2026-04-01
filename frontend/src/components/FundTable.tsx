@@ -621,7 +621,7 @@ const FundTable = ({
       )}
       {watchlistPickerOpen && (
         <div
-          className="fixed inset-0 z-[121] flex items-stretch justify-center bg-black/45 px-0 sm:items-center sm:px-4"
+          className="absolute inset-0 z-[121] flex items-stretch justify-center bg-black/45 px-0 sm:fixed sm:inset-0 sm:items-center sm:px-4"
           onClick={() => setWatchlistPickerOpen(false)}
         >
           <div
