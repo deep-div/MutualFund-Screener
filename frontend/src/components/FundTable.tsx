@@ -90,6 +90,8 @@ const FundTable = ({
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const [headerLoading, setHeaderLoading] = useState(false);
+  const [isMobileDescriptionExpanded, setIsMobileDescriptionExpanded] = useState(false);
+  const [showMobileDescriptionToggle, setShowMobileDescriptionToggle] = useState(false);
   const [watchlistExternalIds, setWatchlistExternalIds] = useState<string[]>([]);
   const [watchlistPickerOpen, setWatchlistPickerOpen] = useState(false);
   const [watchlistSearchQuery, setWatchlistSearchQuery] = useState("");
@@ -98,6 +100,7 @@ const FundTable = ({
   const [watchlistSearchResults, setWatchlistSearchResults] = useState<SchemeSearchItem[]>([]);
   const [watchlistSchemeNames, setWatchlistSchemeNames] = useState<Record<string, string>>({});
   const fetchRequestIdRef = useRef(0);
+  const mobileDescriptionRef = useRef<HTMLParagraphElement | null>(null);
 
   const countWords = (input: string) => {
     const trimmed = input.trim();
@@ -334,6 +337,37 @@ const FundTable = ({
     savedFilterExternalId && USER_FILTER_ID_REGEX.test(savedFilterExternalId.trim())
   );
   const isNewScreen = !savedFilterExternalId && title.trim().length === 0 && description.trim().length === 0;
+
+  useEffect(() => {
+    setIsMobileDescriptionExpanded(false);
+  }, [displayDescription]);
+
+  useEffect(() => {
+    if (headerLoading) return;
+
+    const updateMobileDescriptionToggle = () => {
+      const isMobile = window.matchMedia("(max-width: 639px)").matches;
+      if (!isMobile) {
+        setShowMobileDescriptionToggle(false);
+        setIsMobileDescriptionExpanded(false);
+        return;
+      }
+
+      const node = mobileDescriptionRef.current;
+      if (!node) return;
+
+      const hasOverflow = node.scrollWidth > node.clientWidth || node.scrollHeight > node.clientHeight + 1;
+      setShowMobileDescriptionToggle(hasOverflow);
+    };
+
+    const frame = window.requestAnimationFrame(updateMobileDescriptionToggle);
+    window.addEventListener("resize", updateMobileDescriptionToggle);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updateMobileDescriptionToggle);
+    };
+  }, [displayDescription, headerLoading, isMobileDescriptionExpanded]);
 
   useEffect(() => {
     setActiveSavedFilterId(routeSavedFilterId ?? null);
@@ -711,7 +745,42 @@ const FundTable = ({
                     <h1 className="text-[17px] font-semibold leading-tight tracking-tight text-foreground line-clamp-2 break-words sm:text-[18px] sm:line-clamp-none">
                       {displayTitle}
                     </h1>
-                    <p className="text-[12px] leading-5 text-muted-foreground line-clamp-2 break-words sm:text-[13px] sm:leading-relaxed sm:line-clamp-none">
+                    {isMobileDescriptionExpanded ? (
+                      <p className="text-[12px] leading-5 text-muted-foreground break-words sm:hidden">
+                        {displayDescription}
+                        {showMobileDescriptionToggle && (
+                          <>
+                            {" "}
+                            <button
+                              type="button"
+                              onClick={() => setIsMobileDescriptionExpanded(false)}
+                              className="text-[12px] font-medium text-primary"
+                            >
+                              Read less
+                            </button>
+                          </>
+                        )}
+                      </p>
+                    ) : (
+                      <div className="flex items-baseline gap-1 sm:hidden">
+                        <p
+                          ref={mobileDescriptionRef}
+                          className="min-w-0 flex-1 truncate text-[12px] leading-5 text-muted-foreground"
+                        >
+                          {displayDescription}
+                        </p>
+                        {showMobileDescriptionToggle && (
+                          <button
+                            type="button"
+                            onClick={() => setIsMobileDescriptionExpanded(true)}
+                            className="shrink-0 text-[12px] font-medium text-primary"
+                          >
+                            Read more
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    <p className="hidden text-[12px] leading-5 text-muted-foreground break-words sm:block sm:text-[13px] sm:leading-relaxed sm:line-clamp-none">
                       {displayDescription}
                     </p>
                   </>
