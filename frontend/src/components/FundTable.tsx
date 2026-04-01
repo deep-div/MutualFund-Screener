@@ -995,8 +995,8 @@ const FundTable = ({
             <div className="p-4 text-sm text-negative">{error}</div>
           )}
           {!requiresAuthForFilters && showEmptyWatchlistState && !error && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center px-4">
-              <div className="w-full max-w-md rounded-xl border border-dashed border-border bg-background/95 p-6 text-center shadow-md">
+            <div className="absolute inset-y-0 left-0 right-0 z-10 flex items-center justify-center px-4 pb-20 sm:pb-0">
+              <div className="mx-auto w-full max-w-md rounded-xl border border-dashed border-border bg-background/95 p-6 text-center shadow-md">
                 <p className="text-[15px] font-semibold text-foreground">No funds added yet</p>
                 <p className="mt-2 text-[12px] text-muted-foreground">
                   Build this watchlist by searching and adding funds you want to track.
