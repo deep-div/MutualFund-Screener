@@ -107,6 +107,7 @@ const Navbar = () => {
   const [pendingDeleteExternalIds, setPendingDeleteExternalIds] = useState<string[]>([]);
   const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const [mobileCreateMenuOpen, setMobileCreateMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [bodyTopOffset, setBodyTopOffset] = useState(56);
   const navRef = useRef<HTMLElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
@@ -146,6 +147,16 @@ const Navbar = () => {
     setScreenExplorerOpen(false);
     setCreateMenuOpen(false);
     setMobileCreateMenuOpen(false);
+  };
+
+  const closeAllNonProfilePopups = () => {
+    closeSearchPanel();
+    closeNavigationPopups();
+  };
+
+  const openAuthModal = () => {
+    closeAllNonProfilePopups();
+    setShowAuthModal(true);
   };
 
   useEffect(() => {
@@ -388,7 +399,7 @@ const Navbar = () => {
   }, [screenExplorerOpen]);
 
   useEffect(() => {
-    const handleOpenAuthModal = () => setShowAuthModal(true);
+    const handleOpenAuthModal = () => openAuthModal();
     window.addEventListener(OPEN_AUTH_MODAL_EVENT, handleOpenAuthModal);
     return () => window.removeEventListener(OPEN_AUTH_MODAL_EVENT, handleOpenAuthModal);
   }, []);
@@ -996,7 +1007,16 @@ const Navbar = () => {
           {loading ? (
             <div className="h-7 w-24 rounded-md bg-nav-hover/70 animate-pulse" />
           ) : isLoggedIn ? (
-            <DropdownMenu>
+            <DropdownMenu
+              modal={false}
+              open={profileMenuOpen}
+              onOpenChange={(nextOpen) => {
+                if (nextOpen) {
+                  closeAllNonProfilePopups();
+                }
+                setProfileMenuOpen(nextOpen);
+              }}
+            >
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2.5 text-[13px] text-nav-foreground">
                   <div className="w-8 h-8 rounded-full bg-primary/30 grid place-items-center text-[12px] font-semibold leading-none">
@@ -1027,7 +1047,7 @@ const Navbar = () => {
           ) : (
             <div className="flex items-center">
               <button
-                onClick={() => setShowAuthModal(true)}
+                onClick={openAuthModal}
                 className="mr-1.5 text-[13px] bg-primary text-white px-4 py-1.5 rounded-md hover:opacity-90 disabled:opacity-60"
                 disabled={loading}
               >
@@ -1230,8 +1250,7 @@ const Navbar = () => {
                       </p>
                       <button
                         onClick={() => {
-                          setScreenExplorerOpen(false);
-                          setShowAuthModal(true);
+                          openAuthModal();
                         }}
                         className="mt-4 inline-flex items-center justify-center rounded-md bg-[#0f1729] px-4 py-2 text-[12px] font-medium text-white hover:bg-[#0b1322] transition-colors"
                       >
