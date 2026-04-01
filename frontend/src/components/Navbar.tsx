@@ -1087,14 +1087,14 @@ const Navbar = () => {
 
       {isScreenerRoute && (
         <div
-          className="fixed inset-x-0 z-[72] border-t border-slate-200 bg-white/90 px-2 pt-1.5 backdrop-blur-sm sm:hidden"
+          className="fixed inset-x-0 z-[72] border-t border-sky-200 bg-sky-50/85 px-2 pt-1.5 backdrop-blur-sm sm:hidden"
           style={{ bottom: "max(0px, env(safe-area-inset-bottom))" }}
         >
           <div className="grid w-full grid-cols-3 gap-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
             <button
               type="button"
               onClick={handleMobileFiltersClick}
-              className="inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white/70 px-2 py-2 text-[12px] font-semibold tracking-[0.01em] text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all hover:bg-white active:scale-[0.99] active:bg-slate-100"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-sky-200 bg-sky-50 px-2 py-2 text-[12px] font-semibold tracking-[0.01em] text-sky-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] transition-all hover:bg-sky-100 active:scale-[0.99] active:bg-sky-100"
               aria-label="Open filters"
             >
               <SlidersHorizontal className="h-4 w-4" />
@@ -1105,8 +1105,8 @@ const Navbar = () => {
               onClick={handleExploreClick}
               className={`inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[12px] font-semibold tracking-[0.01em] transition-all active:scale-[0.99] ${
                 screenExplorerOpen
-                  ? "border-sky-300 bg-sky-50 text-sky-700 shadow-[0_0_0_1px_rgba(56,189,248,0.12)]"
-                  : "border-slate-200 bg-white/70 text-slate-700 hover:bg-white active:bg-slate-100"
+                  ? "border-sky-300 bg-sky-100 text-sky-800 shadow-[0_0_0_1px_rgba(56,189,248,0.12)]"
+                  : "border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 active:bg-sky-100"
               }`}
               aria-label="Open explore screens"
             >
@@ -1127,8 +1127,8 @@ const Navbar = () => {
                 <button
                   className={`inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[12px] font-semibold tracking-[0.01em] transition-all active:scale-[0.99] ${
                     mobileCreateMenuOpen
-                      ? "border-[#0b64f4]/40 bg-[#0b64f4]/10 text-[#0b64f4] shadow-[0_0_0_1px_rgba(11,100,244,0.16)]"
-                      : "border-slate-200 bg-white/70 text-slate-700 hover:bg-white active:bg-slate-100"
+                      ? "border-sky-300 bg-sky-100 text-sky-800 shadow-[0_0_0_1px_rgba(56,189,248,0.12)]"
+                      : "border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 active:bg-sky-100"
                   }`}
                   aria-expanded={mobileCreateMenuOpen}
                   aria-label="Create menu"
