@@ -459,7 +459,7 @@ const Index = () => {
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       <TickerTape />
-      <Navbar />
+      <Navbar mobileAppliedFiltersCount={activeCount} />
       <div className="relative flex flex-1 overflow-hidden page-dimmable">
         <div className="relative hidden lg:flex h-full">
           {desktopFiltersCollapsed ? (

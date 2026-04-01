@@ -70,7 +70,11 @@ type TopLoserItem = {
   nav_change_1d?: number | null;
 };
 
-const Navbar = () => {
+interface NavbarProps {
+  mobileAppliedFiltersCount?: number;
+}
+
+const Navbar = ({ mobileAppliedFiltersCount = 0 }: NavbarProps) => {
   const { isLoggedIn, user, logout, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -1120,7 +1124,7 @@ const Navbar = () => {
               aria-label="Open filters"
             >
               <SlidersHorizontal className="h-4 w-4" />
-              <span>Filters</span>
+              <span>Filters{mobileAppliedFiltersCount > 0 ? ` (${mobileAppliedFiltersCount})` : ""}</span>
             </button>
             <button
               type="button"
