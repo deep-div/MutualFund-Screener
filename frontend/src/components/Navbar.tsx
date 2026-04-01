@@ -138,6 +138,10 @@ const Navbar = () => {
     setSearchFocused(false);
   };
 
+  const setMobileFiltersOpenState = (open: boolean) => {
+    window.dispatchEvent(new CustomEvent(OPEN_MOBILE_FILTERS_EVENT, { detail: { open } }));
+  };
+
   const openSearchPanel = () => {
     setSearchFocused(true);
     setSearchOpen(true);
@@ -152,6 +156,7 @@ const Navbar = () => {
   const closeAllNonProfilePopups = () => {
     closeSearchPanel();
     closeNavigationPopups();
+    setMobileFiltersOpenState(false);
   };
 
   const openAuthModal = () => {
@@ -451,7 +456,7 @@ const Navbar = () => {
 
   const handleMobileFiltersClick = () => {
     if (!isScreenerRoute) return;
-    window.dispatchEvent(new CustomEvent(OPEN_MOBILE_FILTERS_EVENT));
+    setMobileFiltersOpenState(true);
   };
 
   const handleLoadMoreSavedFilters = async () => {

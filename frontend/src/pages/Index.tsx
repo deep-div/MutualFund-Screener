@@ -199,7 +199,12 @@ const Index = () => {
       setScreenResetToken((prev) => prev + 1);
       setMobileFiltersOpen(false);
     };
-    const handleOpenMobileFilters = () => {
+    const handleOpenMobileFilters = (event: Event) => {
+      const { detail } = event as CustomEvent<{ open?: boolean }>;
+      if (typeof detail?.open === "boolean") {
+        setMobileFiltersOpen(detail.open);
+        return;
+      }
       setMobileFiltersOpen(true);
     };
     window.addEventListener(NEW_SCREEN_EVENT, handleNewScreen);
