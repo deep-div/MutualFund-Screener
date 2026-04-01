@@ -410,6 +410,20 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
+    const isMobileViewport = () => window.matchMedia("(max-width: 767px)").matches;
+    const handleAnyScroll = () => {
+      if (!isMobileViewport()) return;
+      if (!profileMenuOpen && !mobileCreateMenuOpen && !createMenuOpen) return;
+      setProfileMenuOpen(false);
+      setMobileCreateMenuOpen(false);
+      setCreateMenuOpen(false);
+    };
+
+    document.addEventListener("scroll", handleAnyScroll, { capture: true, passive: true });
+    return () => document.removeEventListener("scroll", handleAnyScroll, true);
+  }, [profileMenuOpen, mobileCreateMenuOpen, createMenuOpen]);
+
+  useEffect(() => {
     setSelectedExternalIds((prev) =>
       prev.filter((externalId) => activeUserCollection.some((item) => item.external_id === externalId))
     );
