@@ -1407,7 +1407,7 @@ const FundAnalytics = () => {
                     <div className="analytics-card group relative px-4 py-3 text-center z-10">
                       <div className="flex items-center justify-center gap-3">
                         <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-muted-foreground">Current Drawdown</div>
-                        <div className="text-[15px] sm:text-[22px] font-semibold text-negative">
+                        <div className="text-[13px] sm:text-[22px] font-semibold text-negative">
                           {typeof drawdown?.current_drawdown?.max_drawdown_percent === "number"
                             ? `${drawdown.current_drawdown.max_drawdown_percent.toFixed(2)}%`
                             : "-"}
@@ -1459,7 +1459,7 @@ const FundAnalytics = () => {
                     <div className="analytics-card group relative px-4 py-3 text-center z-10">
                       <div className="flex items-center justify-center gap-3">
                         <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-muted-foreground">Max Drawdown</div>
-                        <div className="text-[15px] sm:text-[22px] font-semibold text-negative text-center">
+                        <div className="text-[13px] sm:text-[22px] font-semibold text-negative text-center">
                           {typeof drawdown?.mdd_duration_details?.max?.max_drawdown_percent === "number"
                             ? `${drawdown.mdd_duration_details.max.max_drawdown_percent.toFixed(2)}%`
                             : "-"}
