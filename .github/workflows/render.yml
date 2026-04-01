@@ -108,7 +108,6 @@ jobs:
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
-          RENDER_REGISTRY_CREDENTIAL_ID: ${{ secrets.RENDER_REGISTRY_CREDENTIAL_ID }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
           set -euo pipefail
@@ -125,29 +124,23 @@ jobs:
             "https://api.render.com/v1/services/${RENDER_SERVICE_ID}")"
 
           OWNER_ID="$(echo "${SERVICE_JSON}" | jq -r '.ownerId // empty')"
-          EXISTING_CRED_ID="$(echo "${SERVICE_JSON}" | jq -r '.registryCredential.id // empty')"
-          REGISTRY_CRED_ID="${EXISTING_CRED_ID}"
-          if [ -z "${REGISTRY_CRED_ID}" ] && [ -n "${RENDER_REGISTRY_CREDENTIAL_ID}" ]; then
-            REGISTRY_CRED_ID="${RENDER_REGISTRY_CREDENTIAL_ID}"
-          fi
+          REGISTRY_CRED_ID="$(echo "${SERVICE_JSON}" | jq -r '.registryCredential.id // empty')"
 
           if [ -z "${OWNER_ID}" ]; then
             echo "Could not read ownerId from Render service."
             exit 1
           fi
 
-          if [ -n "${REGISTRY_CRED_ID}" ]; then
-            PATCH_BODY="$(jq -nc \
-              --arg ownerId "${OWNER_ID}" \
-              --arg imagePath "${IMAGE_PATH}" \
-              --arg registryCredentialId "${REGISTRY_CRED_ID}" \
-              '{image:{ownerId:$ownerId,imagePath:$imagePath,registryCredentialId:$registryCredentialId}}')"
-          else
-            PATCH_BODY="$(jq -nc \
-              --arg ownerId "${OWNER_ID}" \
-              --arg imagePath "${IMAGE_PATH}" \
-              '{image:{ownerId:$ownerId,imagePath:$imagePath}}')"
+          if [ -z "${REGISTRY_CRED_ID}" ]; then
+            echo "No registry credential linked to this Render service. Link Docker Hub credentials in Render UI first."
+            exit 1
           fi
+
+          PATCH_BODY="$(jq -nc \
+            --arg ownerId "${OWNER_ID}" \
+            --arg imagePath "${IMAGE_PATH}" \
+            --arg registryCredentialId "${REGISTRY_CRED_ID}" \
+            '{image:{ownerId:$ownerId,imagePath:$imagePath,registryCredentialId:$registryCredentialId}}')"
 
           curl --fail --show-error --silent \
             -X PATCH \
