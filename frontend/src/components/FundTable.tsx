@@ -797,16 +797,6 @@ const FundTable = ({
                   </button>
                 )}
                 <div className="flex items-center gap-2">
-                  {onOpenMobileFilters && (
-                    <button
-                      type="button"
-                      onClick={onOpenMobileFilters}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-[11px] font-medium text-foreground sm:hidden"
-                    >
-                      <SlidersHorizontal className="h-3.5 w-3.5" />
-                      Filters ({activeCount})
-                    </button>
-                  )}
                   <button
                     className="rounded-md border border-border p-1.5 transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50 sm:p-2"
                     onClick={openEditor}
@@ -850,6 +840,18 @@ const FundTable = ({
         </div>
         {saveError && <div className="mt-3 text-xs text-negative">{saveError}</div>}
       </div>
+
+      {onOpenMobileFilters && (
+        <button
+          type="button"
+          onClick={onOpenMobileFilters}
+          className="fixed left-3 z-40 inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-[12px] font-medium text-foreground shadow-md sm:hidden"
+          style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          Filters ({activeCount})
+        </button>
+      )}
 
       <div className="flex-1 min-h-0">
         <div
