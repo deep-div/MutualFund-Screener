@@ -94,6 +94,7 @@ const FundTable = ({
   const [saving, setSaving] = useState(false);
   const [saveAction, setSaveAction] = useState<"save" | "update" | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [hasConfirmedMetadataEdit, setHasConfirmedMetadataEdit] = useState(false);
   const [activeSavedFilterId, setActiveSavedFilterId] = useState<string | null>(routeSavedFilterId ?? null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
@@ -415,7 +416,15 @@ const FundTable = ({
   const defaultDescription = isWatchlist ? WATCHLIST_DEFAULT_DESCRIPTION : SCREEN_DEFAULT_DESCRIPTION;
   const displayTitle = title.trim() || defaultTitle;
   const displayDescription = description.trim() || defaultDescription;
-  const canSaveScreen = title.trim().length > 0 && description.trim().length > 0;
+  const savedFilterExternalId = activeSavedFilterId ?? routeSavedFilterId ?? null;
+  const hasSavedScreen = Boolean(
+    savedFilterExternalId && USER_FILTER_ID_REGEX.test(savedFilterExternalId.trim())
+  );
+  const needsMetadataConfirmation = Boolean(savedFilterExternalId && !hasSavedScreen);
+  const canSaveScreen =
+    title.trim().length > 0 &&
+    description.trim().length > 0 &&
+    (!needsMetadataConfirmation || hasConfirmedMetadataEdit);
   const draftTitleWordCount = countWords(draftTitle);
   const draftDescriptionWordCount = countWords(draftDescription);
   const editorNameLabel = isWatchlist ? "Watchlist Name" : "Screen Name";
@@ -423,10 +432,6 @@ const FundTable = ({
   const showEmptyWatchlistState = isWatchlist && !loading && normalizedWatchlistExternalIds.length === 0;
   const shouldLockTableScroll = requiresAuthForFilters || showEmptyWatchlistState;
   const showingFrom = total > 0 ? 1 : 0;
-  const savedFilterExternalId = activeSavedFilterId ?? routeSavedFilterId ?? null;
-  const hasSavedScreen = Boolean(
-    savedFilterExternalId && USER_FILTER_ID_REGEX.test(savedFilterExternalId.trim())
-  );
   const isNewScreen = !savedFilterExternalId && title.trim().length === 0 && description.trim().length === 0;
 
   useEffect(() => {
@@ -466,6 +471,7 @@ const FundTable = ({
     setSaving(false);
     setSaveAction(null);
     setSaveError(null);
+    setHasConfirmedMetadataEdit(false);
     setActiveSavedFilterId(null);
     setLastUpdatedAt(null);
     setWatchlistExternalIds([]);
@@ -491,6 +497,8 @@ const FundTable = ({
   useEffect(() => {
     if (!savedFilterExternalId) return;
     if (restoredFilterExternalId !== savedFilterExternalId) return;
+    const isUserOwnedSavedScreen = USER_FILTER_ID_REGEX.test(savedFilterExternalId.trim());
+    setHasConfirmedMetadataEdit(isUserOwnedSavedScreen);
     if (typeof initialTitle === "string") {
       setTitle(initialTitle.trim());
     }
@@ -531,6 +539,7 @@ const FundTable = ({
   const applyDraft = () => {
     setTitle(limitByWordCount(draftTitle, TITLE_WORD_LIMIT));
     setDescription(limitByWordCount(draftDescription, DESCRIPTION_WORD_LIMIT));
+    setHasConfirmedMetadataEdit(true);
     setSaveError(null);
     setEditorOpen(false);
   };
