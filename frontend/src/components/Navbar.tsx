@@ -130,6 +130,22 @@ const Navbar = () => {
     setSearchQuery("");
   };
 
+  const closeSearchPanel = () => {
+    setSearchOpen(false);
+    setSearchFocused(false);
+  };
+
+  const openSearchPanel = () => {
+    setSearchFocused(true);
+    setSearchOpen(true);
+  };
+
+  const closeNavigationPopups = () => {
+    setScreenExplorerOpen(false);
+    setCreateMenuOpen(false);
+    setMobileCreateMenuOpen(false);
+  };
+
   useEffect(() => {
     const readBestPerformers = () => {
       try {
@@ -605,10 +621,12 @@ const Navbar = () => {
             </button>
 
             <DropdownMenu
+              modal={false}
               open={createMenuOpen}
               onOpenChange={(nextOpen) => {
                 setCreateMenuOpen(nextOpen);
                 if (nextOpen) {
+                  closeSearchPanel();
                   setScreenExplorerOpen(false);
                 }
               }}
@@ -665,10 +683,17 @@ const Navbar = () => {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  closeNavigationPopups();
+                  setSearchQuery(e.target.value);
+                }}
                 onFocus={() => {
-                  setSearchFocused(true);
-                  setSearchOpen(true);
+                  closeNavigationPopups();
+                  openSearchPanel();
+                }}
+                onClick={() => {
+                  closeNavigationPopups();
+                  openSearchPanel();
                 }}
                 placeholder="Search for Mutual Funds"
                 className={`bg-transparent text-[13px] outline-none w-full ${
@@ -992,10 +1017,12 @@ const Navbar = () => {
               Explore
             </button>
             <DropdownMenu
+              modal={false}
               open={mobileCreateMenuOpen}
               onOpenChange={(nextOpen) => {
                 setMobileCreateMenuOpen(nextOpen);
                 if (nextOpen) {
+                  closeSearchPanel();
                   setScreenExplorerOpen(false);
                 }
               }}
