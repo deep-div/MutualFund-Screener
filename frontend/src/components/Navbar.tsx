@@ -26,6 +26,7 @@ const NEW_WATCHLIST_EVENT = "mf_new_watchlist_requested";
 const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 const OPEN_MOBILE_FILTERS_EVENT = "mf_open_mobile_filters";
 const SAVED_FILTERS_BATCH_SIZE = 10;
+const MOBILE_EXPLORE_HISTORY_KEY = "__mf_mobile_explore_popup";
 
 const formatNav = (value?: number | null) =>
   typeof value === "number" ? `₹${NAV_FORMATTER.format(value)}` : "—";
@@ -109,6 +110,7 @@ const Navbar = () => {
   const [bodyTopOffset, setBodyTopOffset] = useState(56);
   const navRef = useRef<HTMLElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
+  const mobileExploreHistoryEntryRef = useRef(false);
   const isSearchActive = searchOpen || searchFocused;
   const selectedDefaultGroup = useMemo(
     () => defaultFilterGroups.find((group) => group.key === activeScreenGroup) ?? null,
@@ -334,6 +336,10 @@ const Navbar = () => {
 
   useEffect(() => {
     const syncBodyTopOffset = () => {
+      if (window.innerWidth < 768) {
+        setBodyTopOffset(0);
+        return;
+      }
       const navBottom = navRef.current?.getBoundingClientRect().bottom;
       if (typeof navBottom === "number" && Number.isFinite(navBottom)) {
         setBodyTopOffset(Math.max(0, Math.round(navBottom)));
@@ -343,6 +349,47 @@ const Navbar = () => {
     window.addEventListener("resize", syncBodyTopOffset);
     return () => window.removeEventListener("resize", syncBodyTopOffset);
   }, []);
+
+  useEffect(() => {
+    const isMobileViewport = () => window.matchMedia("(max-width: 767px)").matches;
+    const handlePopState = () => {
+      if (!isMobileViewport()) return;
+      if (!screenExplorerOpen || !mobileExploreHistoryEntryRef.current) return;
+      mobileExploreHistoryEntryRef.current = false;
+      setScreenExplorerOpen(false);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [screenExplorerOpen]);
+
+  useEffect(() => {
+    const isMobileViewport = () => window.matchMedia("(max-width: 767px)").matches;
+    if (!isMobileViewport()) {
+      mobileExploreHistoryEntryRef.current = false;
+      return;
+    }
+
+    if (screenExplorerOpen) {
+      if (mobileExploreHistoryEntryRef.current) return;
+      const currentState =
+        window.history.state && typeof window.history.state === "object" ? window.history.state : {};
+      window.history.pushState({ ...currentState, [MOBILE_EXPLORE_HISTORY_KEY]: true }, "", window.location.href);
+      mobileExploreHistoryEntryRef.current = true;
+      return;
+    }
+
+    if (!mobileExploreHistoryEntryRef.current) return;
+    const historyState = window.history.state;
+    const hasExploreMarker = Boolean(
+      historyState &&
+        typeof historyState === "object" &&
+        MOBILE_EXPLORE_HISTORY_KEY in (historyState as Record<string, unknown>)
+    );
+    mobileExploreHistoryEntryRef.current = false;
+    if (hasExploreMarker) {
+      window.history.back();
+    }
+  }, [screenExplorerOpen]);
 
   useEffect(() => {
     const handleOpenAuthModal = () => setShowAuthModal(true);
@@ -1071,10 +1118,10 @@ const Navbar = () => {
 
       {screenExplorerOpen && (
         <div
-          className="fixed left-0 right-0 bottom-0 z-[75] flex items-center justify-center px-3 py-0 pointer-events-none"
+          className="fixed left-0 right-0 bottom-0 z-[75] flex items-stretch justify-center px-0 py-0 pointer-events-none md:items-center md:px-3"
           style={{ top: `${Math.max(0, bodyTopOffset - 1)}px` }}
         >
-          <div className="pointer-events-auto h-full w-full max-w-[860px] overflow-hidden rounded-xl border border-slate-200 bg-background shadow-2xl md:rounded-2xl">
+          <div className="pointer-events-auto h-full w-full max-w-none overflow-hidden rounded-none border-0 border-slate-200 bg-background shadow-2xl md:max-w-[860px] md:rounded-2xl md:border">
             <div className="flex h-full flex-col md:grid md:grid-cols-[220px_1fr]">
               <div className="border-b border-slate-200 bg-[#f1f1f1] p-3 md:border-b-0 md:border-r md:p-4">
                 <p className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-slate-600 md:mb-5">Screen Categories</p>

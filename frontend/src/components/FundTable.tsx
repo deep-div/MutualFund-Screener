@@ -22,6 +22,7 @@ const DESCRIPTION_WORD_LIMIT = 25;
 const USER_FILTER_ID_REGEX = /^[0-9a-f]{32}$/i;
 const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 const WATCHLIST_SEARCH_LIMIT = 12;
+const MOBILE_WATCHLIST_PICKER_HISTORY_KEY = "__mf_mobile_watchlist_picker_popup";
 type BuilderType = "screen" | "watchlist";
 
 const baseColumns: Array<{
@@ -99,6 +100,7 @@ const FundTable = ({
   const [watchlistSchemeNames, setWatchlistSchemeNames] = useState<Record<string, string>>({});
   const fetchRequestIdRef = useRef(0);
   const descriptionCollapsedRef = useRef<HTMLParagraphElement | null>(null);
+  const mobileWatchlistPickerHistoryEntryRef = useRef(false);
 
   const countWords = (input: string) => {
     const trimmed = input.trim();
@@ -316,6 +318,51 @@ const FundTable = ({
       window.clearTimeout(timer);
     };
   }, [watchlistSearchQuery, watchlistPickerOpen]);
+
+  useEffect(() => {
+    const isMobileViewport = () => window.matchMedia("(max-width: 639px)").matches;
+    const handlePopState = () => {
+      if (!isMobileViewport()) return;
+      if (!watchlistPickerOpen || !mobileWatchlistPickerHistoryEntryRef.current) return;
+      mobileWatchlistPickerHistoryEntryRef.current = false;
+      setWatchlistPickerOpen(false);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [watchlistPickerOpen]);
+
+  useEffect(() => {
+    const isMobileViewport = () => window.matchMedia("(max-width: 639px)").matches;
+    if (!isMobileViewport()) {
+      mobileWatchlistPickerHistoryEntryRef.current = false;
+      return;
+    }
+
+    if (watchlistPickerOpen) {
+      if (mobileWatchlistPickerHistoryEntryRef.current) return;
+      const currentState =
+        window.history.state && typeof window.history.state === "object" ? window.history.state : {};
+      window.history.pushState(
+        { ...currentState, [MOBILE_WATCHLIST_PICKER_HISTORY_KEY]: true },
+        "",
+        window.location.href
+      );
+      mobileWatchlistPickerHistoryEntryRef.current = true;
+      return;
+    }
+
+    if (!mobileWatchlistPickerHistoryEntryRef.current) return;
+    const historyState = window.history.state;
+    const hasWatchlistPickerMarker = Boolean(
+      historyState &&
+        typeof historyState === "object" &&
+        MOBILE_WATCHLIST_PICKER_HISTORY_KEY in (historyState as Record<string, unknown>)
+    );
+    mobileWatchlistPickerHistoryEntryRef.current = false;
+    if (hasWatchlistPickerMarker) {
+      window.history.back();
+    }
+  }, [watchlistPickerOpen]);
 
   const canLoadMore = items.length < total;
   const defaultTitle = isWatchlist ? WATCHLIST_DEFAULT_TITLE : SCREEN_DEFAULT_TITLE;
@@ -574,11 +621,11 @@ const FundTable = ({
       )}
       {watchlistPickerOpen && (
         <div
-          className="fixed inset-0 z-[121] flex items-center justify-center bg-black/45 px-3 sm:px-4"
+          className="fixed inset-0 z-[121] flex items-stretch justify-center bg-black/45 px-0 sm:items-center sm:px-4"
           onClick={() => setWatchlistPickerOpen(false)}
         >
           <div
-            className="flex w-full max-w-[760px] max-h-[88vh] flex-col overflow-hidden rounded-xl border border-border bg-[#fafafa] shadow-2xl"
+            className="flex h-full w-full max-w-none max-h-none flex-col overflow-hidden rounded-none border-0 border-border bg-[#fafafa] shadow-2xl sm:h-auto sm:max-w-[760px] sm:max-h-[88vh] sm:rounded-xl sm:border"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5 sm:py-4">
