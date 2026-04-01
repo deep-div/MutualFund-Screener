@@ -973,21 +973,21 @@ const Navbar = () => {
 
       {isScreenerRoute && (
         <div
-          className="fixed inset-x-0 z-[72] border-t border-nav-hover bg-[#0f1729] px-2 pt-2 sm:hidden"
+          className="fixed inset-x-0 z-[72] border-t border-nav-hover bg-[#0f1729] px-2 pt-1.5 sm:hidden"
           style={{ bottom: "max(0px, env(safe-area-inset-bottom))" }}
         >
-          <div className="mx-auto grid max-w-[640px] grid-cols-3 gap-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+          <div className="mx-auto grid max-w-[640px] grid-cols-3 gap-2 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
             <button
               type="button"
               onClick={handleMobileFiltersClick}
-              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-nav-hover bg-nav-hover/60 px-2 py-2 text-[12px] font-medium text-nav-foreground transition-colors hover:bg-nav-hover active:bg-nav-hover"
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-nav-hover bg-nav-hover/60 px-2 py-1.5 text-[12px] font-medium text-nav-foreground transition-colors hover:bg-nav-hover active:bg-nav-hover"
             >
               Filters
             </button>
             <button
               type="button"
               onClick={handleExploreClick}
-              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-nav-hover bg-nav-hover/60 px-2 py-2 text-[12px] font-medium text-nav-foreground transition-colors hover:bg-nav-hover active:bg-nav-hover"
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-nav-hover bg-nav-hover/60 px-2 py-1.5 text-[12px] font-medium text-nav-foreground transition-colors hover:bg-nav-hover active:bg-nav-hover"
             >
               Explore
             </button>
@@ -1002,7 +1002,7 @@ const Navbar = () => {
             >
               <DropdownMenuTrigger asChild>
                 <button
-                  className={`inline-flex min-h-10 items-center justify-center gap-1 rounded-lg border border-nav-hover px-2 py-2 text-[12px] font-medium text-nav-foreground transition-colors ${
+                  className={`inline-flex min-h-10 items-center justify-center gap-1 rounded-lg border border-nav-hover px-2 py-1.5 text-[12px] font-medium text-nav-foreground transition-colors ${
                     mobileCreateMenuOpen
                       ? "bg-nav-hover"
                       : "bg-nav-hover/60 hover:bg-nav-hover active:bg-nav-hover"
