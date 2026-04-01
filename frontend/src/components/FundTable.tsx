@@ -90,8 +90,8 @@ const FundTable = ({
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const [headerLoading, setHeaderLoading] = useState(false);
-  const [isMobileDescriptionExpanded, setIsMobileDescriptionExpanded] = useState(false);
-  const [showMobileDescriptionToggle, setShowMobileDescriptionToggle] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [showDescriptionToggle, setShowDescriptionToggle] = useState(false);
   const [watchlistExternalIds, setWatchlistExternalIds] = useState<string[]>([]);
   const [watchlistPickerOpen, setWatchlistPickerOpen] = useState(false);
   const [watchlistSearchQuery, setWatchlistSearchQuery] = useState("");
@@ -100,7 +100,7 @@ const FundTable = ({
   const [watchlistSearchResults, setWatchlistSearchResults] = useState<SchemeSearchItem[]>([]);
   const [watchlistSchemeNames, setWatchlistSchemeNames] = useState<Record<string, string>>({});
   const fetchRequestIdRef = useRef(0);
-  const mobileDescriptionRef = useRef<HTMLParagraphElement | null>(null);
+  const descriptionCollapsedRef = useRef<HTMLParagraphElement | null>(null);
 
   const countWords = (input: string) => {
     const trimmed = input.trim();
@@ -339,35 +339,28 @@ const FundTable = ({
   const isNewScreen = !savedFilterExternalId && title.trim().length === 0 && description.trim().length === 0;
 
   useEffect(() => {
-    setIsMobileDescriptionExpanded(false);
+    setIsDescriptionExpanded(false);
   }, [displayDescription]);
 
   useEffect(() => {
     if (headerLoading) return;
 
-    const updateMobileDescriptionToggle = () => {
-      const isMobile = window.matchMedia("(max-width: 639px)").matches;
-      if (!isMobile) {
-        setShowMobileDescriptionToggle(false);
-        setIsMobileDescriptionExpanded(false);
-        return;
-      }
-
-      const node = mobileDescriptionRef.current;
+    const updateDescriptionToggle = () => {
+      const node = descriptionCollapsedRef.current;
       if (!node) return;
 
       const hasOverflow = node.scrollWidth > node.clientWidth || node.scrollHeight > node.clientHeight + 1;
-      setShowMobileDescriptionToggle(hasOverflow);
+      setShowDescriptionToggle(hasOverflow);
     };
 
-    const frame = window.requestAnimationFrame(updateMobileDescriptionToggle);
-    window.addEventListener("resize", updateMobileDescriptionToggle);
+    const frame = window.requestAnimationFrame(updateDescriptionToggle);
+    window.addEventListener("resize", updateDescriptionToggle);
 
     return () => {
       window.cancelAnimationFrame(frame);
-      window.removeEventListener("resize", updateMobileDescriptionToggle);
+      window.removeEventListener("resize", updateDescriptionToggle);
     };
-  }, [displayDescription, headerLoading, isMobileDescriptionExpanded]);
+  }, [displayDescription, headerLoading, isDescriptionExpanded]);
 
   useEffect(() => {
     setActiveSavedFilterId(routeSavedFilterId ?? null);
@@ -729,7 +722,11 @@ const FundTable = ({
       <div className="border-b border-border px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
         <div
           className={`overflow-hidden transition-all duration-300 ${
-            isHeaderCollapsed ? "max-h-0 opacity-0" : "max-h-40 opacity-100 sm:max-h-28"
+            isHeaderCollapsed
+              ? "max-h-0 opacity-0"
+              : isDescriptionExpanded
+                ? "max-h-[320px] opacity-100 sm:max-h-[260px]"
+                : "max-h-40 opacity-100 sm:max-h-28"
           }`}
         >
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
@@ -745,16 +742,16 @@ const FundTable = ({
                     <h1 className="text-[17px] font-semibold leading-tight tracking-tight text-foreground line-clamp-2 break-words sm:text-[18px] sm:line-clamp-none">
                       {displayTitle}
                     </h1>
-                    {isMobileDescriptionExpanded ? (
-                      <p className="text-[12px] leading-5 text-muted-foreground break-words sm:hidden">
+                    {isDescriptionExpanded ? (
+                      <p className="w-full text-[12px] leading-5 text-muted-foreground break-words sm:basis-full sm:text-[13px] sm:leading-relaxed">
                         {displayDescription}
-                        {showMobileDescriptionToggle && (
+                        {showDescriptionToggle && (
                           <>
                             {" "}
                             <button
                               type="button"
-                              onClick={() => setIsMobileDescriptionExpanded(false)}
-                              className="text-[12px] font-medium text-primary"
+                              onClick={() => setIsDescriptionExpanded(false)}
+                              className="text-[12px] font-medium text-primary sm:text-[13px]"
                             >
                               Read less
                             </button>
@@ -762,27 +759,24 @@ const FundTable = ({
                         )}
                       </p>
                     ) : (
-                      <div className="flex items-baseline gap-1 sm:hidden">
+                      <div className="flex min-w-0 items-baseline gap-1 sm:flex-1">
                         <p
-                          ref={mobileDescriptionRef}
-                          className="min-w-0 flex-1 truncate text-[12px] leading-5 text-muted-foreground"
+                          ref={descriptionCollapsedRef}
+                          className="min-w-0 flex-1 truncate text-[12px] leading-5 text-muted-foreground sm:text-[13px] sm:leading-relaxed"
                         >
                           {displayDescription}
                         </p>
-                        {showMobileDescriptionToggle && (
+                        {showDescriptionToggle && (
                           <button
                             type="button"
-                            onClick={() => setIsMobileDescriptionExpanded(true)}
-                            className="shrink-0 text-[12px] font-medium text-primary"
+                            onClick={() => setIsDescriptionExpanded(true)}
+                            className="shrink-0 text-[12px] font-medium text-primary sm:text-[13px]"
                           >
                             Read more
                           </button>
                         )}
                       </div>
                     )}
-                    <p className="hidden text-[12px] leading-5 text-muted-foreground break-words sm:block sm:text-[13px] sm:leading-relaxed sm:line-clamp-none">
-                      {displayDescription}
-                    </p>
                   </>
                 )}
               </div>
