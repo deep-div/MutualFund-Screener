@@ -689,22 +689,22 @@ const FundTable = ({
               </button>
             </div>
             <div className="grid flex-1 min-h-0 gap-3 overflow-y-auto px-4 py-3 sm:gap-4 sm:px-5 sm:py-4 scrollbar-mobile-hidden">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <div className="relative h-10">
+                <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="text"
                   value={watchlistSearchQuery}
                   onChange={(event) => setWatchlistSearchQuery(event.target.value)}
                   placeholder="Search mutual funds to add"
-                  className="h-10 w-full rounded-md border border-border bg-background pl-9 pr-3 text-[13px] text-foreground outline-none ring-0 transition-colors placeholder:text-muted-foreground focus:border-primary"
+                  className="block h-full w-full rounded-md border border-border bg-background pl-9 pr-3 text-[13px] text-foreground outline-none ring-0 transition-colors placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>
-              <div className="grid gap-3 md:grid-cols-[1fr_1fr] md:max-h-[44vh] md:min-h-[220px] md:gap-4 md:overflow-hidden">
+              <div className="grid gap-3 md:grid-cols-[1fr_1fr] md:gap-4 md:overflow-hidden">
                 <div className="flex min-h-0 flex-col rounded-lg border border-border bg-background">
                   <div className="border-b border-border px-3 py-2 text-[12px] font-medium text-muted-foreground">
                     Search Results
                   </div>
-                  <div className="min-h-[160px] max-h-[28vh] overflow-y-auto overflow-x-hidden p-2 md:h-full md:min-h-0 md:max-h-[36vh] scrollbar-mobile-hidden">
+                  <div className="h-[200px] min-h-[200px] max-h-[200px] overflow-y-auto overflow-x-hidden p-2 md:h-[320px] md:min-h-[320px] md:max-h-[320px] scrollbar-mobile-hidden">
                     {watchlistSearchLoading ? (
                       <div className="space-y-2 p-1">
                         {Array.from({ length: 6 }).map((_, idx) => (
@@ -727,19 +727,19 @@ const FundTable = ({
                           return (
                             <div
                               key={externalId || scheme.scheme_sub_name}
-                              className="flex flex-col gap-2 rounded-md border border-border bg-white px-3 py-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3"
+                              className="flex h-[72px] items-start justify-between gap-3 overflow-hidden rounded-md border border-border bg-white px-3 py-2"
                             >
-                              <div className="min-w-0">
-                                <p className="text-[13px] font-medium text-foreground whitespace-normal break-words leading-5">
+                              <div className="min-w-0 flex-1">
+                                <p className="line-clamp-2 text-[13px] font-medium text-foreground leading-5">
                                   {scheme.scheme_sub_name}
                                 </p>
-                                <p className="text-[11px] text-muted-foreground whitespace-normal break-words leading-4">
+                                <p className="line-clamp-1 text-[11px] text-muted-foreground leading-4">
                                   {scheme.scheme_sub_category}
                                 </p>
                               </div>
                               <button
                                 type="button"
-                                className={`self-end shrink-0 rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors sm:self-auto ${
+                                className={`shrink-0 self-center rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
                                   isAdded
                                     ? "border border-border text-muted-foreground hover:bg-surface-hover"
                                     : "bg-[#0f1729] text-white hover:bg-[#0b1322]"
@@ -766,7 +766,7 @@ const FundTable = ({
                   <div className="border-b border-border px-3 py-2 text-[12px] font-medium text-muted-foreground">
                     Selected Funds
                   </div>
-                  <div className="min-h-[160px] max-h-[28vh] overflow-y-auto overflow-x-hidden p-2 md:h-full md:min-h-0 md:max-h-[36vh] scrollbar-mobile-hidden">
+                  <div className="h-[200px] min-h-[200px] max-h-[200px] overflow-y-auto overflow-x-hidden p-2 md:h-[320px] md:min-h-[320px] md:max-h-[320px] scrollbar-mobile-hidden">
                     {normalizedWatchlistExternalIds.length === 0 ? (
                       <p className="px-2 py-3 text-[12px] text-muted-foreground">No funds selected yet.</p>
                     ) : (
@@ -774,16 +774,16 @@ const FundTable = ({
                         {normalizedWatchlistExternalIds.map((externalId) => (
                           <div
                             key={`selected-${externalId}`}
-                            className="flex flex-col gap-2 rounded-md border border-border bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+                            className="flex h-[64px] items-center justify-between gap-3 overflow-hidden rounded-md border border-border bg-white px-3 py-2"
                           >
-                            <div className="min-w-0">
-                              <p className="text-[13px] font-medium text-foreground whitespace-normal break-words leading-5">
+                            <div className="min-w-0 flex-1">
+                              <p className="line-clamp-2 text-[13px] font-medium text-foreground leading-5">
                                 {watchlistSchemeNames[externalId] || "Selected fund"}
                               </p>
                             </div>
                             <button
                               type="button"
-                              className="self-end shrink-0 rounded-md border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-surface-hover sm:self-auto"
+                              className="shrink-0 rounded-md border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-surface-hover"
                               onClick={() => removeSchemeFromWatchlist(externalId)}
                             >
                               Remove
