@@ -61,8 +61,10 @@ const Profile = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <TickerTape />
-      <Navbar />
+      <div className="sticky top-0 z-[90] bg-[#0f1729] sm:static sm:z-auto sm:bg-transparent">
+        <TickerTape />
+        <Navbar />
+      </div>
       <div className="flex-1 px-4 py-6 sm:px-6">
         <div className="mx-auto w-full max-w-5xl">
           <div className="flex items-center justify-between mb-6">
