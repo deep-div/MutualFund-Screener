@@ -8,6 +8,7 @@ interface FilterAddModalProps {
   enabledFilters: string[];
   onChangeEnabled: (next: string[]) => void;
 }
+const MOBILE_ADD_FILTERS_HISTORY_KEY = "__mf_mobile_add_filters_popup";
 
 const buildFilterHint = (filter: FilterDefinition) => {
   const id = filter.id;
@@ -62,6 +63,8 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
   const [searchQuery, setSearchQuery] = useState("");
   const [activeHintId, setActiveHintId] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const mobileAddFiltersHistoryEntryRef = useRef(false);
+  const onCloseRef = useRef(onClose);
 
   const selectableFilters = useMemo(
     () => FILTER_DEFINITIONS.filter((filter) => !PINNED_FILTERS.includes(filter.id)),
@@ -100,6 +103,10 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
   };
 
   useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
     const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node | null;
       if (!target) return;
@@ -115,6 +122,50 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
       document.removeEventListener("touchstart", handleOutsideClick);
     };
   }, [onClose]);
+
+  useEffect(() => {
+    const isMobileViewport = () => window.matchMedia("(max-width: 1023px)").matches;
+    const hasAddFiltersMarker = (state: unknown) =>
+      Boolean(
+        state &&
+          typeof state === "object" &&
+          MOBILE_ADD_FILTERS_HISTORY_KEY in (state as Record<string, unknown>)
+      );
+
+    if (isMobileViewport() && !mobileAddFiltersHistoryEntryRef.current) {
+      const currentState =
+        window.history.state && typeof window.history.state === "object" ? window.history.state : {};
+      window.history.pushState(
+        { ...currentState, [MOBILE_ADD_FILTERS_HISTORY_KEY]: true },
+        "",
+        window.location.href
+      );
+      mobileAddFiltersHistoryEntryRef.current = true;
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      if (!isMobileViewport()) return;
+      if (!mobileAddFiltersHistoryEntryRef.current) return;
+      if (hasAddFiltersMarker(event.state)) return;
+      mobileAddFiltersHistoryEntryRef.current = false;
+      onCloseRef.current();
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      if (!isMobileViewport()) {
+        mobileAddFiltersHistoryEntryRef.current = false;
+        return;
+      }
+      if (!mobileAddFiltersHistoryEntryRef.current) return;
+      const hasMarker = hasAddFiltersMarker(window.history.state);
+      mobileAddFiltersHistoryEntryRef.current = false;
+      if (hasMarker) {
+        window.history.back();
+      }
+    };
+  }, []);
 
   return (
     <motion.div

@@ -11,12 +11,13 @@ import {
 } from "@/data/filters";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDefaultFilters, getUserFilters, SavedUserFilter } from "@/services/userService";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 const NEW_WATCHLIST_EVENT = "mf_new_watchlist_requested";
 const OPEN_MOBILE_FILTERS_EVENT = "mf_open_mobile_filters";
+const MOBILE_FILTERS_HISTORY_KEY = "__mf_mobile_filters_popup";
 type BuilderType = "screen" | "watchlist";
 
 const Index = () => {
@@ -38,6 +39,7 @@ const Index = () => {
   const [restoringSavedFilter, setRestoringSavedFilter] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [desktopFiltersCollapsed, setDesktopFiltersCollapsed] = useState(false);
+  const mobileFiltersHistoryEntryRef = useRef(false);
 
   useEffect(() => {
     if (savedFilterId) return;
@@ -211,6 +213,58 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
+    const isMobileViewport = () => window.matchMedia("(max-width: 1023px)").matches;
+    const hasMobileFiltersMarker = (state: unknown) =>
+      Boolean(
+        state &&
+          typeof state === "object" &&
+          MOBILE_FILTERS_HISTORY_KEY in (state as Record<string, unknown>)
+      );
+
+    const handlePopState = (event: PopStateEvent) => {
+      if (!isMobileViewport()) return;
+      if (!mobileFiltersOpen || !mobileFiltersHistoryEntryRef.current) return;
+      if (hasMobileFiltersMarker(event.state)) return;
+      mobileFiltersHistoryEntryRef.current = false;
+      setMobileFiltersOpen(false);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [mobileFiltersOpen]);
+
+  useEffect(() => {
+    const isMobileViewport = () => window.matchMedia("(max-width: 1023px)").matches;
+    const hasMobileFiltersMarker = (state: unknown) =>
+      Boolean(
+        state &&
+          typeof state === "object" &&
+          MOBILE_FILTERS_HISTORY_KEY in (state as Record<string, unknown>)
+      );
+
+    if (!isMobileViewport()) {
+      mobileFiltersHistoryEntryRef.current = false;
+      return;
+    }
+
+    if (mobileFiltersOpen) {
+      if (mobileFiltersHistoryEntryRef.current) return;
+      const currentState =
+        window.history.state && typeof window.history.state === "object" ? window.history.state : {};
+      window.history.pushState({ ...currentState, [MOBILE_FILTERS_HISTORY_KEY]: true }, "", window.location.href);
+      mobileFiltersHistoryEntryRef.current = true;
+      return;
+    }
+
+    if (!mobileFiltersHistoryEntryRef.current) return;
+    const hasMarker = hasMobileFiltersMarker(window.history.state);
+    mobileFiltersHistoryEntryRef.current = false;
+    if (hasMarker) {
+      window.history.back();
+    }
+  }, [mobileFiltersOpen]);
+
+  useEffect(() => {
     if (!savedFilterId) {
       setRestoredFilterExternalId(null);
       setInitialScreenTitle("");
@@ -365,7 +419,7 @@ const Index = () => {
               onClick={() => setMobileFiltersOpen(false)}
               aria-label="Close filters"
             />
-            <div className="absolute inset-y-0 left-0 w-[85vw] max-w-[320px]">
+            <div className="absolute inset-0 sm:inset-y-0 sm:left-0 sm:w-[85vw] sm:max-w-[320px]">
               <FilterSidebar
                 className="w-full border-r border-border shadow-xl"
                 enabledFilters={enabledFilters}
