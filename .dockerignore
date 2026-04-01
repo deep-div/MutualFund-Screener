@@ -255,8 +255,6 @@ frontend/*.sw?
 node_modules
 dist
 build
-.env
-.env.*
 *.log
 
 # Git extra
