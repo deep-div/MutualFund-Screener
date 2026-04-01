@@ -308,7 +308,7 @@ const FilterSidebar = ({
                     {!filter.pinned && (
                       <button
                         onClick={() => removeFilter(filter.id)}
-                        className="text-[11px] font-medium text-muted-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 hover:text-negative"
+                        className="text-[11px] font-medium text-muted-foreground opacity-100 transition-opacity duration-150 hover:text-negative sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 sm:focus:opacity-100"
                       >
                         Remove
                       </button>
