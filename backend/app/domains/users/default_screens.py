@@ -460,9 +460,6 @@ HYBRID_DEFAULT_SCREENS = [
             "screens": {
                 "scheme_class": {"in": ["Hybrid"]},
                 "scheme_sub_category": {"in": ["Balanced Hybrid Fund"]},
-                "cagr_3y": {"gte": 8.5},
-                "volatility": {"lte": 13},
-                "mdd_three_year_pct": {"lte": 16},
             },
             "sort_field": "mdd_three_year_pct",
             "sort_order": "asc",
