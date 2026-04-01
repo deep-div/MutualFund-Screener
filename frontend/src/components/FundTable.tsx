@@ -109,6 +109,7 @@ const FundTable = ({
   const [watchlistSearchResults, setWatchlistSearchResults] = useState<SchemeSearchItem[]>([]);
   const [watchlistSchemeNames, setWatchlistSchemeNames] = useState<Record<string, string>>({});
   const fetchRequestIdRef = useRef(0);
+  const tableScrollContainerRef = useRef<HTMLDivElement | null>(null);
   const descriptionCollapsedRef = useRef<HTMLParagraphElement | null>(null);
   const mobileWatchlistPickerHistoryEntryRef = useRef(false);
 
@@ -524,6 +525,15 @@ const FundTable = ({
     initialSortOrder,
     initialExternalIds,
   ]);
+
+  useEffect(() => {
+    if (!showEmptyWatchlistState) return;
+    const container = tableScrollContainerRef.current;
+    if (!container) return;
+
+    container.scrollTo({ left: 0, top: 0, behavior: "auto" });
+    setIsHeaderCollapsed(false);
+  }, [showEmptyWatchlistState]);
 
   const openEditor = () => {
     if (!user) {
@@ -941,6 +951,7 @@ const FundTable = ({
 
       <div className="flex-1 min-h-0">
         <div
+          ref={tableScrollContainerRef}
           className={`relative h-full w-full ${
             shouldLockTableScroll ? "overflow-hidden" : "overflow-auto scrollbar-thin"
           } ${onOpenMobileFilters ? "pb-20 sm:pb-0" : ""}`}
