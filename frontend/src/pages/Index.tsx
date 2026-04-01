@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import TickerTape from "@/components/TickerTape";
 import FilterSidebar from "@/components/FilterSidebar";
 import FundTable from "@/components/FundTable";
+import { listSchemes } from "@/services/mutualFundService";
 import {
   FILTER_DEFINITIONS_BY_ID,
   DEFAULT_ENABLED_FILTERS,
@@ -18,6 +19,7 @@ const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 const NEW_WATCHLIST_EVENT = "mf_new_watchlist_requested";
 const OPEN_MOBILE_FILTERS_EVENT = "mf_open_mobile_filters";
 const MOBILE_FILTERS_HISTORY_KEY = "__mf_mobile_filters_popup";
+const WATCHLIST_DERIVED_FILTER_FETCH_LIMIT = 100;
 type BuilderType = "screen" | "watchlist";
 
 const Index = () => {
@@ -287,11 +289,69 @@ const Index = () => {
       const normalizedExternalId = externalId.trim().toLowerCase();
       if (!normalizedExternalId) return;
 
-      const applySelectedFilter = (selected: SavedUserFilter) => {
+      const normalizeFilterId = (id: string) => {
+        const normalized = String(id ?? "").trim();
+        if (normalized === "scheme_category") return "scheme_sub_category";
+        return normalized;
+      };
+
+      const deriveWatchlistSchemeFilters = async (externalIds: string[]) => {
+        const normalizedExternalIds = Array.from(
+          new Set(
+            (Array.isArray(externalIds) ? externalIds : [])
+              .map((id) => String(id ?? "").trim())
+              .filter((id) => id.length > 0)
+          )
+        );
+        if (normalizedExternalIds.length === 0) return {};
+
+        const schemeClassSet = new Set<string>();
+        const subCategorySet = new Set<string>();
+        let offset = 0;
+        let total = Number.POSITIVE_INFINITY;
+
+        while (offset < total) {
+          const response = await listSchemes(
+            {
+              screens: {},
+              scheme_external_id: normalizedExternalIds,
+            },
+            {
+              limit: WATCHLIST_DERIVED_FILTER_FETCH_LIMIT,
+              offset,
+            }
+          );
+
+          const items = Array.isArray(response?.items) ? response.items : [];
+          items.forEach((item) => {
+            const schemeClass = String(item.scheme_class ?? "").trim();
+            const schemeSubCategory = String(item.scheme_sub_category ?? "").trim();
+            if (schemeClass) schemeClassSet.add(schemeClass);
+            if (schemeSubCategory) subCategorySet.add(schemeSubCategory);
+          });
+
+          if (items.length === 0) break;
+          total = typeof response?.total === "number" ? response.total : items.length;
+          offset += items.length;
+        }
+
+        const derived: FilterValueMap = {};
+        if (schemeClassSet.size > 0) {
+          derived["scheme_class"] = { value: Array.from(schemeClassSet) };
+        }
+        if (subCategorySet.size > 0) {
+          derived["scheme_sub_category"] = { value: Array.from(subCategorySet) };
+        }
+        return derived;
+      };
+
+      const applySelectedFilter = async (selected: SavedUserFilter) => {
         const savedFilterMap = selected.filters?.filters ?? {};
         const restoredValues: FilterValueMap = {};
         Object.entries(savedFilterMap).forEach(([key, condition]) => {
           if (!condition || typeof condition !== "object") return;
+          const normalizedKey = normalizeFilterId(key);
+          if (!normalizedKey || !FILTER_DEFINITIONS_BY_ID[normalizedKey]) return;
           const nextValue: { gte?: number | ""; lte?: number | ""; value?: string | string[] } = {};
           if ("gte" in condition) nextValue.gte = Number(condition.gte as number);
           if ("lte" in condition) nextValue.lte = Number(condition.lte as number);
@@ -299,13 +359,36 @@ const Index = () => {
           if ("in" in condition && Array.isArray(condition.in)) {
             nextValue.value = condition.in.map((entry) => String(entry));
           }
-          if (Object.keys(nextValue).length > 0) restoredValues[key] = nextValue;
+          if (Object.keys(nextValue).length > 0) restoredValues[normalizedKey] = nextValue;
         });
 
+        const selectedExternalIds = Array.isArray(selected.external_ids) ? selected.external_ids : [];
+        const isWatchlistFilter =
+          selected.screen_type === "watchlist" || selectedExternalIds.length > 0;
+        if (isWatchlistFilter) {
+          const hasSchemeClass = Boolean(restoredValues["scheme_class"]?.value);
+          const hasSubCategory = Boolean(restoredValues["scheme_sub_category"]?.value);
+          if (!hasSchemeClass || !hasSubCategory) {
+            try {
+              const derivedWatchlistFilters = await deriveWatchlistSchemeFilters(selectedExternalIds);
+              if (!hasSchemeClass && derivedWatchlistFilters["scheme_class"]) {
+                restoredValues["scheme_class"] = derivedWatchlistFilters["scheme_class"];
+              }
+              if (!hasSubCategory && derivedWatchlistFilters["scheme_sub_category"]) {
+                restoredValues["scheme_sub_category"] = derivedWatchlistFilters["scheme_sub_category"];
+              }
+            } catch {
+              // If derivation fails, keep available saved filter values.
+            }
+          }
+        }
+
         const savedEnabledFilters = Array.isArray(selected.filters?.enabled_filters)
-          ? selected.filters.enabled_filters.filter((id) => Boolean(FILTER_DEFINITIONS_BY_ID[id]))
+          ? selected.filters.enabled_filters
+              .map((id) => normalizeFilterId(id))
+              .filter((id) => Boolean(FILTER_DEFINITIONS_BY_ID[id]))
           : [];
-        const restoredFilterIds = Object.keys(savedFilterMap).filter((id) => Boolean(FILTER_DEFINITIONS_BY_ID[id]));
+        const restoredFilterIds = Object.keys(restoredValues).filter((id) => Boolean(FILTER_DEFINITIONS_BY_ID[id]));
         const resolvedEnabledFilters = Array.from(
           new Set([...PINNED_FILTERS, ...savedEnabledFilters, ...restoredFilterIds])
         );
@@ -317,10 +400,10 @@ const Index = () => {
         setInitialScreenUpdatedAt(selected.updated_at ?? null);
         setInitialSortField(selected.filters?.sort_field ?? null);
         setInitialSortOrder(selected.filters?.sort_order ?? null);
-        setInitialExternalIds(Array.isArray(selected.external_ids) ? selected.external_ids : []);
+        setInitialExternalIds(selectedExternalIds);
         setBuilderType(
           selected.screen_type === "watchlist" ||
-            (Array.isArray(selected.external_ids) && selected.external_ids.length > 0)
+            selectedExternalIds.length > 0
             ? "watchlist"
             : "screen"
         );
@@ -335,7 +418,7 @@ const Index = () => {
           (item) => item.external_id?.trim().toLowerCase() === normalizedExternalId
         );
         if (defaultSelected) {
-          applySelectedFilter(defaultSelected);
+          await applySelectedFilter(defaultSelected);
           return;
         }
 
@@ -349,7 +432,7 @@ const Index = () => {
           setRestoredFilterExternalId(null);
           return;
         }
-        applySelectedFilter(selected);
+        await applySelectedFilter(selected);
       } catch {
         // If restore fails, keep current in-memory/local state.
       } finally {
