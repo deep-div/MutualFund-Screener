@@ -191,9 +191,6 @@ const TickerTape = () => {
             const content = (
               <>
                 <span className="font-medium text-nav-foreground tracking-tight">{item.name}</span>
-                <span className="text-nav-foreground">
-                  {item.price.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                </span>
                 <span className={item.isPositive ? "text-positive" : "text-negative"}>
                   {item.isPositive ? UP_ARROW : DOWN_ARROW} {item.change.toFixed(2)}%
                 </span>
@@ -232,7 +229,6 @@ type LeaderboardItem = {
   external_id: string;
   scheme_code: number;
   scheme_sub_name: string;
-  current_nav: number;
   nav_change_1d?: number;
   cagr_3y?: number | null;
 };
@@ -247,7 +243,6 @@ type LeaderboardResponse = {
 
 type TickerItem = {
   name: string;
-  price: number;
   change: number;
   isPositive: boolean;
   schemeId?: string | number;
@@ -270,7 +265,6 @@ const mapLeaderboardItem = (item: LeaderboardItem): TickerItem => {
 
   return {
     name: item.scheme_sub_name,
-    price: item.current_nav,
     change: Math.abs(change),
     isPositive: change >= 0,
     schemeId: item.external_id ?? item.scheme_code,
