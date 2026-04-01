@@ -704,7 +704,7 @@ const FundTable = ({
                   <div className="border-b border-border px-3 py-2 text-[12px] font-medium text-muted-foreground">
                     Search Results
                   </div>
-                  <div className="h-[200px] min-h-[200px] max-h-[200px] overflow-y-auto overflow-x-hidden p-2 md:h-[320px] md:min-h-[320px] md:max-h-[320px] scrollbar-mobile-hidden">
+                  <div className="h-[200px] min-h-[200px] max-h-[200px] overflow-y-auto overflow-x-hidden p-2 md:h-[260px] md:min-h-[260px] md:max-h-[260px] scrollbar-mobile-hidden">
                     {watchlistSearchLoading ? (
                       <div className="space-y-2 p-1">
                         {Array.from({ length: 6 }).map((_, idx) => (
@@ -766,7 +766,7 @@ const FundTable = ({
                   <div className="border-b border-border px-3 py-2 text-[12px] font-medium text-muted-foreground">
                     Selected Funds
                   </div>
-                  <div className="h-[200px] min-h-[200px] max-h-[200px] overflow-y-auto overflow-x-hidden p-2 md:h-[320px] md:min-h-[320px] md:max-h-[320px] scrollbar-mobile-hidden">
+                  <div className="h-[200px] min-h-[200px] max-h-[200px] overflow-y-auto overflow-x-hidden p-2 md:h-[260px] md:min-h-[260px] md:max-h-[260px] scrollbar-mobile-hidden">
                     {normalizedWatchlistExternalIds.length === 0 ? (
                       <p className="px-2 py-3 text-[12px] text-muted-foreground">No funds selected yet.</p>
                     ) : (
