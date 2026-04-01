@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, ChevronDown, LogOut, User, Bookmark, LayoutTemplate, ListChecks, Trash2, Check } from "lucide-react";
+import { Search, ChevronDown, LogOut, User, Bookmark, LayoutTemplate, ListChecks, Trash2, Check, SlidersHorizontal, Compass, PlusCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
@@ -1087,23 +1087,31 @@ const Navbar = () => {
 
       {isScreenerRoute && (
         <div
-          className="fixed inset-x-0 z-[72] border-t border-nav-hover bg-[#0f1729] px-2 pt-1.5 sm:hidden"
+          className="fixed inset-x-0 z-[72] border-t border-slate-200 bg-white/90 px-2 pt-1.5 backdrop-blur-sm sm:hidden"
           style={{ bottom: "max(0px, env(safe-area-inset-bottom))" }}
         >
-          <div className="mx-auto grid max-w-[640px] grid-cols-3 gap-2 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
+          <div className="grid w-full grid-cols-3 gap-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
             <button
               type="button"
               onClick={handleMobileFiltersClick}
-              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-nav-hover bg-nav-hover/60 px-2 py-1.5 text-[12px] font-medium text-nav-foreground transition-colors hover:bg-nav-hover active:bg-nav-hover"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white/70 px-2 py-2 text-[12px] font-semibold tracking-[0.01em] text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all hover:bg-white active:scale-[0.99] active:bg-slate-100"
+              aria-label="Open filters"
             >
-              Filters
+              <SlidersHorizontal className="h-4 w-4" />
+              <span>Filters</span>
             </button>
             <button
               type="button"
               onClick={handleExploreClick}
-              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-nav-hover bg-nav-hover/60 px-2 py-1.5 text-[12px] font-medium text-nav-foreground transition-colors hover:bg-nav-hover active:bg-nav-hover"
+              className={`inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[12px] font-semibold tracking-[0.01em] transition-all active:scale-[0.99] ${
+                screenExplorerOpen
+                  ? "border-sky-300 bg-sky-50 text-sky-700 shadow-[0_0_0_1px_rgba(56,189,248,0.12)]"
+                  : "border-slate-200 bg-white/70 text-slate-700 hover:bg-white active:bg-slate-100"
+              }`}
+              aria-label="Open explore screens"
             >
-              Explore
+              <Compass className="h-4 w-4" />
+              <span>Explore</span>
             </button>
             <DropdownMenu
               modal={false}
@@ -1118,12 +1126,15 @@ const Navbar = () => {
             >
               <DropdownMenuTrigger asChild>
                 <button
-                  className={`inline-flex min-h-10 items-center justify-center gap-1 rounded-lg border border-nav-hover px-2 py-1.5 text-[12px] font-medium text-nav-foreground transition-colors ${
+                  className={`inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[12px] font-semibold tracking-[0.01em] transition-all active:scale-[0.99] ${
                     mobileCreateMenuOpen
-                      ? "bg-nav-hover"
-                      : "bg-nav-hover/60 hover:bg-nav-hover active:bg-nav-hover"
+                      ? "border-emerald-300 bg-emerald-50 text-emerald-700 shadow-[0_0_0_1px_rgba(16,185,129,0.12)]"
+                      : "border-slate-200 bg-white/70 text-slate-700 hover:bg-white active:bg-slate-100"
                   }`}
+                  aria-expanded={mobileCreateMenuOpen}
+                  aria-label="Create menu"
                 >
+                  <PlusCircle className="h-4 w-4" />
                   <span>Create</span>
                   <ChevronDown className={`h-3.5 w-3.5 transition-transform ${mobileCreateMenuOpen ? "rotate-180" : ""}`} />
                 </button>
@@ -1132,7 +1143,7 @@ const Navbar = () => {
                 align="center"
                 side="top"
                 sideOffset={8}
-                className="w-[150px] rounded-xl border border-slate-200 bg-white p-1.5 shadow-2xl"
+                className="w-[170px] rounded-xl border border-slate-200 bg-white p-1.5 shadow-2xl"
               >
                 <DropdownMenuItem
                   className="group cursor-pointer rounded-lg px-2.5 py-2 text-[13px] font-semibold text-slate-900 focus:bg-slate-100 focus:text-slate-900 data-[highlighted]:bg-slate-100 data-[highlighted]:text-slate-900"
