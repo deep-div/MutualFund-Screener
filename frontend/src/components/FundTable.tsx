@@ -23,6 +23,15 @@ const USER_FILTER_ID_REGEX = /^[0-9a-f]{32}$/i;
 const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 const WATCHLIST_SEARCH_LIMIT = 12;
 const MOBILE_WATCHLIST_PICKER_HISTORY_KEY = "__mf_mobile_watchlist_picker_popup";
+const TRACKER_SCHEME_CLASS_LABELS: Record<string, string> = {
+  equity: "Equity",
+  debt: "Debt",
+  hybrid: "Hybrid",
+  commodity: "Commodity",
+  other: "Others",
+  others: "Others",
+};
+const TRACKER_SCHEME_CLASS_ORDER = ["Commodity", "Debt", "Equity", "Hybrid", "Others"] as const;
 type BuilderType = "screen" | "watchlist";
 
 const baseColumns: Array<{
@@ -365,7 +374,44 @@ const FundTable = ({
   }, [watchlistPickerOpen]);
 
   const canLoadMore = items.length < total;
-  const defaultTitle = isWatchlist ? WATCHLIST_DEFAULT_TITLE : SCREEN_DEFAULT_TITLE;
+  const selectedSchemeClassLabels = useMemo(() => {
+    if (isWatchlist) return null;
+    const schemeClassFilter = filters["scheme_class"];
+    if (!schemeClassFilter || typeof schemeClassFilter !== "object") return null;
+
+    const rawValues: string[] = [];
+    const eqValue = schemeClassFilter["eq"];
+    const inValue = schemeClassFilter["in"];
+
+    if (typeof eqValue === "string") {
+      rawValues.push(eqValue);
+    }
+    if (Array.isArray(inValue)) {
+      inValue.forEach((entry) => {
+        if (typeof entry === "string") {
+          rawValues.push(entry);
+        }
+      });
+    }
+
+    const mappedValues = new Set<string>();
+    for (const value of rawValues) {
+      const normalized = value.trim().toLowerCase();
+      if (!normalized) continue;
+      const mapped = TRACKER_SCHEME_CLASS_LABELS[normalized];
+      if (mapped) mappedValues.add(mapped);
+    }
+
+    if (mappedValues.size === 0) return null;
+    return TRACKER_SCHEME_CLASS_ORDER.filter((label) => mappedValues.has(label));
+  }, [filters, isWatchlist]);
+  const defaultTitle = isWatchlist
+    ? WATCHLIST_DEFAULT_TITLE
+    : selectedSchemeClassLabels && selectedSchemeClassLabels.length === TRACKER_SCHEME_CLASS_ORDER.length
+      ? "Market Tracker"
+      : selectedSchemeClassLabels && selectedSchemeClassLabels.length > 0
+        ? `${selectedSchemeClassLabels.join(" ")} Tracker`
+        : SCREEN_DEFAULT_TITLE;
   const defaultDescription = isWatchlist ? WATCHLIST_DEFAULT_DESCRIPTION : SCREEN_DEFAULT_DESCRIPTION;
   const displayTitle = title.trim() || defaultTitle;
   const displayDescription = description.trim() || defaultDescription;
@@ -477,8 +523,8 @@ const FundTable = ({
       return;
     }
     setSaveError(null);
-    setDraftTitle(limitByWordCount(title, TITLE_WORD_LIMIT));
-    setDraftDescription(limitByWordCount(description, DESCRIPTION_WORD_LIMIT));
+    setDraftTitle(limitByWordCount(title.trim() || defaultTitle, TITLE_WORD_LIMIT));
+    setDraftDescription(limitByWordCount(description.trim() || defaultDescription, DESCRIPTION_WORD_LIMIT));
     setEditorOpen(true);
   };
 
@@ -577,7 +623,6 @@ const FundTable = ({
                 <Input
                   id="screen-title"
                   value={draftTitle}
-                  placeholder={defaultTitle}
                   onChange={(event) =>
                     setDraftTitle(limitTypedInputByWordCount(event.target.value, TITLE_WORD_LIMIT))
                   }
@@ -593,7 +638,6 @@ const FundTable = ({
                 <textarea
                   id="screen-description"
                   value={draftDescription}
-                  placeholder={defaultDescription}
                   rows={4}
                   className="w-full min-h-[132px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                   onChange={(event) =>
