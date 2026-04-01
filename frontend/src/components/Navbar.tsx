@@ -26,6 +26,7 @@ const NEW_WATCHLIST_EVENT = "mf_new_watchlist_requested";
 const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 const OPEN_MOBILE_FILTERS_EVENT = "mf_open_mobile_filters";
 const CLOSE_MOBILE_WATCHLIST_PICKER_EVENT = "mf_close_mobile_watchlist_picker";
+const FILTERS_SESSION_KEY = "mfs:filters:temp";
 const SAVED_FILTERS_BATCH_SIZE = 10;
 const MOBILE_EXPLORE_HISTORY_KEY = "__mf_mobile_explore_popup";
 
@@ -478,6 +479,27 @@ const Navbar = () => {
   const handleMobileFiltersClick = () => {
     if (!isScreenerRoute) return;
     setMobileFiltersOpenState(true);
+  };
+
+  const handleLogout = async () => {
+    closeAllNonProfilePopups();
+    setProfileMenuOpen(false);
+    setScreenExplorerOpen(false);
+
+    try {
+      sessionStorage.removeItem(FILTERS_SESSION_KEY);
+    } catch {
+      // Ignore storage errors.
+    }
+
+    try {
+      await logout();
+      window.location.assign("/");
+    } catch (error) {
+      toast("Logout failed", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    }
   };
 
   const handleLoadMoreSavedFilters = async () => {
@@ -1063,7 +1085,7 @@ const Navbar = () => {
 
               <DropdownMenuItem
                   className="text-[14px] cursor-pointer text-destructive py-2.5"
-                  onClick={() => void logout()}
+                  onClick={() => void handleLogout()}
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
