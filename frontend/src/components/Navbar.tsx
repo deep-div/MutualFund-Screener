@@ -24,6 +24,7 @@ const LEADERBOARDS_LOADING_EVENT = "mf_leaderboards_loading";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 const NEW_WATCHLIST_EVENT = "mf_new_watchlist_requested";
 const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
+const OPEN_MOBILE_FILTERS_EVENT = "mf_open_mobile_filters";
 const SAVED_FILTERS_BATCH_SIZE = 10;
 
 const formatNav = (value?: number | null) =>
@@ -104,6 +105,7 @@ const Navbar = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [pendingDeleteExternalIds, setPendingDeleteExternalIds] = useState<string[]>([]);
   const [createMenuOpen, setCreateMenuOpen] = useState(false);
+  const [mobileCreateMenuOpen, setMobileCreateMenuOpen] = useState(false);
   const [bodyTopOffset, setBodyTopOffset] = useState(56);
   const navRef = useRef<HTMLElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
@@ -115,6 +117,7 @@ const Navbar = () => {
   const isSavedGroup = activeScreenGroup === "saved";
   const isWatchlistGroup = activeScreenGroup === "watchlist";
   const isUserCollectionGroup = isSavedGroup || isWatchlistGroup;
+  const isScreenerRoute = location.pathname === "/" || location.pathname.startsWith("/filters/");
   const activeUserCollection = isSavedGroup ? savedFilters : isWatchlistGroup ? watchlistFilters : [];
   const activeSelectedExternalIds = selectedExternalIds.filter((externalId) =>
     activeUserCollection.some((item) => item.external_id === externalId)
@@ -348,17 +351,18 @@ const Navbar = () => {
   }, [screenExplorerOpen]);
 
   const handleExploreClick = () => {
-    const isScreenerRoute = location.pathname === "/" || location.pathname.startsWith("/filters/");
     if (!isScreenerRoute) {
       navigate("/");
     }
     setCreateMenuOpen(false);
+    setMobileCreateMenuOpen(false);
     setActiveScreenGroup("saved");
     setScreenExplorerOpen(true);
   };
 
   const handleCreateSelection = (type: "screen" | "watchlist") => {
     setCreateMenuOpen(false);
+    setMobileCreateMenuOpen(false);
     setScreenExplorerOpen(false);
     if (!isLoggedIn) {
       toast("Sign in required", {
@@ -373,6 +377,11 @@ const Navbar = () => {
     }
     navigate("/");
     window.dispatchEvent(new CustomEvent(NEW_WATCHLIST_EVENT));
+  };
+
+  const handleMobileFiltersClick = () => {
+    if (!isScreenerRoute) return;
+    window.dispatchEvent(new CustomEvent(OPEN_MOBILE_FILTERS_EVENT));
   };
 
   const handleLoadMoreSavedFilters = async () => {
@@ -587,7 +596,7 @@ const Navbar = () => {
         <div className="order-3 flex w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3 lg:order-none lg:flex-1 lg:justify-center lg:gap-8">
 
           {/* NAV ITEMS */}
-          <div className="-ml-1 sm:ml-0 flex items-center gap-2 overflow-x-auto scrollbar-hidden">
+          <div className="hidden -ml-1 items-center gap-2 overflow-x-auto scrollbar-hidden sm:ml-0 sm:flex">
             <button
               className="min-h-10 whitespace-nowrap rounded-xl px-3 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-nav-hover/80 hover:text-white active:bg-nav-hover active:text-white sm:px-4 sm:text-[14px] lg:px-5 lg:text-[14px]"
               onClick={handleExploreClick}
@@ -961,6 +970,77 @@ const Navbar = () => {
         </div>
 
       </nav>
+
+      {isScreenerRoute && (
+        <div
+          className="fixed inset-x-0 z-[72] border-t border-nav-hover bg-[#0f1729] px-2 pt-2 sm:hidden"
+          style={{ bottom: "max(0px, env(safe-area-inset-bottom))" }}
+        >
+          <div className="mx-auto grid max-w-[640px] grid-cols-3 gap-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+            <button
+              type="button"
+              onClick={handleMobileFiltersClick}
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-nav-hover bg-nav-hover/60 px-2 py-2 text-[12px] font-medium text-nav-foreground transition-colors hover:bg-nav-hover active:bg-nav-hover"
+            >
+              Filters
+            </button>
+            <button
+              type="button"
+              onClick={handleExploreClick}
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-nav-hover bg-nav-hover/60 px-2 py-2 text-[12px] font-medium text-nav-foreground transition-colors hover:bg-nav-hover active:bg-nav-hover"
+            >
+              Explore
+            </button>
+            <DropdownMenu
+              open={mobileCreateMenuOpen}
+              onOpenChange={(nextOpen) => {
+                setMobileCreateMenuOpen(nextOpen);
+                if (nextOpen) {
+                  setScreenExplorerOpen(false);
+                }
+              }}
+            >
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={`inline-flex min-h-10 items-center justify-center gap-1 rounded-lg border border-nav-hover px-2 py-2 text-[12px] font-medium text-nav-foreground transition-colors ${
+                    mobileCreateMenuOpen
+                      ? "bg-nav-hover"
+                      : "bg-nav-hover/60 hover:bg-nav-hover active:bg-nav-hover"
+                  }`}
+                >
+                  <span>Create</span>
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${mobileCreateMenuOpen ? "rotate-180" : ""}`} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="center"
+                side="top"
+                sideOffset={8}
+                className="w-[150px] rounded-xl border border-slate-200 bg-white p-1.5 shadow-2xl"
+              >
+                <DropdownMenuItem
+                  className="group cursor-pointer rounded-lg px-2.5 py-2 text-[13px] font-semibold text-slate-900 focus:bg-slate-100 focus:text-slate-900 data-[highlighted]:bg-slate-100 data-[highlighted]:text-slate-900"
+                  onClick={() => handleCreateSelection("screen")}
+                >
+                  <div className="mr-2 rounded-md border border-slate-200 bg-slate-50 p-1.5 text-slate-700 group-focus:bg-white">
+                    <LayoutTemplate className="h-3.5 w-3.5" />
+                  </div>
+                  <span>Screen</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="group cursor-pointer rounded-lg px-2.5 py-2 text-[13px] font-semibold text-slate-900 focus:bg-slate-100 focus:text-slate-900 data-[highlighted]:bg-slate-100 data-[highlighted]:text-slate-900"
+                  onClick={() => handleCreateSelection("watchlist")}
+                >
+                  <div className="mr-2 rounded-md border border-slate-200 bg-slate-50 p-1.5 text-slate-700 group-focus:bg-white">
+                    <ListChecks className="h-3.5 w-3.5" />
+                  </div>
+                  <span>Watchlist</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      )}
 
       {screenExplorerOpen && (
         <div

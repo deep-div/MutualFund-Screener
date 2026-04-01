@@ -16,6 +16,7 @@ import { useParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 const NEW_WATCHLIST_EVENT = "mf_new_watchlist_requested";
+const OPEN_MOBILE_FILTERS_EVENT = "mf_open_mobile_filters";
 type BuilderType = "screen" | "watchlist";
 
 const Index = () => {
@@ -196,11 +197,16 @@ const Index = () => {
       setScreenResetToken((prev) => prev + 1);
       setMobileFiltersOpen(false);
     };
+    const handleOpenMobileFilters = () => {
+      setMobileFiltersOpen(true);
+    };
     window.addEventListener(NEW_SCREEN_EVENT, handleNewScreen);
     window.addEventListener(NEW_WATCHLIST_EVENT, handleNewWatchlist);
+    window.addEventListener(OPEN_MOBILE_FILTERS_EVENT, handleOpenMobileFilters);
     return () => {
       window.removeEventListener(NEW_SCREEN_EVENT, handleNewScreen);
       window.removeEventListener(NEW_WATCHLIST_EVENT, handleNewWatchlist);
+      window.removeEventListener(OPEN_MOBILE_FILTERS_EVENT, handleOpenMobileFilters);
     };
   }, []);
 
@@ -380,7 +386,6 @@ const Index = () => {
             filters={filtersPayload}
             enabledFilters={enabledFilters}
             builderType={builderType}
-            activeCount={activeCount}
             onOpenMobileFilters={() => setMobileFiltersOpen(true)}
             resetToken={screenResetToken}
             initialTitle={initialScreenTitle}

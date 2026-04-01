@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listSchemes, SchemeListItem, SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
 import { DEFAULT_ENABLED_FILTERS, FILTER_DEFINITIONS_BY_ID } from "@/data/filters";
-import { MoveUp, MoveDown, Pencil, Search, SlidersHorizontal, X } from "lucide-react";
+import { MoveUp, MoveDown, Pencil, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,7 +38,6 @@ interface FundTableProps {
   filters: Record<string, Record<string, number | string | string[]>>;
   enabledFilters: string[];
   builderType?: BuilderType;
-  activeCount?: number;
   onOpenMobileFilters?: () => void;
   onMetaChange?: (meta: Record<string, { min: number | null; max: number | null }> | undefined) => void;
   resetToken?: number;
@@ -56,7 +55,6 @@ const FundTable = ({
   filters,
   enabledFilters,
   builderType = "screen",
-  activeCount = 0,
   onOpenMobileFilters,
   onMetaChange,
   resetToken,
@@ -841,23 +839,11 @@ const FundTable = ({
         {saveError && <div className="mt-3 text-xs text-negative">{saveError}</div>}
       </div>
 
-      {onOpenMobileFilters && (
-        <button
-          type="button"
-          onClick={onOpenMobileFilters}
-          className="fixed left-3 z-40 inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-[12px] font-medium text-foreground shadow-md sm:hidden"
-          style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-          Filters ({activeCount})
-        </button>
-      )}
-
       <div className="flex-1 min-h-0">
         <div
           className={`relative h-full w-full ${
             shouldLockTableScroll ? "overflow-hidden" : "overflow-auto scrollbar-thin"
-          }`}
+          } ${onOpenMobileFilters ? "pb-20 sm:pb-0" : ""}`}
           onScroll={(event) => {
             const nextCollapsed = event.currentTarget.scrollTop > 24;
             setIsHeaderCollapsed((previous) =>
