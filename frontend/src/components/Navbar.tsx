@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, ChevronDown, LogOut, User, Bookmark, LayoutTemplate, ListChecks, Trash2, Check, SlidersHorizontal, Compass, PlusCircle } from "lucide-react";
+import { Search, ChevronDown, LogOut, User, Bookmark, LayoutTemplate, ListChecks, Trash2, Check, SlidersHorizontal } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
@@ -1110,7 +1110,6 @@ const Navbar = () => {
               }`}
               aria-label="Open explore screens"
             >
-              <Compass className="h-4 w-4" />
               <span>Explore</span>
             </button>
             <DropdownMenu
@@ -1134,7 +1133,6 @@ const Navbar = () => {
                   aria-expanded={mobileCreateMenuOpen}
                   aria-label="Create menu"
                 >
-                  <PlusCircle className="h-4 w-4" />
                   <span>Create</span>
                   <ChevronDown className={`h-3.5 w-3.5 transition-transform ${mobileCreateMenuOpen ? "rotate-180" : ""}`} />
                 </button>
