@@ -42,6 +42,51 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
+      - name: Ensure Docker Hub repository is private
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+          DOCKERHUB_REPO: fundscreener
+        run: |
+          set -euo pipefail
+
+          TOKEN="$(curl -fsS \
+            -H 'Content-Type: application/json' \
+            -X POST \
+            -d "{\"username\":\"${DOCKERHUB_USERNAME}\",\"password\":\"${DOCKERHUB_PASSWORD}\"}" \
+            https://hub.docker.com/v2/users/login/ | jq -r '.token // empty')"
+
+          if [ -z "$TOKEN" ]; then
+            echo "Failed to get Docker Hub API token."
+            exit 1
+          fi
+
+          REPO_URL="https://hub.docker.com/v2/repositories/${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}/"
+          STATUS="$(curl -s -o /tmp/repo.json -w '%{http_code}' "$REPO_URL")"
+
+          if [ "$STATUS" = "404" ]; then
+            curl -fsS \
+              -X POST \
+              -H "Authorization: JWT ${TOKEN}" \
+              -H 'Content-Type: application/json' \
+              -d "{\"namespace\":\"${DOCKERHUB_USERNAME}\",\"name\":\"${DOCKERHUB_REPO}\",\"is_private\":true}" \
+              "https://hub.docker.com/v2/repositories/"
+          elif [ "$STATUS" = "200" ]; then
+            IS_PRIVATE="$(jq -r '.is_private' /tmp/repo.json)"
+            if [ "$IS_PRIVATE" != "true" ]; then
+              curl -fsS \
+                -X PATCH \
+                -H "Authorization: JWT ${TOKEN}" \
+                -H 'Content-Type: application/json' \
+                -d '{"is_private": true}' \
+                "$REPO_URL"
+            fi
+          else
+            echo "Unexpected Docker Hub response while checking repository: HTTP ${STATUS}"
+            cat /tmp/repo.json || true
+            exit 1
+          fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
@@ -49,7 +94,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/mutual-fund-screener:v1.0
+            ${{ secrets.DOCKERHUB_USERNAME }}/fundscreener:v1.0
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -59,7 +104,76 @@ jobs:
     needs: [workflow-toggle, build-and-push]
 
     steps:
-      - name: Trigger deploy on Render
+      - name: Update Render image URL in service settings
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+          RENDER_REGISTRY_CREDENTIAL_ID: ${{ secrets.RENDER_REGISTRY_CREDENTIAL_ID }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${RENDER_API_KEY}" ] || [ -z "${RENDER_SERVICE_ID}" ] || [ -z "${DOCKERHUB_USERNAME}" ]; then
+            echo "Missing one of required secrets: RENDER_API_KEY, RENDER_SERVICE_ID, DOCKERHUB_USERNAME."
+            exit 1
+          fi
+
+          IMAGE_PATH="docker.io/${DOCKERHUB_USERNAME}/fundscreener:v1.0"
+
+          SERVICE_JSON="$(curl --fail --show-error --silent \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            "https://api.render.com/v1/services/${RENDER_SERVICE_ID}")"
+
+          OWNER_ID="$(echo "${SERVICE_JSON}" | jq -r '.ownerId // empty')"
+          EXISTING_CRED_ID="$(echo "${SERVICE_JSON}" | jq -r '.registryCredential.id // empty')"
+          REGISTRY_CRED_ID="${EXISTING_CRED_ID}"
+          if [ -z "${REGISTRY_CRED_ID}" ] && [ -n "${RENDER_REGISTRY_CREDENTIAL_ID}" ]; then
+            REGISTRY_CRED_ID="${RENDER_REGISTRY_CREDENTIAL_ID}"
+          fi
+
+          if [ -z "${OWNER_ID}" ]; then
+            echo "Could not read ownerId from Render service."
+            exit 1
+          fi
+
+          if [ -n "${REGISTRY_CRED_ID}" ]; then
+            PATCH_BODY="$(jq -nc \
+              --arg ownerId "${OWNER_ID}" \
+              --arg imagePath "${IMAGE_PATH}" \
+              --arg registryCredentialId "${REGISTRY_CRED_ID}" \
+              '{image:{ownerId:$ownerId,imagePath:$imagePath,registryCredentialId:$registryCredentialId}}')"
+          else
+            PATCH_BODY="$(jq -nc \
+              --arg ownerId "${OWNER_ID}" \
+              --arg imagePath "${IMAGE_PATH}" \
+              '{image:{ownerId:$ownerId,imagePath:$imagePath}}')"
+          fi
+
+          curl --fail --show-error --silent \
+            -X PATCH \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "${PATCH_BODY}" \
+            "https://api.render.com/v1/services/${RENDER_SERVICE_ID}"
+
+      - name: Trigger deploy on Render (Render pulls private Docker Hub image)
         run: |
           curl --fail --show-error --silent \
             -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      - name: Restart Render service
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${RENDER_API_KEY}" ] || [ -z "${RENDER_SERVICE_ID}" ]; then
+            echo "Missing RENDER_API_KEY or RENDER_SERVICE_ID secret."
+            exit 1
+          fi
+
+          curl --fail --show-error --silent \
+            -X POST \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/restart"
