@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, ChevronDown, LogOut, User, Bookmark, LayoutTemplate, ListChecks, Trash2 } from "lucide-react";
+import { Search, ChevronDown, LogOut, User, Bookmark, LayoutTemplate, ListChecks, Trash2, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
@@ -1296,7 +1296,9 @@ const Navbar = () => {
                         className="flex-1 min-h-0 pr-1 overflow-y-auto scrollbar-mobile-hidden"
                       >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
-                          {savedFilters.map((item) => (
+                          {savedFilters.map((item) => {
+                            const isSelected = selectedExternalIds.includes(item.external_id);
+                            return (
                             <div key={item.external_id} className="relative group">
                               <button
                                 className={`w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 ${
@@ -1320,13 +1322,20 @@ const Navbar = () => {
                                 </div>
                               </button>
                               {bulkSelectMode ? (
-                                <input
-                                  type="checkbox"
+                                <button
+                                  type="button"
+                                  role="checkbox"
                                   aria-label={`Select ${item.name?.trim() || "screen"}`}
-                                  checked={selectedExternalIds.includes(item.external_id)}
-                                  onChange={() => toggleSelectedExternalId(item.external_id)}
-                                  className="absolute left-3 top-3 h-4 w-4 rounded border-slate-300 text-[hsl(var(--nav))] focus:ring-[hsl(var(--nav))]"
-                                />
+                                  aria-checked={isSelected}
+                                  onClick={() => toggleSelectedExternalId(item.external_id)}
+                                  className={`absolute left-3 top-3 inline-flex h-4 w-4 items-center justify-center rounded border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[hsl(var(--nav))] ${
+                                    isSelected
+                                      ? "bg-primary border-primary text-primary-foreground"
+                                      : "border-border hover:border-muted-foreground bg-secondary"
+                                  }`}
+                                >
+                                  {isSelected && <Check className="h-3 w-3" />}
+                                </button>
                               ) : (
                                 <button
                                   type="button"
@@ -1339,7 +1348,7 @@ const Navbar = () => {
                                 </button>
                               )}
                             </div>
-                          ))}
+                          )})}
                         </div>
                       </div>
                       {savedFiltersHasMore && (
@@ -1375,7 +1384,9 @@ const Navbar = () => {
                     <>
                       <div className="flex-1 min-h-0 pr-1 overflow-y-auto scrollbar-mobile-hidden">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
-                          {watchlistFilters.map((item) => (
+                          {watchlistFilters.map((item) => {
+                            const isSelected = selectedExternalIds.includes(item.external_id);
+                            return (
                             <div key={item.external_id} className="relative group">
                               <button
                                 className={`w-full min-h-[112px] text-left rounded-xl border border-slate-200 p-3 ${
@@ -1399,13 +1410,20 @@ const Navbar = () => {
                                 </div>
                               </button>
                               {bulkSelectMode ? (
-                                <input
-                                  type="checkbox"
+                                <button
+                                  type="button"
+                                  role="checkbox"
                                   aria-label={`Select ${item.name?.trim() || "watchlist"}`}
-                                  checked={selectedExternalIds.includes(item.external_id)}
-                                  onChange={() => toggleSelectedExternalId(item.external_id)}
-                                  className="absolute left-3 top-3 h-4 w-4 rounded border-slate-300 text-[hsl(var(--nav))] focus:ring-[hsl(var(--nav))]"
-                                />
+                                  aria-checked={isSelected}
+                                  onClick={() => toggleSelectedExternalId(item.external_id)}
+                                  className={`absolute left-3 top-3 inline-flex h-4 w-4 items-center justify-center rounded border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[hsl(var(--nav))] ${
+                                    isSelected
+                                      ? "bg-primary border-primary text-primary-foreground"
+                                      : "border-border hover:border-muted-foreground bg-secondary"
+                                  }`}
+                                >
+                                  {isSelected && <Check className="h-3 w-3" />}
+                                </button>
                               ) : (
                                 <button
                                   type="button"
@@ -1418,7 +1436,7 @@ const Navbar = () => {
                                 </button>
                               )}
                             </div>
-                          ))}
+                          )})}
                         </div>
                       </div>
                       {watchlistFiltersHasMore && (
