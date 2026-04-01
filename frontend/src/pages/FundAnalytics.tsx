@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { TrendingUp, TrendingDown, Activity, BarChart3, Shield, Zap } from "lucide-react";
+import { TrendingUp, TrendingDown, Activity, Shield, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   LineChart,
@@ -18,7 +18,6 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import TickerTape from "@/components/TickerTape";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getSchemeAnalytics } from "@/services/mutualFundService";
 import { useAuth } from "@/contexts/AuthContext";
@@ -90,36 +89,6 @@ const formatRollingLabel = (key: string) => {
   const yMatch = normalized.match(/(\d+)y/);
   if (yMatch?.[1]) return `${yMatch[1]}Y`;
   return key.replace("_", " ");
-};
-
-const NavTooltip = ({
-  active,
-  payload,
-  label,
-  baseNav,
-  baseDate,
-}: {
-  active?: boolean;
-  payload?: Array<{ value?: number }>;
-  label?: string;
-  baseNav: number | null;
-  baseDate: string | null;
-}) => {
-  if (!active || !payload?.length || typeof payload[0]?.value !== "number") return null;
-  const nav = payload[0].value;
-  const delta = baseNav !== null ? nav - baseNav : null;
-  const deltaPct = baseNav ? (delta! / baseNav) * 100 : null;
-  return (
-    <div className="rounded-md border border-border bg-popover px-3 py-2 text-[12px] shadow-sm">
-      <div className="font-semibold text-foreground">
-        {delta !== null ? `${delta >= 0 ? "+" : "-"}${Math.abs(delta).toFixed(2)}` : nav.toFixed(2)}
-        {deltaPct !== null ? ` (${deltaPct >= 0 ? "+" : ""}${deltaPct.toFixed(2)}%)` : ""}
-      </div>
-      <div className="text-muted-foreground">
-        {baseDate ? `${formatLongDate(baseDate)} - ` : ""}{label ? formatLongDate(label) : ""}
-      </div>
-    </div>
-  );
 };
 
 const MetricCard = ({
@@ -359,7 +328,6 @@ const FundAnalytics = () => {
   const cagrReturns = metrics?.returns?.cagr_percent || {};
   const yoyReturns = metrics?.returns?.year_on_year_percent || {};
   const heatmap = metrics?.returns?.monthly_return_heatmap || {};
-  const sipReturns = metrics?.returns?.sip_returns || {};
   const consistency = metrics?.consistency?.consistency;
   const riskMetrics = metrics?.risk_metrics;
   const riskAdj = metrics?.risk_adjusted_returns;
@@ -371,9 +339,6 @@ const FundAnalytics = () => {
       .sort((a, b) => Number(a.year) - Number(b.year));
   }, [yoyReturns]);
   const latestYoy = yoyData.length > 0 ? yoyData[yoyData.length - 1] : null;
-  const previousYoy = yoyData.length > 1 ? yoyData[yoyData.length - 2] : null;
-  const yoyDelta =
-    latestYoy && previousYoy ? latestYoy.return - previousYoy.return : null;
   const heatmapYears = useMemo(() => Object.keys(heatmap).sort((a, b) => Number(a) - Number(b)), [heatmap]);
   const latestHeatmapYear = heatmapYears[heatmapYears.length - 1] ?? null;
 
@@ -425,13 +390,6 @@ const FundAnalytics = () => {
       setRollingKey(defaultRolling);
     }
   }, [rollingKey, defaultRolling]);
-
-  const getHeatmapColor = (val: number) => {
-    if (val >= 10) return "bg-positive/30 text-positive";
-    if (val >= 0) return "bg-positive/10 text-positive";
-    if (val >= -5) return "bg-negative/10 text-negative";
-    return "bg-negative/25 text-negative";
-  };
 
   const buildReturnSeries = (source: Record<string, number | null>, order: string[]) => {
     const entries = order
@@ -557,9 +515,6 @@ const FundAnalytics = () => {
     return filteredNavSeries.slice(-40).map((point) => ({ date: point.date, nav: point.nav }));
   }, [filteredNavSeries]);
 
-  const baseNav = filteredNavSeries.length > 0 ? filteredNavSeries[0].nav : null;
-  const baseDate = filteredNavSeries.length > 0 ? filteredNavSeries[0].date : null;
-
   const absReturnSeries = useMemo(() => buildReturnSeries(absReturns, ABS_RETURN_ORDER), [absReturns]);
   const cagrReturnSeries = useMemo(() => buildReturnSeries(cagrReturns, CAGR_RETURN_ORDER), [cagrReturns]);
   const absScale = useMemo(() => getReturnScale(absReturnSeries), [absReturnSeries]);
@@ -627,16 +582,12 @@ const FundAnalytics = () => {
     return maxAbs === 0 ? 1 : maxAbs;
   }, [heatmap, selectedYear]);
 
-  const getNavTickFormat = () => "month";
-
-  const formatNavTick = (value: string, mode: "month") => {
+  const formatNavTick = (value: string) => {
     const [y, m, d] = value.split("-").map(Number);
     if (!y || !m) return value;
     const date = new Date(y, m - 1, d || 1);
     return date.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
   };
-
-  const navTickMode = getNavTickFormat();
 
   const navTicks = useMemo(() => {
     if (filteredNavSeries.length === 0) return [];
@@ -647,7 +598,7 @@ const FundAnalytics = () => {
     const step = (filteredNavSeries.length - 1) / (targetTicks - 1);
     const indices = Array.from({ length: targetTicks }, (_, i) => Math.round(i * step));
     return indices.map((i) => filteredNavSeries[Math.min(i, filteredNavSeries.length - 1)].date);
-  }, [filteredNavSeries, navTickMode]);
+  }, [filteredNavSeries]);
 
   const rollingTicks = useMemo(() => {
     const points = activeRolling?.points || [];
@@ -1137,7 +1088,7 @@ const FundAnalytics = () => {
                               <XAxis
                                 dataKey="date"
                                 tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                                tickFormatter={(d: string) => formatNavTick(d, navTickMode)}
+                                tickFormatter={(d: string) => formatNavTick(d)}
                                 ticks={rollingTicks}
                                 interval={0}
                                 minTickGap={16}
@@ -1178,7 +1129,7 @@ const FundAnalytics = () => {
                             <XAxis
                               dataKey="date"
                               tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                              tickFormatter={(d: string) => formatNavTick(d, navTickMode)}
+                              tickFormatter={(d: string) => formatNavTick(d)}
                               ticks={navTicks}
                               interval={0}
                               minTickGap={16}
@@ -1824,10 +1775,6 @@ const FundAnalytics = () => {
                           const periods = METRIC_PERIOD_ORDER.map((key) => ({
                             key,
                             label: PERIOD_LABELS[key] || key,
-                          }));
-                          const seriesByMetric = metricRows.map((row) => ({
-                            ...row,
-                            series: buildMetricSeries(row.data as Record<string, number | null>),
                           }));
                           const activeSeries = activeMetric
                             ? buildMetricSeries(activeMetric.data as Record<string, number | null>)
