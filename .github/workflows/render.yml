@@ -42,51 +42,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Ensure Docker Hub repository is private
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-          DOCKERHUB_REPO: fundscreener
-        run: |
-          set -euo pipefail
-
-          TOKEN="$(curl -fsS \
-            -H 'Content-Type: application/json' \
-            -X POST \
-            -d "{\"username\":\"${DOCKERHUB_USERNAME}\",\"password\":\"${DOCKERHUB_PASSWORD}\"}" \
-            https://hub.docker.com/v2/users/login/ | jq -r '.token // empty')"
-
-          if [ -z "$TOKEN" ]; then
-            echo "Failed to get Docker Hub API token."
-            exit 1
-          fi
-
-          REPO_URL="https://hub.docker.com/v2/repositories/${DOCKERHUB_USERNAME}/${DOCKERHUB_REPO}/"
-          STATUS="$(curl -s -o /tmp/repo.json -w '%{http_code}' "$REPO_URL")"
-
-          if [ "$STATUS" = "404" ]; then
-            curl -fsS \
-              -X POST \
-              -H "Authorization: JWT ${TOKEN}" \
-              -H 'Content-Type: application/json' \
-              -d "{\"namespace\":\"${DOCKERHUB_USERNAME}\",\"name\":\"${DOCKERHUB_REPO}\",\"is_private\":true}" \
-              "https://hub.docker.com/v2/repositories/"
-          elif [ "$STATUS" = "200" ]; then
-            IS_PRIVATE="$(jq -r '.is_private' /tmp/repo.json)"
-            if [ "$IS_PRIVATE" != "true" ]; then
-              curl -fsS \
-                -X PATCH \
-                -H "Authorization: JWT ${TOKEN}" \
-                -H 'Content-Type: application/json' \
-                -d '{"is_private": true}' \
-                "$REPO_URL"
-            fi
-          else
-            echo "Unexpected Docker Hub response while checking repository: HTTP ${STATUS}"
-            cat /tmp/repo.json || true
-            exit 1
-          fi
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
