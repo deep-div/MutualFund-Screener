@@ -7,6 +7,9 @@ import certifi
 import nest_asyncio
 import re
 import ssl
+import threading
+import time
+from collections import deque
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 from app.domains.ingestion.schemas import (
@@ -23,14 +26,78 @@ from app.core.logging import logger
 
 nest_asyncio.apply()
 
+# Global per-API limits (requests per minute). Set any value <= 0 to disable limit.
+API_RATE_LIMITS_PER_MINUTE: Dict[str, int] = {
+    "mfapi_latest": 30,          # https://api.mfapi.in/mf/latest
+    "amfi_navall_txt": 30,       # https://portal.amfiindia.com/spages/NAVAll.txt
+    "mfapi_scheme_nav": 30,      # https://api.mfapi.in/mf/{scheme_code}
+    "captnemo_isin_nav": 30,     # https://mf.captnemo.in/nav/{isin}
+    "amfi_nav_history": 30,      # https://www.amfiindia.com/api/nav-history?... (optional)
+    "mfdata_scheme_meta": 30,    # https://mfdata.in/api/v1/schemes/{scheme_code}
+}
+
+
+class APIRateLimiter:
+    """
+    Process-wide per-key rate limiter with rolling 60-second windows.
+    Example: limit=30 allows up to 30 calls per rolling minute per key.
+    """
+
+    def __init__(self, limits_per_minute: Dict[str, int]):
+        self.limits_per_minute = limits_per_minute
+        self._lock = threading.Lock()
+        self._scheduled_calls: Dict[str, deque[float]] = {}
+
+    def _reserve_delay_seconds(self, key: str) -> float:
+        limit = self.limits_per_minute.get(key)
+        if limit is None or limit <= 0:
+            return 0.0
+
+        now = time.monotonic()
+        with self._lock:
+            queue = self._scheduled_calls.setdefault(key, deque())
+            cutoff = now - 60.0
+
+            while queue and queue[0] <= cutoff:
+                queue.popleft()
+
+            if len(queue) < limit:
+                scheduled = now
+            else:
+                # Schedule after the oldest call among the latest `limit` reservations.
+                scheduled = max(now, queue[-limit] + 60.0)
+
+            queue.append(scheduled)
+
+        return max(0.0, scheduled - now)
+
+    def wait_sync(self, key: str) -> None:
+        delay = self._reserve_delay_seconds(key)
+        if delay > 0:
+            time.sleep(delay)
+
+    async def wait_async(self, key: str) -> None:
+        delay = self._reserve_delay_seconds(key)
+        if delay > 0:
+            await asyncio.sleep(delay)
+
+
+GLOBAL_API_RATE_LIMITER = APIRateLimiter(API_RATE_LIMITS_PER_MINUTE)
+
 
 class MFAPIFetcher:
     """Fetch filtered latest schemes and fetch scheme-wise NAV data asynchronously."""
 
-    def __init__(self, base_url: str = "https://api.mfapi.in/mf", max_concurrent: int = 5):
+    def __init__(
+        self,
+        base_url: str = "https://api.mfapi.in/mf",
+        max_concurrent: int = 5,
+        rate_limiter: Optional[APIRateLimiter] = None,
+    ):
         """Initialize API base url and concurrency control."""
         self.base_url = base_url
         self.max_concurrent = max_concurrent
+        self.rate_limiter = rate_limiter or GLOBAL_API_RATE_LIMITER
         logger.info("MFAPIFetcher initialized")
 
     def fetch_recent_active_schemes(self, days: int) -> List[Dict[str, Any]]:
@@ -108,6 +175,7 @@ class MFAPIFetcher:
         url = f"{self.base_url}/latest"
 
         try:
+            self.rate_limiter.wait_sync("mfapi_latest")
             response = requests.get(url, timeout=300)
             response.raise_for_status()
             payload = response.json()
@@ -142,6 +210,7 @@ class MFAPIFetcher:
         current_fund_house = ""
 
         try:
+            self.rate_limiter.wait_sync("amfi_navall_txt")
             response = requests.get(url, timeout=300)
             response.raise_for_status()
             lines = response.text.splitlines()
@@ -878,6 +947,7 @@ class MFAPIFetcher:
         """Primary NAV source: MFAPI scheme endpoint."""
         if not isinstance(scheme_code, int) or scheme_code <= 0:
             return None
+        await self.rate_limiter.wait_async("mfapi_scheme_nav")
         async with session.get(f"{self.base_url}/{scheme_code}", timeout=60) as response:
             if response.status != 200:
                 return None
@@ -889,6 +959,7 @@ class MFAPIFetcher:
             return None
 
         isin = isin_code.strip()
+        await self.rate_limiter.wait_async("captnemo_isin_nav")
         async with session.get(f"https://mf.captnemo.in/nav/{isin}", timeout=60) as response:
             if response.status != 200:
                 return None
@@ -968,6 +1039,7 @@ class MFAPIFetcher:
             return {}
 
         try:
+            await self.rate_limiter.wait_async("mfdata_scheme_meta")
             async with session.get(f"https://mfdata.in/api/v1/schemes/{normalized_code}", timeout=60) as response:
                 if response.status != 200:
                     return {}
