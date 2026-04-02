@@ -623,10 +623,6 @@ class MFAPIFetcher:
             "time_since_inception_years": time_since_inception_years,
             "total_active_days": total_active_days,
             "nav_record_count": nav_record_count,
-            "aum_in_crores": aum_in_crores,
-            "expense_ratio": expense_ratio,
-            "benchmark": benchmark,
-            "exit_load": exit_load,
         }
 
         missing_fields = [k for k, v in required_meta.items() if v is None]
