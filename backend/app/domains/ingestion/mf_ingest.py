@@ -509,6 +509,35 @@ class MFAPIFetcher:
         else:
             plan_type = PlanType.OTHER.value
 
+        morningstar_rating = (
+            int(meta_raw.get("morningstar_rating"))
+            if isinstance(meta_raw.get("morningstar_rating"), (int, float))
+            else None
+        )
+        risk_label = self._none_if_missing(meta_raw.get("risk_label"))
+        aum_in_crores = (
+            float(meta_raw.get("aum_in_crores"))
+            if isinstance(meta_raw.get("aum_in_crores"), (int, float))
+            else None
+        )
+        min_sip = (
+            float(meta_raw.get("min_sip"))
+            if isinstance(meta_raw.get("min_sip"), (int, float))
+            else None
+        )
+        min_lumpsum = (
+            float(meta_raw.get("min_lumpsum"))
+            if isinstance(meta_raw.get("min_lumpsum"), (int, float))
+            else None
+        )
+        expense_ratio = (
+            float(meta_raw.get("expense_ratio"))
+            if isinstance(meta_raw.get("expense_ratio"), (int, float))
+            else None
+        )
+        exit_load = self._none_if_missing(meta_raw.get("exit_load"))
+        benchmark = self._none_if_missing(meta_raw.get("benchmark"))
+
         required_meta = {
             "instrument_type": InstrumentType.MUTUAL_FUND.value,
             "scheme_code": scheme_code,
@@ -525,6 +554,9 @@ class MFAPIFetcher:
             "time_since_inception_years": time_since_inception_years,
             "total_active_days": total_active_days,
             "nav_record_count": nav_record_count,
+            "aum_in_crores": aum_in_crores,
+            "expense_ratio": expense_ratio,
+            "benchmark": benchmark,
         }
 
         missing_fields = [k for k, v in required_meta.items() if v is None]
@@ -561,6 +593,14 @@ class MFAPIFetcher:
             isin_div_reinvestment=self._none_if_missing(
                 meta_raw.get("isin_div_reinvestment") or meta_raw.get("isinDivReinvestment")
             ),
+            morningstar_rating=morningstar_rating,
+            risk_label=risk_label,
+            aum_in_crores=aum_in_crores,
+            min_sip=min_sip,
+            min_lumpsum=min_lumpsum,
+            expense_ratio=expense_ratio,
+            exit_load=exit_load,
+            benchmark=benchmark,
         )
 
     @staticmethod
@@ -854,6 +894,83 @@ class MFAPIFetcher:
             payload = await response.json()
             return self._build_captnemo_raw(payload, scheme_item)
 
+    @staticmethod
+    def _extract_mfdata_enrichment(payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract selected enrichment fields from mfdata scheme payload."""
+        if not isinstance(payload, dict):
+            return {}
+        data = payload.get("data")
+        if not isinstance(data, dict):
+            return {}
+
+        aum_raw = data.get("aum")
+        aum_in_crores = None
+        if isinstance(aum_raw, (int, float)):
+            aum_in_crores = round(float(aum_raw) / 10000000.0, 2)
+
+        min_sip = data.get("min_sip")
+        if isinstance(min_sip, (int, float)):
+            min_sip = float(min_sip)
+        else:
+            min_sip = None
+
+        min_lumpsum = data.get("min_lumpsum")
+        if isinstance(min_lumpsum, (int, float)):
+            min_lumpsum = float(min_lumpsum)
+        else:
+            min_lumpsum = None
+
+        expense_ratio = data.get("expense_ratio")
+        if isinstance(expense_ratio, (int, float)):
+            expense_ratio = float(expense_ratio)
+        else:
+            expense_ratio = None
+
+        morningstar = data.get("morningstar")
+        if not isinstance(morningstar, int):
+            morningstar = None
+
+        risk_label = data.get("risk_label")
+        risk_label = risk_label.strip() if isinstance(risk_label, str) else None
+
+        exit_load = data.get("exit_load")
+        if isinstance(exit_load, str):
+            exit_load = re.sub(r"<br\s*/?>", " | ", exit_load, flags=re.IGNORECASE).strip()
+        else:
+            exit_load = None
+
+        benchmark = data.get("benchmark")
+        benchmark = benchmark.strip() if isinstance(benchmark, str) else None
+
+        return {
+            "morningstar_rating": morningstar,
+            "risk_label": risk_label,
+            "aum_in_crores": aum_in_crores,
+            "min_sip": min_sip,
+            "min_lumpsum": min_lumpsum,
+            "expense_ratio": expense_ratio,
+            "exit_load": exit_load,
+            "benchmark": benchmark,
+        }
+
+    async def _fetch_scheme_enrichment_from_mfdata(self, session, scheme_code: Optional[int]) -> Dict[str, Any]:
+        """Fetch additional scheme attributes from mfdata endpoint by scheme code."""
+        if not isinstance(scheme_code, int) or scheme_code <= 0:
+            return {}
+
+        try:
+            async with session.get(f"https://mfdata.in/api/v1/schemes/{scheme_code}", timeout=60) as response:
+                if response.status != 200:
+                    return {}
+                payload = await response.json()
+                return self._extract_mfdata_enrichment(payload)
+        except Exception as e:
+            logger.warning(
+                f"mfdata enrichment failed for scheme_code={scheme_code} | "
+                f"type={type(e).__name__} | repr={repr(e)}"
+            )
+            return {}
+
     def _finalize_raw_scheme_response(self, raw: Dict[str, Any]):
         """Run post-processing, enrich meta, validate, and return schema-compatible dict."""
         nav_data = raw.get("data", [])
@@ -910,6 +1027,12 @@ class MFAPIFetcher:
                         meta.setdefault("isin_growth", scheme_item.get("isin_code"))
                         meta.setdefault("isin_div_reinvestment", scheme_item.get("isin_div_reinvestment"))
                         meta.setdefault("fund_house", scheme_item.get("fund_house"))
+                        enrichment = await self._fetch_scheme_enrichment_from_mfdata(
+                            session,
+                            meta.get("scheme_code"),
+                        )
+                        if enrichment:
+                            meta.update(enrichment)
                         raw["meta"] = meta
 
                     return self._finalize_raw_scheme_response(raw)

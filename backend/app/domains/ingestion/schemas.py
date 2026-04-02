@@ -114,6 +114,14 @@ class SchemeMeta(BaseModel):
     scheme_type: Optional[SchemeType] = None
     isin_growth: Optional[str] = None
     isin_div_reinvestment: Optional[str] = None
+    morningstar_rating: Optional[int] = None
+    risk_label: Optional[str] = None
+    aum_in_crores: Optional[float] = None
+    min_sip: Optional[float] = None
+    min_lumpsum: Optional[float] = None
+    expense_ratio: Optional[float] = None
+    exit_load: Optional[str] = None
+    benchmark: Optional[str] = None
 
 
 class NavPoint(BaseModel):
