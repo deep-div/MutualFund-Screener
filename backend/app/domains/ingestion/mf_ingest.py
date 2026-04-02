@@ -557,6 +557,7 @@ class MFAPIFetcher:
             "aum_in_crores": aum_in_crores,
             "expense_ratio": expense_ratio,
             "benchmark": benchmark,
+            "exit_load": exit_load,
         }
 
         missing_fields = [k for k, v in required_meta.items() if v is None]
@@ -935,7 +936,7 @@ class MFAPIFetcher:
 
         exit_load = data.get("exit_load")
         if isinstance(exit_load, str):
-            exit_load = re.sub(r"<br\s*/?>", " | ", exit_load, flags=re.IGNORECASE).strip()
+            exit_load = exit_load.strip()
         else:
             exit_load = None
 
@@ -953,20 +954,28 @@ class MFAPIFetcher:
             "benchmark": benchmark,
         }
 
-    async def _fetch_scheme_enrichment_from_mfdata(self, session, scheme_code: Optional[int]) -> Dict[str, Any]:
+    async def _fetch_scheme_enrichment_from_mfdata(self, session, scheme_code: Any) -> Dict[str, Any]:
         """Fetch additional scheme attributes from mfdata endpoint by scheme code."""
-        if not isinstance(scheme_code, int) or scheme_code <= 0:
+        normalized_code: Optional[int] = None
+        if isinstance(scheme_code, int) and scheme_code > 0:
+            normalized_code = scheme_code
+        elif isinstance(scheme_code, str):
+            stripped = scheme_code.strip()
+            if stripped.isdigit():
+                normalized_code = int(stripped)
+
+        if not normalized_code:
             return {}
 
         try:
-            async with session.get(f"https://mfdata.in/api/v1/schemes/{scheme_code}", timeout=60) as response:
+            async with session.get(f"https://mfdata.in/api/v1/schemes/{normalized_code}", timeout=60) as response:
                 if response.status != 200:
                     return {}
                 payload = await response.json()
                 return self._extract_mfdata_enrichment(payload)
         except Exception as e:
             logger.warning(
-                f"mfdata enrichment failed for scheme_code={scheme_code} | "
+                f"mfdata enrichment failed for scheme_code={normalized_code} | "
                 f"type={type(e).__name__} | repr={repr(e)}"
             )
             return {}
@@ -1027,9 +1036,12 @@ class MFAPIFetcher:
                         meta.setdefault("isin_growth", scheme_item.get("isin_code"))
                         meta.setdefault("isin_div_reinvestment", scheme_item.get("isin_div_reinvestment"))
                         meta.setdefault("fund_house", scheme_item.get("fund_house"))
+                        enrichment_scheme_code = meta.get("scheme_code")
+                        if enrichment_scheme_code is None:
+                            enrichment_scheme_code = scheme_item.get("scheme_code")
                         enrichment = await self._fetch_scheme_enrichment_from_mfdata(
                             session,
-                            meta.get("scheme_code"),
+                            enrichment_scheme_code,
                         )
                         if enrichment:
                             meta.update(enrichment)
