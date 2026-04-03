@@ -126,11 +126,18 @@ def bulk_upsert_schema(session, data: list[dict]):
 
     stmt = insert(SchemeMetaORM).values(rows)
 
-    update_columns = {
-        c.name: getattr(stmt.excluded, c.name)
-        for c in SchemeMetaORM.__table__.columns
-        if c.name not in ["id", "external_id", "created_at"]
-    }
+    update_columns = {}
+    for c in SchemeMetaORM.__table__.columns:
+        if c.name in ["id", "external_id", "created_at", "scheme_code"]:
+            continue
+        if c.name == "updated_at":
+            update_columns[c.name] = func.now()
+            continue
+        # Keep existing DB value when incoming value is NULL/missing.
+        update_columns[c.name] = func.coalesce(
+            getattr(stmt.excluded, c.name),
+            getattr(SchemeMetaORM, c.name),
+        )
 
     stmt = stmt.on_conflict_do_update(
         index_elements=["scheme_code"],
