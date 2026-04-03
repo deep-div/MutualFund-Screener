@@ -664,7 +664,6 @@ const FundAnalytics = () => {
                           <span className="analytics-chip">Since inception {inceptionYears}</span>
                           <span className="analytics-chip">AUM {formatCrores(meta?.aum_in_crores)}</span>
                           <span className="analytics-chip">Expense Ratio {formatPercent(meta?.expense_ratio)}</span>
-                          <span className="analytics-chip">Exit Load {meta?.exit_load || "-"}</span>
                         </div>
                       </div>
                       <div className="flex flex-col gap-1 items-start lg:items-end text-left lg:text-right">
