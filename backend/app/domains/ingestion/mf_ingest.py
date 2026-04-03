@@ -29,6 +29,20 @@ nest_asyncio.apply()
 # Global switch to enable/disable rate limiting across ingestion.
 API_RATE_LIMITING_ENABLED: bool = True
 
+# Global switch to enable/disable mfdata scheme enrichment calls.
+# When False, the ingestion will not call https://mfdata.in/api/v1/schemes/{scheme_code}
+# and selected enrichment fields will remain None.
+MFDATA_ENRICHMENT_ENABLED: bool = API_RATE_LIMITING_ENABLED
+
+MFDATA_ENRICHMENT_META_FIELDS = (
+    "aum_in_crores",
+    "min_sip",
+    "min_lumpsum",
+    "expense_ratio",
+    "exit_load",
+    "benchmark",
+)
+
 # Global per-API limits (requests per minute). Set any value <= 0 to disable limit for that API.
 API_RATE_LIMITS_PER_MINUTE: Dict[str, int] = {
     "mfapi_latest": 30,          # https://api.mfapi.in/mf/latest
@@ -1033,6 +1047,9 @@ class MFAPIFetcher:
 
     async def _fetch_scheme_enrichment_from_mfdata(self, session, scheme_code: Any) -> Dict[str, Any]:
         """Fetch additional scheme attributes from mfdata endpoint by scheme code."""
+        if not MFDATA_ENRICHMENT_ENABLED:
+            return {}
+
         normalized_code: Optional[int] = None
         if isinstance(scheme_code, int) and scheme_code > 0:
             normalized_code = scheme_code
@@ -1114,15 +1131,19 @@ class MFAPIFetcher:
                         meta.setdefault("isin_growth", scheme_item.get("isin_code"))
                         meta.setdefault("isin_div_reinvestment", scheme_item.get("isin_div_reinvestment"))
                         meta.setdefault("fund_house", scheme_item.get("fund_house"))
-                        enrichment_scheme_code = meta.get("scheme_code")
-                        if enrichment_scheme_code is None:
-                            enrichment_scheme_code = scheme_item.get("scheme_code")
-                        enrichment = await self._fetch_scheme_enrichment_from_mfdata(
-                            session,
-                            enrichment_scheme_code,
-                        )
-                        if enrichment:
-                            meta.update(enrichment)
+                        if not MFDATA_ENRICHMENT_ENABLED:
+                            for key in MFDATA_ENRICHMENT_META_FIELDS:
+                                meta[key] = None
+                        else:
+                            enrichment_scheme_code = meta.get("scheme_code")
+                            if enrichment_scheme_code is None:
+                                enrichment_scheme_code = scheme_item.get("scheme_code")
+                            enrichment = await self._fetch_scheme_enrichment_from_mfdata(
+                                session,
+                                enrichment_scheme_code,
+                            )
+                            if enrichment:
+                                meta.update(enrichment)
                         raw["meta"] = meta
 
                     return self._finalize_raw_scheme_response(raw)
