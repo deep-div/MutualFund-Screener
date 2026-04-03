@@ -157,6 +157,14 @@ class MFAPIFetcher:
 
         funds = []
         cutoff_date = datetime.now() - timedelta(days=days)
+        total_input = len(data)
+        eliminated_non_open_ended = 0
+        eliminated_missing_direct = 0
+        eliminated_missing_growth = 0
+        eliminated_excluded_keyword = 0
+        eliminated_invalid_date = 0
+        eliminated_older_than_cutoff = 0
+        eliminated_processing_error = 0
 
         for item in data:
             try:
@@ -170,23 +178,28 @@ class MFAPIFetcher:
                 isin_code = self._extract_isin_from_latest_item(item)
 
                 if scheme_type != SchemeType.OPEN_ENDED.value:
+                    eliminated_non_open_ended += 1
                     continue
 
                 name_lower = scheme_name.lower()
 
                 if "direct" not in name_lower:
+                    eliminated_missing_direct += 1
                     continue
 
                 if "growth" not in name_lower:
+                    eliminated_missing_growth += 1
                     continue
 
                 if any(x in name_lower for x in [
                     "regular", "idcw", "bonus", "segregated", "seg. portfolio", "seg portfolio", "unclaimed"
                 ]):
+                    eliminated_excluded_keyword += 1
                     continue
 
                 parsed_date = self._parse_latest_date(date_str)
                 if parsed_date is None:
+                    eliminated_invalid_date += 1
                     logger.warning(f"Invalid date format for scheme_code={scheme_code}")
                     continue
 
@@ -202,11 +215,35 @@ class MFAPIFetcher:
                     )
                     if row:
                         funds.append(row)
+                else:
+                    eliminated_older_than_cutoff += 1
 
             except Exception as e:
+                eliminated_processing_error += 1
                 logger.warning(f"Skipping scheme due to processing error: {e}")
                 continue
 
+        total_eliminated = (
+            eliminated_non_open_ended
+            + eliminated_missing_direct
+            + eliminated_missing_growth
+            + eliminated_excluded_keyword
+            + eliminated_invalid_date
+            + eliminated_older_than_cutoff
+            + eliminated_processing_error
+        )
+        logger.info(
+            "Scheme filtering summary | "
+            f"source={source} | total_input={total_input} | selected={len(funds)} | "
+            f"eliminated_total={total_eliminated} | "
+            f"non_open_ended={eliminated_non_open_ended} | "
+            f"missing_direct={eliminated_missing_direct} | "
+            f"missing_growth={eliminated_missing_growth} | "
+            f"excluded_keyword={eliminated_excluded_keyword} | "
+            f"invalid_date={eliminated_invalid_date} | "
+            f"older_than_{days}_days={eliminated_older_than_cutoff} | "
+            f"processing_error={eliminated_processing_error}"
+        )
         logger.info(f"Filtered {len(funds)} eligible schemes from {source}")
         return funds
 
