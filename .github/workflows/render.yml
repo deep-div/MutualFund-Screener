@@ -5,8 +5,8 @@ on:
     inputs:
       run_complete_workflow:
         description: "Run complete workflow now"
-        required: true
-        default: false
+        required: true ## input must be provided
+        default: false 
         type: boolean
 
 jobs:
