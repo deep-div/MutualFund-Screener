@@ -27,9 +27,10 @@ from app.core.logging import logger
 nest_asyncio.apply()
 
 # Global switch to enable/disable rate limiting across ingestion.
+
+API_RATE_LIMITING_ENABLED: bool = False
 """
-I have added this because i wanted to control this API # https://mfdata.in/api/v1/schemes
-It returns a few points like    
+If True I get these and time taken is much more.
 morningstar_rating: Optional[int] = None
 risk_label: Optional[str] = None
 aum_in_crores: Optional[float] = None
@@ -38,11 +39,9 @@ min_lumpsum: Optional[float] = None
 expense_ratio: Optional[float] = None
 exit_load: Optional[str] = None
 benchmark: Optional[str] = None
-This actually has Rate limit and my pipeline takes too long to run 1 hour in render free tier wont be compatible
-So without this i can hit API on render this was only goal and DB will be updated accordingly.
+If False I dont get these in Output, time is a hardly few minutes. No Rate limiting.
+DB code wont hurt old values of AUM remain.
 """
-API_RATE_LIMITING_ENABLED: bool = False
-
 # Global switch to enable/disable mfdata scheme enrichment calls.
 # When False, the ingestion will not call https://mfdata.in/api/v1/schemes/{scheme_code}
 # and selected enrichment fields will remain None.
