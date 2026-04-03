@@ -31,7 +31,7 @@ nest_asyncio.apply()
 ## For Production Render Set to False so we can process data fast before render sleeps.
 API_RATE_LIMITING_ENABLED: bool = False
 """
-If True I get these and time taken is much more.
+If True I get these and time taken is much more approx 1 hour.
 morningstar_rating: Optional[int] = None
 risk_label: Optional[str] = None
 aum_in_crores: Optional[float] = None
