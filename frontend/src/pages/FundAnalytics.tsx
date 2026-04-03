@@ -620,6 +620,16 @@ const FundAnalytics = () => {
       : meta?.time_since_inception_years
         ? `${meta.time_since_inception_years}Y`
         : "-";
+  const formatCurrency = (value?: number | null) =>
+    typeof value === "number"
+      ? `INR ${value.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
+      : "-";
+  const formatCrores = (value?: number | null) =>
+    typeof value === "number"
+      ? `INR ${value.toLocaleString("en-IN", { maximumFractionDigits: 2 })} Cr`
+      : "-";
+  const formatPercent = (value?: number | null) =>
+    typeof value === "number" ? `${value.toFixed(2)}%` : "-";
 
   if (!schemeKey) {
     return (
@@ -832,6 +842,41 @@ const FundAnalytics = () => {
                   </div>
                 </div>
               </motion.div>
+
+              <SectionHeader icon={Activity} title="Scheme Info" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-10">
+                {[
+                  { label: "AUM", value: formatCrores(meta?.aum_in_crores) },
+                  { label: "Expense Ratio", value: formatPercent(meta?.expense_ratio) },
+                  { label: "Benchmark", value: meta?.benchmark || "-" },
+                  { label: "Min SIP", value: formatCurrency(meta?.min_sip) },
+                  { label: "Min Lumpsum", value: formatCurrency(meta?.min_lumpsum) },
+                ].map((item) => (
+                  <div key={item.label} className="analytics-card p-3">
+                    <div className="text-[10px] uppercase tracking-wider analytics-muted">{item.label}</div>
+                    <div className="text-[14px] font-semibold text-foreground mt-1 break-words">{item.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <SectionHeader icon={Shield} title="Risk & Ratios" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
+                {[
+                  { label: "Risk Label", value: meta?.risk_label || "-" },
+                  {
+                    label: "Morningstar Rating",
+                    value:
+                      typeof meta?.morningstar_rating === "number"
+                        ? String(meta.morningstar_rating)
+                        : "-",
+                  },
+                ].map((item) => (
+                  <div key={item.label} className="analytics-card p-3">
+                    <div className="text-[10px] uppercase tracking-wider analytics-muted">{item.label}</div>
+                    <div className="text-[14px] font-semibold text-foreground mt-1">{item.value}</div>
+                  </div>
+                ))}
+              </div>
 
 {/* Return Metrics */}
               <SectionHeader id="return-analytics" icon={TrendingUp} title="Return Metrics" />

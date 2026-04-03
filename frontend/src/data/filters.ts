@@ -26,14 +26,22 @@ export type FilterValueMap = Record<string, FilterValue>;
 export type FilterRangeMeta = Record<string, { min: number | null; max: number | null }>;
 
 export const FILTER_CATEGORIES: FilterCategory[] = [
+  { id: "scheme", label: "Scheme Info" },
   { id: "returns", label: "Returns" },
   { id: "rolling", label: "Rolling Returns" },
   { id: "drawdown", label: "Drawdown" },
   { id: "risk_ratios", label: "Risk & Ratios" },
-  { id: "scheme", label: "Scheme Info" },
 ];
 
 export const SCHEME_CLASS_OPTIONS = ["Equity", "Debt", "Hybrid", "Commodity", "Other"] as const;
+export const RISK_LABEL_OPTIONS = [
+  "Low",
+  "Moderately Low",
+  "Moderate",
+  "Moderately High",
+  "High",
+  "Very High",
+] as const;
 
 export const SCHEME_SUB_CATEGORY_GROUPS = [
   {
@@ -130,6 +138,11 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
   },
   { id: "current_nav", label: "Current NAV", type: "range", category: "scheme" },
   { id: "time_since_inception_years", label: "Time Since Inception", type: "range", category: "scheme" },
+  { id: "aum_in_crores", label: "AUM (Cr)", type: "range", category: "scheme" },
+  { id: "expense_ratio", label: "Expense Ratio", type: "range", category: "scheme" },
+  { id: "min_sip", label: "Min SIP", type: "range", category: "scheme" },
+  { id: "min_lumpsum", label: "Min Lumpsum", type: "range", category: "scheme" },
+  { id: "benchmark", label: "Benchmark", type: "single", category: "scheme" },
 
   { id: "abs_1w", label: "Absolute Return 1W", type: "range", category: "returns" },
   { id: "abs_1m", label: "Absolute Return 1M", type: "range", category: "returns" },
@@ -163,6 +176,14 @@ export const FILTER_DEFINITIONS: FilterDefinition[] = [
   { id: "skewness", label: "Skewness", type: "range", category: "risk_ratios" },
   { id: "pain_index", label: "Pain Ratio", type: "range", category: "risk_ratios" },
   { id: "ulcer_index", label: "Ulcer Ratio", type: "range", category: "risk_ratios" },
+  { id: "morningstar_rating", label: "Morningstar Rating", type: "range", category: "risk_ratios" },
+  {
+    id: "risk_label",
+    label: "Risk Label",
+    type: "single",
+    category: "risk_ratios",
+    options: [...RISK_LABEL_OPTIONS],
+  },
 
   { id: "current_drawdown_percent", label: "Current Drawdown", type: "range", category: "drawdown" },
   { id: "mdd_max_drawdown_percent", label: "Max Drawdown", type: "range", category: "drawdown" },

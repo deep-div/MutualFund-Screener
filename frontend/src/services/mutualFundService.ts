@@ -35,6 +35,14 @@ export interface SchemeAnalyticsResponse {
     launch_date?: string;
     current_date: string;
     time_since_inception_years: number | null;
+    morningstar_rating?: number | null;
+    risk_label?: string | null;
+    aum_in_crores?: number | null;
+    min_sip?: number | null;
+    min_lumpsum?: number | null;
+    expense_ratio?: number | null;
+    exit_load?: string | null;
+    benchmark?: string | null;
   };
   metrics: {
     returns: {
@@ -132,6 +140,14 @@ export interface SchemeListItem {
   mdd_five_year_pct?: number | null;
   mdd_seven_year_pct?: number | null;
   mdd_ten_year_pct?: number | null;
+  morningstar_rating?: number | null;
+  risk_label?: string | null;
+  aum_in_crores?: number | null;
+  min_sip?: number | null;
+  min_lumpsum?: number | null;
+  expense_ratio?: number | null;
+  exit_load?: string | null;
+  benchmark?: string | null;
   [key: string]: string | number | null | undefined;
 }
 

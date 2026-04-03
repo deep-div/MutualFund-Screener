@@ -53,13 +53,20 @@ const buildFilterHint = (filter: FilterDefinition) => {
   if (id === "mdd_ten_year_pct") return "Maximum drawdown over the last 10 years.";
   if (id === "current_nav") return "Latest reported NAV.";
   if (id === "time_since_inception_years") return "Years since scheme inception.";
+  if (id === "aum_in_crores") return "Assets under management in INR crores.";
+  if (id === "expense_ratio") return "Annual fund management expense ratio (%).";
+  if (id === "min_sip") return "Minimum SIP amount accepted.";
+  if (id === "min_lumpsum") return "Minimum lump sum investment amount.";
+  if (id === "benchmark") return "Benchmark index used to evaluate the scheme.";
+  if (id === "morningstar_rating") return "Morningstar star rating.";
+  if (id === "risk_label") return "Scheme risk label.";
   if (id === "scheme_class") return "High-level scheme class (Equity, Debt, etc.).";
   if (id === "scheme_sub_category") return "AMC sub-category within the scheme class.";
   return "";
 };
 
 const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddModalProps) => {
-  const [activeCategory, setActiveCategory] = useState("returns");
+  const [activeCategory, setActiveCategory] = useState("scheme");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeHintId, setActiveHintId] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);

@@ -192,6 +192,11 @@ const FilterSidebar = ({
       const step = hasDecimals ? 0.01 : 1;
       return { min, max: max > min ? max : min, step };
     }
+    if (filterId === "morningstar_rating") return { min: 1, max: 5, step: 1 };
+    if (filterId === "aum_in_crores") return { min: 0, max: 100000, step: 1 };
+    if (filterId === "expense_ratio") return { min: 0, max: 5, step: 0.01 };
+    if (filterId === "min_sip") return { min: 0, max: 100000, step: 100 };
+    if (filterId === "min_lumpsum") return { min: 0, max: 1000000, step: 100 };
     if (filterId === "current_nav") return { min: 0, max: 1000, step: 1 };
     if (filterId === "time_since_inception_years") return { min: 0, max: 30, step: 1 };
     if (label.includes("%")) return { min: 0, max: 100, step: 1 };
@@ -604,6 +609,26 @@ const FilterSidebar = ({
                                 className="px-3 py-1.5 text-[12px] font-medium rounded border border-border text-muted-foreground hover:bg-surface-hover"
                               >
                                 Clear
+                              </button>
+                            </div>
+                          )}
+
+                        {filter.type === "single" &&
+                          filter.id !== "scheme_sub_category" &&
+                          !filter.options && (
+                            <div className="space-y-2">
+                              <input
+                                type="text"
+                                value={typeof currentValue.value === "string" ? currentValue.value : ""}
+                                onChange={(event) => updateSingle(filter.id, event.target.value)}
+                                placeholder={`Enter ${filter.label.toLowerCase()}`}
+                                className="w-full bg-secondary border border-border rounded-md px-2 py-1.5 text-[12px] text-foreground outline-none focus:border-primary"
+                              />
+                              <button
+                                onClick={() => clearFilter(filter.id)}
+                                className="text-[11px] text-muted-foreground hover:text-negative focus:outline-none active:text-negative"
+                              >
+                                Clear value
                               </button>
                             </div>
                           )}
