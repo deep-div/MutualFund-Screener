@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  WORKFLOW_ENABLED: "false" # Set to "false" to disable this workflow's jobs.
+  WORKFLOW_ENABLED: "true" # Set to "false" to disable this workflow's jobs.
 
 concurrency:
   group: docker-render-deploy-${{ github.ref }}
