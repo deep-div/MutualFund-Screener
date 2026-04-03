@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { TrendingUp, TrendingDown, Activity, Shield, Star, Zap } from "lucide-react";
+import { TrendingUp, TrendingDown, Activity, Shield, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   LineChart,
@@ -620,38 +620,12 @@ const FundAnalytics = () => {
       : meta?.time_since_inception_years
         ? `${meta.time_since_inception_years}Y`
         : "-";
-  const formatCurrency = (value?: number | null) =>
-    typeof value === "number"
-      ? `INR ${value.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
-      : "-";
   const formatCrores = (value?: number | null) =>
     typeof value === "number"
       ? `INR ${value.toLocaleString("en-IN", { maximumFractionDigits: 2 })} Cr`
       : "-";
   const formatPercent = (value?: number | null) =>
     typeof value === "number" ? `${value.toFixed(2)}%` : "-";
-  const renderMorningstarStars = (value?: number | null) => {
-    if (typeof value !== "number") return "-";
-    const stars = Math.max(0, Math.min(5, Math.round(value)));
-    return (
-      <span
-        className="inline-flex items-center gap-0.5"
-        aria-label={`Morningstar rating ${stars} out of 5`}
-        title={`Morningstar rating ${stars}/5`}
-      >
-        {Array.from({ length: 5 }).map((_, index) => {
-          const filled = index < stars;
-          return (
-            <Star
-              key={`analytics-ms-${index}`}
-              className={`h-4 w-4 ${filled ? "text-amber-500 fill-amber-500" : "text-muted-foreground/35"}`}
-            />
-          );
-        })}
-        <span className="ml-1 text-[12px] text-muted-foreground">{stars}/5</span>
-      </span>
-    );
-  };
 
   if (!schemeKey) {
     return (
@@ -687,11 +661,10 @@ const FundAnalytics = () => {
                         </h1>
                         <div className="flex flex-wrap items-center gap-2 mt-3">
                           <span className="analytics-chip">{meta?.scheme_sub_category}</span>
-                          <span className="analytics-chip">{meta?.fund_house}</span>
-                          <span className="analytics-chip">
-                            {meta?.plan_type} - {meta?.option_type}
-                          </span>
                           <span className="analytics-chip">Since inception {inceptionYears}</span>
+                          <span className="analytics-chip">AUM {formatCrores(meta?.aum_in_crores)}</span>
+                          <span className="analytics-chip">Expense Ratio {formatPercent(meta?.expense_ratio)}</span>
+                          <span className="analytics-chip">Exit Load {meta?.exit_load || "-"}</span>
                         </div>
                       </div>
                       <div className="flex flex-col gap-1 items-start lg:items-end text-left lg:text-right">
@@ -728,7 +701,6 @@ const FundAnalytics = () => {
                               )}
                             </div>
                           </div>
-                          <div className="text-[11px] analytics-muted mt-1">NAV date {navDateLabel}</div>
                         </div>
 
                         <button
@@ -864,38 +836,6 @@ const FundAnalytics = () => {
                   </div>
                 </div>
               </motion.div>
-
-              <SectionHeader icon={Activity} title="Scheme Info" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-10">
-                {[
-                  { label: "AUM", value: formatCrores(meta?.aum_in_crores) },
-                  { label: "Expense Ratio", value: formatPercent(meta?.expense_ratio) },
-                  { label: "Benchmark", value: meta?.benchmark || "-" },
-                  { label: "Min SIP", value: formatCurrency(meta?.min_sip) },
-                  { label: "Min Lumpsum", value: formatCurrency(meta?.min_lumpsum) },
-                ].map((item) => (
-                  <div key={item.label} className="analytics-card p-3">
-                    <div className="text-[10px] uppercase tracking-wider analytics-muted">{item.label}</div>
-                    <div className="text-[14px] font-semibold text-foreground mt-1 break-words">{item.value}</div>
-                  </div>
-                ))}
-              </div>
-
-              <SectionHeader icon={Shield} title="Risk & Ratios" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
-                {[
-                  { label: "Risk Label", value: meta?.risk_label || "-" },
-                  {
-                    label: "Morningstar Rating",
-                    value: renderMorningstarStars(meta?.morningstar_rating),
-                  },
-                ].map((item) => (
-                  <div key={item.label} className="analytics-card p-3">
-                    <div className="text-[10px] uppercase tracking-wider analytics-muted">{item.label}</div>
-                    <div className="text-[14px] font-semibold text-foreground mt-1">{item.value}</div>
-                  </div>
-                ))}
-              </div>
 
 {/* Return Metrics */}
               <SectionHeader id="return-analytics" icon={TrendingUp} title="Return Metrics" />
