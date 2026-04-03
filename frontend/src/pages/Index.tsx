@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import TickerTape from "@/components/TickerTape";
 import FilterSidebar from "@/components/FilterSidebar";
 import FundTable from "@/components/FundTable";
+import { Skeleton } from "@/components/ui/skeleton";
 import { listSchemes } from "@/services/mutualFundService";
 import {
   FILTER_DEFINITIONS_BY_ID,
@@ -479,8 +480,31 @@ const Index = () => {
       <div className="flex flex-col h-screen bg-background overflow-hidden">
         <TickerTape />
         <Navbar mobileAppliedFiltersCount={0} />
-        <div className="flex flex-1 items-center justify-center px-4">
-          <p className="text-sm text-muted-foreground">Loading saved screener...</p>
+        <div className="relative flex flex-1 overflow-hidden page-dimmable">
+          <div className="hidden lg:flex h-full w-72 shrink-0 border-r border-border bg-background px-4 py-4">
+            <div className="w-full space-y-3">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="border-b border-border px-4 py-4 lg:px-6">
+              <Skeleton className="h-5 w-56" />
+              <Skeleton className="mt-2 h-4 w-80 max-w-full" />
+            </div>
+            <div className="flex-1 overflow-hidden px-4 py-4 lg:px-6">
+              <div className="space-y-3">
+                <Skeleton className="h-10 w-full" />
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <Skeleton key={`saved-screen-loader-row-${index}`} className="h-11 w-full" />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
