@@ -9,6 +9,118 @@ interface FilterAddModalProps {
   onChangeEnabled: (next: string[]) => void;
 }
 const MOBILE_ADD_FILTERS_HISTORY_KEY = "__mf_mobile_add_filters_popup";
+const ROLLING_GROUPS = [
+  { key: "avg", title: "Rolling Average", description: "Average rolling CAGR across each window." },
+  { key: "min", title: "Rolling Minimum", description: "Lowest rolling CAGR across each window." },
+  { key: "max", title: "Rolling Maximum", description: "Highest rolling CAGR across each window." },
+] as const;
+const FILTER_GROUP_PRESET_IDS: Record<
+  string,
+  Array<{ key: string; title: string; description: string; ids: string[] }>
+> = {
+  scheme: [
+    {
+      key: "scheme-core",
+      title: "Core Metrics",
+      description: "Primary scheme information used most often.",
+      ids: ["current_nav", "time_since_inception_years", "aum_in_crores", "expense_ratio"],
+    },
+    {
+      key: "scheme-investment",
+      title: "Investment Details",
+      description: "Minimum amounts and investor entry points.",
+      ids: ["min_sip", "min_lumpsum"],
+    },
+    {
+      key: "scheme-benchmark",
+      title: "Benchmark",
+      description: "Comparison index for the scheme.",
+      ids: ["benchmark"],
+    },
+  ],
+  returns: [
+    {
+      key: "returns-absolute",
+      title: "Absolute Returns",
+      description: "Total return over the selected holding period.",
+      ids: ["abs_1w", "abs_1m", "abs_3m", "abs_6m"],
+    },
+    {
+      key: "returns-cagr",
+      title: "CAGR Returns",
+      description: "Annualized growth rates by duration.",
+      ids: ["cagr_1y", "cagr_2y", "cagr_3y", "cagr_4y", "cagr_5y", "cagr_7y", "cagr_10y"],
+    },
+  ],
+  drawdown: [
+    {
+      key: "drawdown-core",
+      title: "Drawdown Snapshot",
+      description: "Current stress and worst observed fall.",
+      ids: ["current_drawdown_percent", "mdd_max_drawdown_percent"],
+    },
+    {
+      key: "drawdown-period",
+      title: "Period Max Drawdown",
+      description: "Worst fall across specific windows.",
+      ids: ["mdd_one_year_pct", "mdd_three_year_pct", "mdd_five_year_pct", "mdd_ten_year_pct"],
+    },
+  ],
+  risk_ratios: [
+    {
+      key: "risk-core",
+      title: "Risk Statistics",
+      description: "Risk behavior and distribution traits.",
+      ids: ["volatility", "downside_deviation", "skewness"],
+    },
+    {
+      key: "risk-adjusted",
+      title: "Risk-Adjusted Ratios",
+      description: "Return quality adjusted for downside pain.",
+      ids: ["calmar", "pain_index", "ulcer_index"],
+    },
+    {
+      key: "risk-profile",
+      title: "Risk Profile",
+      description: "Investor-facing risk labeling metrics.",
+      ids: ["morningstar_rating", "risk_label"],
+    },
+  ],
+};
+const COMPACT_FILTER_LABELS: Record<string, string> = {
+  abs_1w: "1W",
+  abs_1m: "1M",
+  abs_3m: "3M",
+  abs_6m: "6M",
+  cagr_1y: "1Y",
+  cagr_2y: "2Y",
+  cagr_3y: "3Y",
+  cagr_4y: "4Y",
+  cagr_5y: "5Y",
+  cagr_7y: "7Y",
+  cagr_10y: "10Y",
+  current_drawdown_percent: "Current",
+  mdd_max_drawdown_percent: "Max",
+  mdd_one_year_pct: "1Y",
+  mdd_three_year_pct: "3Y",
+  mdd_five_year_pct: "5Y",
+  mdd_ten_year_pct: "10Y",
+  current_nav: "NAV",
+  time_since_inception_years: "Inception Age",
+  aum_in_crores: "AUM",
+  expense_ratio: "Expense Ratio",
+  min_sip: "Min SIP",
+  min_lumpsum: "Min Lumpsum",
+  benchmark: "Benchmark",
+  calmar: "Return/MDD",
+  volatility: "Volatility",
+  downside_deviation: "Downside Dev",
+  skewness: "Skewness",
+  pain_index: "Pain",
+  ulcer_index: "Ulcer",
+  morningstar_rating: "Morningstar",
+  risk_label: "Risk Label",
+};
 
 const buildFilterHint = (filter: FilterDefinition) => {
   const id = filter.id;
@@ -89,6 +201,40 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
       return matchesSearch && matchesCategory;
     });
   }, [activeCategory, searchQuery, selectableFilters]);
+  const filtersById = useMemo(
+    () =>
+      Object.fromEntries(
+        selectableFilters.map((filter) => [filter.id, filter])
+      ) as Record<string, FilterDefinition>,
+    [selectableFilters]
+  );
+  const rollingFilterGroups = useMemo(() => {
+    const byKey = new Map<string, Array<FilterDefinition & { rollingYear: number }>>();
+    selectableFilters.forEach((filter) => {
+      const match = filter.id.match(/^rolling_(avg|min|max)_(\d+)y$/);
+      if (!match) return;
+      const groupKey = match[1];
+      const rollingYear = Number(match[2]);
+      if (!Number.isFinite(rollingYear)) return;
+      const list = byKey.get(groupKey) ?? [];
+      list.push({ ...filter, rollingYear });
+      byKey.set(groupKey, list);
+    });
+
+    return ROLLING_GROUPS.map((group) => ({
+      ...group,
+      filters: (byKey.get(group.key) ?? []).sort((a, b) => a.rollingYear - b.rollingYear),
+    })).filter((group) => group.filters.length > 0);
+  }, [selectableFilters]);
+  const presetFilterGroups = useMemo(() => {
+    const presets = FILTER_GROUP_PRESET_IDS[activeCategory] ?? [];
+    return presets
+      .map((preset) => ({
+        ...preset,
+        filters: preset.ids.map((id) => filtersById[id]).filter((filter): filter is FilterDefinition => Boolean(filter)),
+      }))
+      .filter((group) => group.filters.length > 0);
+  }, [activeCategory, filtersById]);
 
   const selectedOptionalCount = useMemo(
     () => enabledFilters.filter((filterId) => !PINNED_FILTERS.includes(filterId)).length,
@@ -108,6 +254,39 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
     toggleFilter(id);
     setActiveHintId(wasEnabled ? null : id);
   };
+  const setGroupSelection = (ids: string[], shouldEnable: boolean) => {
+    if (ids.length === 0) return;
+    const current = new Set(enabledFilters);
+    if (shouldEnable) {
+      ids.forEach((id) => current.add(id));
+    } else {
+      ids.forEach((id) => current.delete(id));
+    }
+    onChangeEnabled(Array.from(current));
+  };
+  const getCompactLabel = (filter: FilterDefinition) => COMPACT_FILTER_LABELS[filter.id] ?? filter.label;
+  const groupedCards =
+    activeCategory === "rolling"
+      ? rollingFilterGroups.map((group) => ({
+          key: group.key,
+          title: group.title,
+          description: group.description,
+          chips: group.filters.map((filter) => ({
+            id: filter.id,
+            label: `${filter.rollingYear}Y`,
+            hint: buildFilterHint(filter),
+          })),
+        }))
+      : presetFilterGroups.map((group) => ({
+          key: group.key,
+          title: group.title,
+          description: group.description,
+          chips: group.filters.map((filter) => ({
+            id: filter.id,
+            label: getCompactLabel(filter),
+            hint: buildFilterHint(filter),
+          })),
+        }));
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -249,39 +428,103 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
           </div>
 
           <div className="flex-1 overflow-y-auto py-2 scrollbar-thin">
-            {visibleFilters.map((filter) => {
-              const checked = enabledFilters.includes(filter.id);
-              const hint = buildFilterHint(filter);
-              return (
-                <label
-                  key={filter.id}
-                  onClick={() => handleFilterTap(filter.id)}
-                  className="group flex cursor-pointer items-start gap-3 px-4 py-2 transition-colors hover:bg-transparent sm:px-7 sm:py-3"
-                >
-                  <div
-                    className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center transition-colors ${
-                      checked
-                        ? "bg-primary border-primary text-primary-foreground"
-                        : "border-border hover:border-muted-foreground bg-secondary"
-                    }`}
+            {searchQuery.trim().length === 0 && groupedCards.length > 0 ? (
+              <div className="px-4 pb-4 pt-2 sm:px-7">
+                <p className="text-[11px] text-muted-foreground">
+                  Pick filters by group. This keeps things compact and much easier to scan.
+                </p>
+                <div className="mt-3 space-y-3">
+                  {groupedCards.map((group) => {
+                    const groupIds = group.chips.map((chip) => chip.id);
+                    const selectedCount = groupIds.filter((id) => enabledFilters.includes(id)).length;
+                    return (
+                      <div key={group.key} className="rounded-lg border border-border bg-card px-3 py-3 sm:px-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="text-[13px] font-semibold text-foreground">{group.title}</div>
+                            <div className="mt-1 text-[11px] text-muted-foreground">{group.description}</div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setGroupSelection(groupIds, true)}
+                              className="rounded-full border border-border px-2 py-1 text-[10px] font-medium text-muted-foreground hover:text-foreground"
+                            >
+                              All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setGroupSelection(groupIds, false)}
+                              className="rounded-full border border-border px-2 py-1 text-[10px] font-medium text-muted-foreground hover:text-foreground"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {group.chips.map((chip) => {
+                            const checked = enabledFilters.includes(chip.id);
+                            return (
+                              <button
+                                key={chip.id}
+                                type="button"
+                                onClick={() => handleFilterTap(chip.id)}
+                                title={chip.hint}
+                                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                                  checked
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border bg-background text-foreground hover:bg-surface-hover"
+                                }`}
+                              >
+                                <span>{chip.label}</span>
+                                {checked ? <Check className="h-3 w-3" /> : null}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="mt-2 text-[10px] text-muted-foreground">
+                          {selectedCount} of {groupIds.length} selected
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              visibleFilters.map((filter) => {
+                const checked = enabledFilters.includes(filter.id);
+                const hint = buildFilterHint(filter);
+                return (
+                  <label
+                    key={filter.id}
+                    onClick={() => handleFilterTap(filter.id)}
+                    className="group flex cursor-pointer items-start gap-3 px-4 py-2 transition-colors hover:bg-transparent sm:px-7 sm:py-3"
                   >
-                    {checked && <Check className="w-3 h-3" />}
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[13px] text-foreground sm:text-[13px]">{filter.label}</span>
-                    {hint ? (
-                      <span
-                        className={`text-[11px] text-muted-foreground ${
-                          activeHintId === filter.id ? "block sm:hidden" : "hidden"
-                        } sm:group-hover:block`}
-                      >
-                        {hint}
-                      </span>
-                    ) : null}
-                  </div>
-                </label>
-              );
-            })}
+                    <div
+                      className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center transition-colors ${
+                        checked
+                          ? "bg-primary border-primary text-primary-foreground"
+                          : "border-border hover:border-muted-foreground bg-secondary"
+                      }`}
+                    >
+                      {checked && <Check className="w-3 h-3" />}
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[13px] text-foreground sm:text-[13px]">{filter.label}</span>
+                      {hint ? (
+                        <span
+                          className={`text-[11px] text-muted-foreground ${
+                            activeHintId === filter.id ? "block sm:hidden" : "hidden"
+                          } sm:group-hover:block`}
+                        >
+                          {hint}
+                        </span>
+                      ) : null}
+                    </div>
+                  </label>
+                );
+              })
+            )}
           </div>
         </div>
 
