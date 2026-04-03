@@ -4,6 +4,12 @@ on:
   push:
     branches: ["main"]
   workflow_dispatch:
+    inputs:
+      run_complete_workflow:
+        description: "Run complete workflow now"
+        required: true
+        default: false
+        type: boolean
 
 env:
   WORKFLOW_ENABLED: "false" # Set to "false" to disable this workflow's jobs.
@@ -20,7 +26,12 @@ jobs:
     steps:
       - name: Read workflow toggle
         id: set-enabled
-        run: echo "enabled=${{ env.WORKFLOW_ENABLED }}" >> "$GITHUB_OUTPUT"
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "enabled=${{ inputs.run_complete_workflow }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=${{ env.WORKFLOW_ENABLED }}" >> "$GITHUB_OUTPUT"
+          fi
 
   build-and-push:
     if: ${{ needs.workflow-toggle.outputs.enabled == 'true' }}
