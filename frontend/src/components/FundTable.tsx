@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listSchemes, SchemeListItem, SchemeSearchItem, searchSchemes } from "@/services/mutualFundService";
 import { DEFAULT_ENABLED_FILTERS, FILTER_DEFINITIONS_BY_ID } from "@/data/filters";
-import { MoveUp, MoveDown, Pencil, Search, X } from "lucide-react";
+import { MoveUp, MoveDown, Pencil, Search, Star, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
@@ -157,6 +157,27 @@ const FundTable = ({
 
   const formatNumber = (val: number) => {
     return val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+  const renderMorningstarRating = (value: number) => {
+    const stars = Math.max(0, Math.min(5, Math.round(value)));
+    return (
+      <span
+        className="inline-flex items-center gap-0.5"
+        aria-label={`Morningstar rating ${stars} out of 5`}
+        title={`Morningstar rating ${stars}/5`}
+      >
+        {Array.from({ length: 5 }).map((_, index) => {
+          const filled = index < stars;
+          return (
+            <Star
+              key={`ms-${index}`}
+              className={`h-3.5 w-3.5 ${filled ? "text-amber-500 fill-amber-500" : "text-muted-foreground/35"}`}
+            />
+          );
+        })}
+        <span className="ml-1 text-[11px] text-muted-foreground">{stars}/5</span>
+      </span>
+    );
   };
   const formatLastUpdated = (value: string) => {
     const parsed = new Date(value);
@@ -1044,6 +1065,7 @@ const FundTable = ({
                         {columns.map((col) => {
                           const value = fund[col.key];
                           const schemePath = getSchemePath(fund);
+                          const isMorningstar = col.key === "morningstar_rating";
                           if (col.key === "scheme_sub_name") {
                             return (
                               <td
@@ -1068,7 +1090,9 @@ const FundTable = ({
                               }`}
                             >
                               <Link to={schemePath} className="block">
-                                {typeof value === "string" && value
+                                {isMorningstar && typeof value === "number"
+                                  ? renderMorningstarRating(value)
+                                  : typeof value === "string" && value
                                   ? value
                                   : typeof value === "number"
                                     ? formatNumber(value)

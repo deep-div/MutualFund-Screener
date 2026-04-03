@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { TrendingUp, TrendingDown, Activity, Shield, Zap } from "lucide-react";
+import { TrendingUp, TrendingDown, Activity, Shield, Star, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   LineChart,
@@ -630,6 +630,28 @@ const FundAnalytics = () => {
       : "-";
   const formatPercent = (value?: number | null) =>
     typeof value === "number" ? `${value.toFixed(2)}%` : "-";
+  const renderMorningstarStars = (value?: number | null) => {
+    if (typeof value !== "number") return "-";
+    const stars = Math.max(0, Math.min(5, Math.round(value)));
+    return (
+      <span
+        className="inline-flex items-center gap-0.5"
+        aria-label={`Morningstar rating ${stars} out of 5`}
+        title={`Morningstar rating ${stars}/5`}
+      >
+        {Array.from({ length: 5 }).map((_, index) => {
+          const filled = index < stars;
+          return (
+            <Star
+              key={`analytics-ms-${index}`}
+              className={`h-4 w-4 ${filled ? "text-amber-500 fill-amber-500" : "text-muted-foreground/35"}`}
+            />
+          );
+        })}
+        <span className="ml-1 text-[12px] text-muted-foreground">{stars}/5</span>
+      </span>
+    );
+  };
 
   if (!schemeKey) {
     return (
@@ -865,10 +887,7 @@ const FundAnalytics = () => {
                   { label: "Risk Label", value: meta?.risk_label || "-" },
                   {
                     label: "Morningstar Rating",
-                    value:
-                      typeof meta?.morningstar_rating === "number"
-                        ? String(meta.morningstar_rating)
-                        : "-",
+                    value: renderMorningstarStars(meta?.morningstar_rating),
                   },
                 ].map((item) => (
                   <div key={item.label} className="analytics-card p-3">
