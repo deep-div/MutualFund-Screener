@@ -27,7 +27,21 @@ from app.core.logging import logger
 nest_asyncio.apply()
 
 # Global switch to enable/disable rate limiting across ingestion.
-API_RATE_LIMITING_ENABLED: bool = True
+"""
+I have added this because i wanted to control this API # https://mfdata.in/api/v1/schemes
+It returns a few points like    
+morningstar_rating: Optional[int] = None
+risk_label: Optional[str] = None
+aum_in_crores: Optional[float] = None
+min_sip: Optional[float] = None
+min_lumpsum: Optional[float] = None
+expense_ratio: Optional[float] = None
+exit_load: Optional[str] = None
+benchmark: Optional[str] = None
+This actually has Rate limit and my pipeline takes too long to run 1 hour in render free tier wont be compatible
+So without this i can hit API on render this was only goal and DB will be updated accordingly.
+"""
+API_RATE_LIMITING_ENABLED: bool = False
 
 # Global switch to enable/disable mfdata scheme enrichment calls.
 # When False, the ingestion will not call https://mfdata.in/api/v1/schemes/{scheme_code}
@@ -35,6 +49,8 @@ API_RATE_LIMITING_ENABLED: bool = True
 MFDATA_ENRICHMENT_ENABLED: bool = API_RATE_LIMITING_ENABLED
 
 MFDATA_ENRICHMENT_META_FIELDS = (
+    "morningstar_rating",
+    "risk_label",
     "aum_in_crores",
     "min_sip",
     "min_lumpsum",
@@ -1088,7 +1104,16 @@ class MFAPIFetcher:
 
         raw["meta"] = enriched_meta.model_dump(mode="json")
         validated = MutualFundNavResponse.model_validate(raw)
-        return validated.model_dump(mode="json")
+        result = validated.model_dump(mode="json")
+
+        # When mfdata enrichment is disabled, hide those keys from final output entirely.
+        if not MFDATA_ENRICHMENT_ENABLED:
+            meta = result.get("meta")
+            if isinstance(meta, dict):
+                for key in MFDATA_ENRICHMENT_META_FIELDS:
+                    meta.pop(key, None)
+
+        return result
 
     async def fetch_scheme(self, session, semaphore, scheme_item):
         """Fetch NAV data with MFAPI primary and captnemo(ISIN) fallback, then validate."""
