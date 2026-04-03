@@ -39,9 +39,24 @@ const Index = () => {
   const [builderType, setBuilderType] = useState<BuilderType>("screen");
   const [restoredFilterExternalId, setRestoredFilterExternalId] = useState<string | null>(null);
   const [restoringSavedFilter, setRestoringSavedFilter] = useState(false);
+  const [lastSavedFilterRestoreAttemptKey, setLastSavedFilterRestoreAttemptKey] = useState<string | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [desktopFiltersCollapsed, setDesktopFiltersCollapsed] = useState(false);
   const mobileFiltersHistoryEntryRef = useRef(false);
+  const normalizedSavedFilterId = savedFilterId?.trim().toLowerCase() ?? "";
+  const currentRestoreAttemptKey = normalizedSavedFilterId
+    ? `${normalizedSavedFilterId}|${user?.uid ?? "__anon__"}`
+    : "";
+  const isSavedFilterRestored = Boolean(
+    normalizedSavedFilterId &&
+      restoredFilterExternalId?.trim().toLowerCase() === normalizedSavedFilterId
+  );
+  const hasCompletedCurrentRestoreAttempt = Boolean(
+    currentRestoreAttemptKey && lastSavedFilterRestoreAttemptKey === currentRestoreAttemptKey
+  );
+  const shouldShowSavedFilterLoader = Boolean(
+    normalizedSavedFilterId && !isSavedFilterRestored && !hasCompletedCurrentRestoreAttempt
+  );
 
   useEffect(() => {
     if (savedFilterId) return;
@@ -280,6 +295,7 @@ const Index = () => {
       setInitialSortField(null);
       setInitialSortOrder(null);
       setInitialExternalIds([]);
+      setLastSavedFilterRestoreAttemptKey(null);
     }
   }, [savedFilterId]);
 
@@ -437,6 +453,7 @@ const Index = () => {
         // If restore fails, keep current in-memory/local state.
       } finally {
         setRestoringSavedFilter(false);
+        setLastSavedFilterRestoreAttemptKey(`${normalizedExternalId}|${user?.uid ?? "__anon__"}`);
       }
     },
     [authLoading, user]
@@ -445,16 +462,29 @@ const Index = () => {
   useEffect(() => {
     if (!savedFilterId || restoringSavedFilter) return;
     if (authLoading) return;
-    if (restoredFilterExternalId?.trim().toLowerCase() === savedFilterId.trim().toLowerCase()) return;
+    if (isSavedFilterRestored) return;
+    if (hasCompletedCurrentRestoreAttempt) return;
     void applySavedScreenByExternalId(savedFilterId);
   }, [
     savedFilterId,
     authLoading,
-    user,
-    restoredFilterExternalId,
     restoringSavedFilter,
+    isSavedFilterRestored,
+    hasCompletedCurrentRestoreAttempt,
     applySavedScreenByExternalId,
   ]);
+
+  if (shouldShowSavedFilterLoader) {
+    return (
+      <div className="flex flex-col h-screen bg-background overflow-hidden">
+        <TickerTape />
+        <Navbar mobileAppliedFiltersCount={0} />
+        <div className="flex flex-1 items-center justify-center px-4">
+          <p className="text-sm text-muted-foreground">Loading saved screener...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
