@@ -26,7 +26,10 @@ from app.core.logging import logger
 
 nest_asyncio.apply()
 
-# Global per-API limits (requests per minute). Set any value <= 0 to disable limit.
+# Global switch to enable/disable rate limiting across ingestion.
+API_RATE_LIMITING_ENABLED: bool = True
+
+# Global per-API limits (requests per minute). Set any value <= 0 to disable limit for that API.
 API_RATE_LIMITS_PER_MINUTE: Dict[str, int] = {
     "mfapi_latest": 30,          # https://api.mfapi.in/mf/latest
     "amfi_navall_txt": 30,       # https://portal.amfiindia.com/spages/NAVAll.txt
@@ -43,12 +46,16 @@ class APIRateLimiter:
     Example: limit=30 allows up to 30 calls per rolling minute per key.
     """
 
-    def __init__(self, limits_per_minute: Dict[str, int]):
-        self.limits_per_minute = limits_per_minute
+    def __init__(self, limits_per_minute: Dict[str, int], enabled: bool = True):
+        self.enabled = enabled
+        self.limits_per_minute = limits_per_minute or {}
         self._lock = threading.Lock()
         self._scheduled_calls: Dict[str, deque[float]] = {}
 
     def _reserve_delay_seconds(self, key: str) -> float:
+        if not self.enabled:
+            return 0.0
+
         limit = self.limits_per_minute.get(key)
         if limit is None or limit <= 0:
             return 0.0
@@ -82,7 +89,10 @@ class APIRateLimiter:
             await asyncio.sleep(delay)
 
 
-GLOBAL_API_RATE_LIMITER = APIRateLimiter(API_RATE_LIMITS_PER_MINUTE)
+GLOBAL_API_RATE_LIMITER = APIRateLimiter(
+    API_RATE_LIMITS_PER_MINUTE,
+    enabled=API_RATE_LIMITING_ENABLED,
+)
 
 
 class MFAPIFetcher:
