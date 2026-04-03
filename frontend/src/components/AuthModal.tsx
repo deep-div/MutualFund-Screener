@@ -142,12 +142,12 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[140] flex items-center justify-center sm:z-50">
+    <div className="fixed inset-0 z-[140] flex items-center justify-center overflow-y-auto p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative z-10 bg-card border border-border rounded-xl shadow-2xl w-full max-w-md mx-4 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative z-10 my-auto w-full max-w-md bg-card border border-border rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         {/* Close button */}
         <button
           onClick={onClose}
