@@ -430,10 +430,7 @@ const FilterAddModal = ({ onClose, enabledFilters, onChangeEnabled }: FilterAddM
           <div className="flex-1 overflow-y-auto py-2 scrollbar-thin">
             {searchQuery.trim().length === 0 && groupedCards.length > 0 ? (
               <div className="px-4 pb-4 pt-2 sm:px-7">
-                <p className="text-[11px] text-muted-foreground">
-                  Pick filters by group. This keeps things compact and much easier to scan.
-                </p>
-                <div className="mt-3 space-y-3">
+                <div className="space-y-3">
                   {groupedCards.map((group) => {
                     const groupIds = group.chips.map((chip) => chip.id);
                     const selectedCount = groupIds.filter((id) => enabledFilters.includes(id)).length;
