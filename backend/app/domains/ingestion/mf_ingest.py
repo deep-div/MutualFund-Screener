@@ -28,6 +28,7 @@ nest_asyncio.apply()
 
 # Global switch to enable/disable rate limiting across ingestion.
 
+## For Production Render Set to False so we can process data fast before render sleeps.
 API_RATE_LIMITING_ENABLED: bool = False
 """
 If True I get these and time taken is much more.
