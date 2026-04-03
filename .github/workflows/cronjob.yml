@@ -5,16 +5,9 @@ on:
     # 08:00 AM IST on Tuesday and Friday (GitHub Actions uses UTC)
     - cron: '30 2 * * 2,5'
   workflow_dispatch:
-    inputs:
-      immediate_run:
-        description: 'Run immediately now'
-        required: true
-        default: false
-        type: boolean
 
 jobs:
   trigger-pipeline:
-    if: ${{ github.event_name == 'schedule' || inputs.immediate_run == true }}
     runs-on: ubuntu-latest
 
     steps:
