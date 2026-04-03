@@ -6,7 +6,7 @@ on:
       run_complete_workflow:
         description: "Run complete workflow now"
         required: true
-        default: false
+        default: true
         type: boolean
 
 jobs:
