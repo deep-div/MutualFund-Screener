@@ -739,7 +739,7 @@ const Navbar = ({ mobileAppliedFiltersCount = 0 }: NavbarProps) => {
             >
               <DropdownMenuTrigger asChild>
                 <button
-                  className={`inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-[13px] font-medium text-white transition-colors sm:px-4 sm:text-[14px] lg:px-5 lg:text-[14px] ${
+                  className={`inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-[13px] font-medium text-white outline-none transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-0 sm:px-4 sm:text-[14px] lg:px-5 lg:text-[14px] ${
                     createMenuOpen
                       ? "bg-nav-hover text-white"
                       : "hover:bg-nav-hover/80 hover:text-white active:bg-nav-hover active:text-white"
@@ -1151,7 +1151,7 @@ const Navbar = ({ mobileAppliedFiltersCount = 0 }: NavbarProps) => {
             >
               <DropdownMenuTrigger asChild>
                 <button
-                  className={`inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[12px] font-semibold tracking-[0.01em] transition-all active:scale-[0.99] ${
+                  className={`inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[12px] font-semibold tracking-[0.01em] outline-none transition-all focus:outline-none focus-visible:outline-none focus-visible:ring-0 active:scale-[0.99] ${
                     mobileCreateMenuOpen
                       ? "border-[#0b64f4]/40 bg-[#0b64f4]/10 text-[#0b64f4] shadow-[0_0_0_1px_rgba(11,100,244,0.16)]"
                       : "border-slate-200 bg-white/70 text-slate-700 hover:bg-white active:bg-slate-100"
