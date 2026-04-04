@@ -1,4 +1,4 @@
-name: Scheduled Pipeline Trigger
+name: Scheduled Pipeline Trigger 08:00 AM IST
 
 on:
   schedule:
