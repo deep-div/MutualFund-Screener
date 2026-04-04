@@ -2,9 +2,16 @@ name: VPS Docker Deploy (WebEyeSoft)
 
 on:
   workflow_dispatch:
+    inputs:
+      run_complete_workflow:
+        description: "Run complete workflow now"
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   build-and-push:
+    if: ${{ inputs.run_complete_workflow == true}}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -34,6 +41,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy-on-vps:
+    if: ${{ inputs.run_complete_workflow == true }}
     runs-on: ubuntu-latest
     needs: build-and-push
 
