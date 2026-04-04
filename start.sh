@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-if [ "${NGINX_CONF_PROFILE:-default}" = "vps" ] && [ -f /etc/nginx/conf.d/default.vps.conf ]; then
-  cp /etc/nginx/conf.d/default.vps.conf /etc/nginx/conf.d/default.conf
+if [ "${NGINX_CONF_PROFILE:-default}" = "vps" ] && [ -f /etc/nginx/default.vps.conf.template ]; then
+  cp /etc/nginx/default.vps.conf.template /etc/nginx/conf.d/default.conf
 fi
 
 cd /app/backend

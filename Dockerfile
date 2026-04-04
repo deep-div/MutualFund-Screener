@@ -79,7 +79,7 @@ COPY backend /app/backend
 
 # Copy Nginx configuration for routing requests
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
-COPY nginx/default.vps.conf /etc/nginx/conf.d/default.vps.conf
+COPY nginx/default.vps.conf /etc/nginx/default.vps.conf.template
 
 # Copy startup script that runs backend and Nginx together
 COPY start.sh /app/start.sh
