@@ -15,15 +15,18 @@ export class ApiError extends Error {
 const DEFAULT_BASE_URL = typeof window !== "undefined" ? window.location.origin : "http://localhost:4000";
 
 const rawApiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
+const isDevMode = Boolean(import.meta.env.DEV);
+const isLocalApiUrl = Boolean(rawApiBaseUrl) && /^https?:\/\/(localhost|127\.0\.0\.1|::1)(:\d+)?$/i.test(rawApiBaseUrl!);
 const isPublicBrowserHost =
   typeof window !== "undefined" &&
   !["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+const shouldUseSameOriginInProd = !isDevMode && isLocalApiUrl;
 
 // Safety fallback:
 // If a localhost API URL is accidentally baked into a production frontend build,
 // use same-origin so deployed clients can still reach the backend via Nginx.
 const API_BASE_URL =
-  isPublicBrowserHost && rawApiBaseUrl && /^https?:\/\/(localhost|127\.0\.0\.1|::1)(:\d+)?$/i.test(rawApiBaseUrl)
+  (shouldUseSameOriginInProd || (isPublicBrowserHost && isLocalApiUrl))
     ? window.location.origin
     : rawApiBaseUrl || DEFAULT_BASE_URL;
 
