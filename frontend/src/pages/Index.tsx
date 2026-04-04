@@ -65,6 +65,11 @@ const setLastOpenedFilterForUser = (uid: string, externalId: string) => {
   }
 };
 
+const hasAnyStoredLastOpenedFilter = () => {
+  const byUser = readLastOpenedFiltersByUser();
+  return Object.keys(byUser).length > 0;
+};
+
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -88,6 +93,11 @@ const Index = () => {
   const [desktopFiltersCollapsed, setDesktopFiltersCollapsed] = useState(false);
   const mobileFiltersHistoryEntryRef = useRef(false);
   const autoRestoreAttemptedUserRef = useRef<string | null>(null);
+  const hasStoredLastOpenedFilter = useMemo(() => hasAnyStoredLastOpenedFilter(), []);
+  const lastOpenedFilterIdForCurrentUser = useMemo(
+    () => (user?.uid ? getLastOpenedFilterForUser(user.uid) : null),
+    [user?.uid]
+  );
   const normalizedSavedFilterId = savedFilterId?.trim().toLowerCase() ?? "";
   const currentRestoreAttemptKey = normalizedSavedFilterId
     ? `${normalizedSavedFilterId}|${user?.uid ?? "__anon__"}`
@@ -101,6 +111,11 @@ const Index = () => {
   );
   const shouldShowSavedFilterLoader = Boolean(
     normalizedSavedFilterId && !isSavedFilterRestored && !hasCompletedCurrentRestoreAttempt
+  );
+  const shouldShowAutoRestoreLoader = Boolean(
+    !savedFilterId &&
+      ((authLoading && hasStoredLastOpenedFilter) ||
+        (!authLoading && user && lastOpenedFilterIdForCurrentUser))
   );
 
   useEffect(() => {
@@ -357,11 +372,11 @@ const Index = () => {
 
     if (savedFilterId) return;
 
-    const lastOpenedFilterId = getLastOpenedFilterForUser(user.uid);
+    const lastOpenedFilterId = lastOpenedFilterIdForCurrentUser;
     if (!lastOpenedFilterId) return;
 
     navigate(`/filters/${encodeURIComponent(lastOpenedFilterId)}`, { replace: true });
-  }, [authLoading, navigate, savedFilterId, user]);
+  }, [authLoading, lastOpenedFilterIdForCurrentUser, navigate, savedFilterId, user]);
 
   const applySavedScreenByExternalId = useCallback(
     async (externalId: string) => {
@@ -545,7 +560,7 @@ const Index = () => {
     setLastOpenedFilterForUser(user.uid, normalizedExternalId);
   }, [authLoading, restoredFilterExternalId, user]);
 
-  if (shouldShowSavedFilterLoader) {
+  if (shouldShowSavedFilterLoader || shouldShowAutoRestoreLoader) {
     return (
       <div className="flex flex-col h-screen bg-background overflow-hidden">
         <TickerTape />
