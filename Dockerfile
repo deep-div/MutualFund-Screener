@@ -87,8 +87,8 @@ COPY start.sh /app/start.sh
 RUN sed -i 's/\r$//' /app/start.sh \
     && chmod +x /app/start.sh
 
-# Expose port 80 for incoming HTTP traffic
-EXPOSE 80
+# Expose HTTP and HTTPS ports
+EXPOSE 80 443
 
 # Start the application using custom startup script
 CMD ["/app/start.sh"]

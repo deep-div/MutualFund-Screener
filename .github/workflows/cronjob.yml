@@ -21,7 +21,7 @@ jobs:
         run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fundscreener:v1.0
 
       - name: Start container
-        run: docker run -d --name fundscreener-cron -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/fundscreener:v1.0
+        run: docker run -d --name fundscreener-cron -p 80:80 -p 443:443 ${{ secrets.DOCKERHUB_USERNAME }}/fundscreener:v1.0
 
       - name: Wait for service
         run: sleep 15
