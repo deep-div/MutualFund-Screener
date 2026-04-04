@@ -69,6 +69,8 @@ jobs:
             docker run -d \
               --name fundscreener \
               --restart always \
+              -e NGINX_CONF_PROFILE=vps \
+              -v /etc/letsencrypt:/etc/letsencrypt:ro \
               -p 443:443 \
               "$DOCKERHUB_USERNAME/fundscreener:v1.0"
 
