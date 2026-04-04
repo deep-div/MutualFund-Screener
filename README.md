@@ -6,6 +6,10 @@
 <img width="1920" height="936" alt="Screenshot (923)" src="https://github.com/user-attachments/assets/4497704f-0131-4161-a639-e68d8ee09c0a" />
 <img width="1920" height="938" alt="Screenshot (924)" src="https://github.com/user-attachments/assets/7773abb5-4af1-41a0-82de-c1317f790180" />
 
+
+https://github.com/user-attachments/assets/2a897819-47c4-4074-8694-ac8a8d876479
+
+
 Full-stack mutual fund screening application with:
 
 - `backend`: FastAPI service (screening, analytics, user state, pipeline trigger)
