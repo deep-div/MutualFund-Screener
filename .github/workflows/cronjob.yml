@@ -2,8 +2,8 @@ name: Scheduled Pipeline Trigger
 
 on:
   schedule:
-    # 08:00 AM IST on Tuesday and Friday (GitHub Actions uses UTC)
-    - cron: '30 2 * * 2,5'
+    # Every 15 minutes (GitHub Actions uses UTC)
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
