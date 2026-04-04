@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       run_complete_workflow:
-        description: "Run complete workflow now"
+        description: "Run complete workflow"
         required: true ## input must be provided
         default: false 
         type: boolean
