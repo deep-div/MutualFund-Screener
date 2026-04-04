@@ -1,9 +1,6 @@
 name: VPS Docker Deploy (WebEyeSoft)
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
