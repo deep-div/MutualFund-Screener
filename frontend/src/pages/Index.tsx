@@ -14,17 +14,60 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { getDefaultFilters, getUserFilters, SavedUserFilter } from "@/services/userService";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 const NEW_WATCHLIST_EVENT = "mf_new_watchlist_requested";
 const OPEN_MOBILE_FILTERS_EVENT = "mf_open_mobile_filters";
 const MOBILE_FILTERS_HISTORY_KEY = "__mf_mobile_filters_popup";
 const WATCHLIST_DERIVED_FILTER_FETCH_LIMIT = 100;
+const LAST_OPENED_FILTERS_BY_USER_KEY = "mfs:last-opened-filters-by-user";
 type BuilderType = "screen" | "watchlist";
+
+const readLastOpenedFiltersByUser = () => {
+  try {
+    const raw = localStorage.getItem(LAST_OPENED_FILTERS_BY_USER_KEY);
+    if (!raw) return {} as Record<string, string>;
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    if (!parsed || typeof parsed !== "object") return {} as Record<string, string>;
+    return Object.entries(parsed).reduce<Record<string, string>>((acc, [key, value]) => {
+      if (typeof value !== "string") return acc;
+      const trimmed = value.trim();
+      if (!trimmed) return acc;
+      acc[key] = trimmed;
+      return acc;
+    }, {});
+  } catch {
+    return {} as Record<string, string>;
+  }
+};
+
+const getLastOpenedFilterForUser = (uid: string) => {
+  if (!uid) return null;
+  const byUser = readLastOpenedFiltersByUser();
+  const value = byUser[uid];
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+const setLastOpenedFilterForUser = (uid: string, externalId: string) => {
+  const normalizedUid = String(uid ?? "").trim();
+  const normalizedExternalId = String(externalId ?? "").trim();
+  if (!normalizedUid || !normalizedExternalId) return;
+
+  try {
+    const byUser = readLastOpenedFiltersByUser();
+    byUser[normalizedUid] = normalizedExternalId;
+    localStorage.setItem(LAST_OPENED_FILTERS_BY_USER_KEY, JSON.stringify(byUser));
+  } catch {
+    // Ignore storage write errors.
+  }
+};
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const { savedFilterId } = useParams<{ savedFilterId?: string }>();
   const sessionKey = "mfs:filters:temp";
   const [enabledFilters, setEnabledFilters] = useState<string[]>(DEFAULT_ENABLED_FILTERS);
@@ -44,6 +87,7 @@ const Index = () => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [desktopFiltersCollapsed, setDesktopFiltersCollapsed] = useState(false);
   const mobileFiltersHistoryEntryRef = useRef(false);
+  const autoRestoreAttemptedUserRef = useRef<string | null>(null);
   const normalizedSavedFilterId = savedFilterId?.trim().toLowerCase() ?? "";
   const currentRestoreAttemptKey = normalizedSavedFilterId
     ? `${normalizedSavedFilterId}|${user?.uid ?? "__anon__"}`
@@ -300,6 +344,25 @@ const Index = () => {
     }
   }, [savedFilterId]);
 
+  useEffect(() => {
+    if (authLoading) return;
+
+    if (!user) {
+      autoRestoreAttemptedUserRef.current = null;
+      return;
+    }
+
+    if (autoRestoreAttemptedUserRef.current === user.uid) return;
+    autoRestoreAttemptedUserRef.current = user.uid;
+
+    if (savedFilterId) return;
+
+    const lastOpenedFilterId = getLastOpenedFilterForUser(user.uid);
+    if (!lastOpenedFilterId) return;
+
+    navigate(`/filters/${encodeURIComponent(lastOpenedFilterId)}`, { replace: true });
+  }, [authLoading, navigate, savedFilterId, user]);
+
   const applySavedScreenByExternalId = useCallback(
     async (externalId: string) => {
       if (!externalId) return;
@@ -474,6 +537,13 @@ const Index = () => {
     hasCompletedCurrentRestoreAttempt,
     applySavedScreenByExternalId,
   ]);
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+    const normalizedExternalId = restoredFilterExternalId?.trim();
+    if (!normalizedExternalId) return;
+    setLastOpenedFilterForUser(user.uid, normalizedExternalId);
+  }, [authLoading, restoredFilterExternalId, user]);
 
   if (shouldShowSavedFilterLoader) {
     return (
