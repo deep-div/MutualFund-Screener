@@ -71,6 +71,9 @@ COPY --from=backend-builder /opt/venv /opt/venv
 # NPM run build creates a static folder which we will use in ngnix to serve the frontend which is much faster and production ready
 COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
 
+# Copy custom Nginx error page into the served frontend directory
+COPY nginx/error_page.html /app/frontend/dist/error_page.html
+
 # Copy backend application source code
 COPY backend /app/backend
 
