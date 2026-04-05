@@ -89,6 +89,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { savedFilterId } = useParams<{ savedFilterId?: string }>();
   const sessionKey = "mfs:filters:temp";
+  const isExploreRoute = location.pathname === "/explore";
   const isCreateScreenerRoute = location.pathname === "/screener/create";
   const isCreateWatchlistRoute = location.pathname === "/watchlist/create";
   const isCreateRoute = isCreateScreenerRoute || isCreateWatchlistRoute;
@@ -134,6 +135,7 @@ const Index = () => {
   );
   const shouldShowAutoRestoreLoader = Boolean(
     !isCreateRoute &&
+      !isExploreRoute &&
       !savedFilterId &&
       !skipAutoRestoreOnceRef.current &&
       ((authLoading && hasStoredLastOpenedFilter) ||
@@ -394,7 +396,7 @@ const Index = () => {
       return;
     }
 
-    if (isCreateRoute) return;
+    if (isCreateRoute || isExploreRoute) return;
 
     if (skipAutoRestoreOnceRef.current) {
       skipAutoRestoreOnceRef.current = false;
@@ -410,7 +412,7 @@ const Index = () => {
     if (!lastOpenedFilterId) return;
 
     navigate(`/filters/${encodeURIComponent(lastOpenedFilterId)}`, { replace: true });
-  }, [authLoading, isCreateRoute, lastOpenedFilterIdForCurrentUser, navigate, savedFilterId, user]);
+  }, [authLoading, isCreateRoute, isExploreRoute, lastOpenedFilterIdForCurrentUser, navigate, savedFilterId, user]);
 
   const applySavedScreenByExternalId = useCallback(
     async (externalId: string) => {
