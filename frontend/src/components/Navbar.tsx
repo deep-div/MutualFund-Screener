@@ -457,9 +457,6 @@ const Navbar = ({ mobileAppliedFiltersCount = 0 }: NavbarProps) => {
   }, [screenExplorerOpen]);
 
   const handleExploreClick = () => {
-    if (!isScreenerRoute) {
-      navigate("/");
-    }
     setCreateMenuOpen(false);
     setMobileCreateMenuOpen(false);
     setActiveScreenGroup("saved");
