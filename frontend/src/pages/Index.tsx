@@ -14,7 +14,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { getDefaultFilters, getUserFilters, SavedUserFilter } from "@/services/userService";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 const NEW_SCREEN_EVENT = "mf_new_screen_requested";
 const NEW_WATCHLIST_EVENT = "mf_new_watchlist_requested";
@@ -85,9 +85,13 @@ const consumeSkipAutoRestoreOnceFlag = () => {
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
   const { savedFilterId } = useParams<{ savedFilterId?: string }>();
   const sessionKey = "mfs:filters:temp";
+  const isCreateScreenerRoute = location.pathname === "/screener/create";
+  const isCreateWatchlistRoute = location.pathname === "/watchlist/create";
+  const isCreateRoute = isCreateScreenerRoute || isCreateWatchlistRoute;
   const [enabledFilters, setEnabledFilters] = useState<string[]>(DEFAULT_ENABLED_FILTERS);
   const [filterValues, setFilterValues] = useState<FilterValueMap>({});
   const [rangeMeta, setRangeMeta] = useState<FilterRangeMeta>({});
@@ -98,7 +102,9 @@ const Index = () => {
   const [initialSortField, setInitialSortField] = useState<string | null>(null);
   const [initialSortOrder, setInitialSortOrder] = useState<"asc" | "desc" | null>(null);
   const [initialExternalIds, setInitialExternalIds] = useState<string[]>([]);
-  const [builderType, setBuilderType] = useState<BuilderType>("screen");
+  const [builderType, setBuilderType] = useState<BuilderType>(
+    isCreateWatchlistRoute ? "watchlist" : "screen"
+  );
   const [restoredFilterExternalId, setRestoredFilterExternalId] = useState<string | null>(null);
   const [restoringSavedFilter, setRestoringSavedFilter] = useState(false);
   const [lastSavedFilterRestoreAttemptKey, setLastSavedFilterRestoreAttemptKey] = useState<string | null>(null);
@@ -127,7 +133,8 @@ const Index = () => {
     normalizedSavedFilterId && !isSavedFilterRestored && !hasCompletedCurrentRestoreAttempt
   );
   const shouldShowAutoRestoreLoader = Boolean(
-    !savedFilterId &&
+    !isCreateRoute &&
+      !savedFilterId &&
       !skipAutoRestoreOnceRef.current &&
       ((authLoading && hasStoredLastOpenedFilter) ||
         (!authLoading &&
@@ -137,7 +144,7 @@ const Index = () => {
   );
 
   useEffect(() => {
-    if (savedFilterId) return;
+    if (savedFilterId || isCreateRoute) return;
     try {
       const raw = sessionStorage.getItem(sessionKey);
       if (!raw) return;
@@ -154,7 +161,7 @@ const Index = () => {
     } catch {
       // Ignore corrupted session data.
     }
-  }, [savedFilterId]);
+  }, [isCreateRoute, savedFilterId]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -253,59 +260,49 @@ const Index = () => {
     setFilterValues((prev) => ({ ...prev, [id]: nextValue }));
   };
 
+  const resetBuilderState = useCallback(
+    (nextBuilderType: BuilderType) => {
+      skipAutoRestoreOnceRef.current = true;
+      try {
+        sessionStorage.removeItem(SKIP_AUTO_RESTORE_ONCE_KEY);
+      } catch {
+        // Ignore storage errors.
+      }
+      setBuilderType(nextBuilderType);
+      setEnabledFilters(DEFAULT_ENABLED_FILTERS);
+      setFilterValues({});
+      try {
+        sessionStorage.removeItem(sessionKey);
+      } catch {
+        // Ignore storage errors.
+      }
+      setRangeMeta({});
+      setInitialScreenTitle("");
+      setInitialScreenDescription("");
+      setInitialScreenUpdatedAt(null);
+      setInitialSortField(null);
+      setInitialSortOrder(null);
+      setInitialExternalIds([]);
+      setRestoredFilterExternalId(null);
+      setScreenResetToken((prev) => prev + 1);
+      setMobileFiltersOpen(false);
+    },
+    [sessionKey]
+  );
+
   useEffect(() => {
-    const handleNewScreen = () => {
-      skipAutoRestoreOnceRef.current = true;
-      try {
-        sessionStorage.removeItem(SKIP_AUTO_RESTORE_ONCE_KEY);
-      } catch {
-        // Ignore storage errors.
-      }
-      setBuilderType("screen");
-      setEnabledFilters(DEFAULT_ENABLED_FILTERS);
-      setFilterValues({});
-      try {
-        sessionStorage.removeItem(sessionKey);
-      } catch {
-        // Ignore storage errors.
-      }
-      setRangeMeta({});
-      setInitialScreenTitle("");
-      setInitialScreenDescription("");
-      setInitialScreenUpdatedAt(null);
-      setInitialSortField(null);
-      setInitialSortOrder(null);
-      setInitialExternalIds([]);
-      setRestoredFilterExternalId(null);
-      setScreenResetToken((prev) => prev + 1);
-      setMobileFiltersOpen(false);
-    };
-    const handleNewWatchlist = () => {
-      skipAutoRestoreOnceRef.current = true;
-      try {
-        sessionStorage.removeItem(SKIP_AUTO_RESTORE_ONCE_KEY);
-      } catch {
-        // Ignore storage errors.
-      }
-      setBuilderType("watchlist");
-      setEnabledFilters(DEFAULT_ENABLED_FILTERS);
-      setFilterValues({});
-      try {
-        sessionStorage.removeItem(sessionKey);
-      } catch {
-        // Ignore storage errors.
-      }
-      setRangeMeta({});
-      setInitialScreenTitle("");
-      setInitialScreenDescription("");
-      setInitialScreenUpdatedAt(null);
-      setInitialSortField(null);
-      setInitialSortOrder(null);
-      setInitialExternalIds([]);
-      setRestoredFilterExternalId(null);
-      setScreenResetToken((prev) => prev + 1);
-      setMobileFiltersOpen(false);
-    };
+    if (isCreateScreenerRoute) {
+      resetBuilderState("screen");
+      return;
+    }
+    if (isCreateWatchlistRoute) {
+      resetBuilderState("watchlist");
+    }
+  }, [isCreateScreenerRoute, isCreateWatchlistRoute, resetBuilderState]);
+
+  useEffect(() => {
+    const handleNewScreen = () => resetBuilderState("screen");
+    const handleNewWatchlist = () => resetBuilderState("watchlist");
     const handleOpenMobileFilters = (event: Event) => {
       const { detail } = event as CustomEvent<{ open?: boolean }>;
       if (typeof detail?.open === "boolean") {
@@ -322,7 +319,7 @@ const Index = () => {
       window.removeEventListener(NEW_WATCHLIST_EVENT, handleNewWatchlist);
       window.removeEventListener(OPEN_MOBILE_FILTERS_EVENT, handleOpenMobileFilters);
     };
-  }, []);
+  }, [resetBuilderState]);
 
   useEffect(() => {
     const isMobileViewport = () => window.matchMedia("(max-width: 1023px)").matches;
@@ -397,6 +394,8 @@ const Index = () => {
       return;
     }
 
+    if (isCreateRoute) return;
+
     if (skipAutoRestoreOnceRef.current) {
       skipAutoRestoreOnceRef.current = false;
       return;
@@ -411,7 +410,7 @@ const Index = () => {
     if (!lastOpenedFilterId) return;
 
     navigate(`/filters/${encodeURIComponent(lastOpenedFilterId)}`, { replace: true });
-  }, [authLoading, lastOpenedFilterIdForCurrentUser, navigate, savedFilterId, user]);
+  }, [authLoading, isCreateRoute, lastOpenedFilterIdForCurrentUser, navigate, savedFilterId, user]);
 
   const applySavedScreenByExternalId = useCallback(
     async (externalId: string) => {

@@ -127,7 +127,11 @@ const Navbar = ({ mobileAppliedFiltersCount = 0 }: NavbarProps) => {
   const isSavedGroup = activeScreenGroup === "saved";
   const isWatchlistGroup = activeScreenGroup === "watchlist";
   const isUserCollectionGroup = isSavedGroup || isWatchlistGroup;
-  const isScreenerRoute = location.pathname === "/" || location.pathname.startsWith("/filters/");
+  const isScreenerRoute =
+    location.pathname === "/" ||
+    location.pathname.startsWith("/filters/") ||
+    location.pathname === "/screener/create" ||
+    location.pathname === "/watchlist/create";
   const activeUserCollection = isSavedGroup ? savedFilters : isWatchlistGroup ? watchlistFilters : [];
   const activeSelectedExternalIds = selectedExternalIds.filter((externalId) =>
     activeUserCollection.some((item) => item.external_id === externalId)
@@ -477,13 +481,11 @@ const Navbar = ({ mobileAppliedFiltersCount = 0 }: NavbarProps) => {
     } catch {
       // Ignore storage errors.
     }
-    if (type === "screen") {
-      navigate("/");
-      window.dispatchEvent(new CustomEvent(NEW_SCREEN_EVENT));
-      return;
-    }
-    navigate("/");
-    window.dispatchEvent(new CustomEvent(NEW_WATCHLIST_EVENT));
+    const isScreen = type === "screen";
+    navigate(isScreen ? "/screener/create" : "/watchlist/create");
+    window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent(isScreen ? NEW_SCREEN_EVENT : NEW_WATCHLIST_EVENT));
+    }, 0);
   };
 
   const handleMobileFiltersClick = () => {
