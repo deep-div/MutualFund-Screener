@@ -27,6 +27,7 @@ const OPEN_AUTH_MODAL_EVENT = "mf_open_auth_modal";
 const OPEN_MOBILE_FILTERS_EVENT = "mf_open_mobile_filters";
 const CLOSE_MOBILE_WATCHLIST_PICKER_EVENT = "mf_close_mobile_watchlist_picker";
 const FILTERS_SESSION_KEY = "mfs:filters:temp";
+const SKIP_AUTO_RESTORE_ONCE_KEY = "mfs:skip-auto-restore-once";
 const SAVED_FILTERS_BATCH_SIZE = 10;
 const MOBILE_EXPLORE_HISTORY_KEY = "__mf_mobile_explore_popup";
 
@@ -470,6 +471,11 @@ const Navbar = ({ mobileAppliedFiltersCount = 0 }: NavbarProps) => {
         description: "Please sign in to create and save new items.",
       });
       return;
+    }
+    try {
+      sessionStorage.setItem(SKIP_AUTO_RESTORE_ONCE_KEY, "1");
+    } catch {
+      // Ignore storage errors.
     }
     if (type === "screen") {
       navigate("/");

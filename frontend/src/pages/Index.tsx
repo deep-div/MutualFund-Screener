@@ -22,6 +22,7 @@ const OPEN_MOBILE_FILTERS_EVENT = "mf_open_mobile_filters";
 const MOBILE_FILTERS_HISTORY_KEY = "__mf_mobile_filters_popup";
 const WATCHLIST_DERIVED_FILTER_FETCH_LIMIT = 100;
 const LAST_OPENED_FILTERS_BY_USER_KEY = "mfs:last-opened-filters-by-user";
+const SKIP_AUTO_RESTORE_ONCE_KEY = "mfs:skip-auto-restore-once";
 type BuilderType = "screen" | "watchlist";
 
 const readLastOpenedFiltersByUser = () => {
@@ -70,6 +71,18 @@ const hasAnyStoredLastOpenedFilter = () => {
   return Object.keys(byUser).length > 0;
 };
 
+const consumeSkipAutoRestoreOnceFlag = () => {
+  try {
+    const shouldSkip = sessionStorage.getItem(SKIP_AUTO_RESTORE_ONCE_KEY) === "1";
+    if (shouldSkip) {
+      sessionStorage.removeItem(SKIP_AUTO_RESTORE_ONCE_KEY);
+    }
+    return shouldSkip;
+  } catch {
+    return false;
+  }
+};
+
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -93,6 +106,7 @@ const Index = () => {
   const [desktopFiltersCollapsed, setDesktopFiltersCollapsed] = useState(false);
   const mobileFiltersHistoryEntryRef = useRef(false);
   const autoRestoreAttemptedUserRef = useRef<string | null>(null);
+  const skipAutoRestoreOnceRef = useRef<boolean>(consumeSkipAutoRestoreOnceFlag());
   const hasStoredLastOpenedFilter = useMemo(() => hasAnyStoredLastOpenedFilter(), []);
   const lastOpenedFilterIdForCurrentUser = useMemo(
     () => (user?.uid ? getLastOpenedFilterForUser(user.uid) : null),
@@ -114,8 +128,12 @@ const Index = () => {
   );
   const shouldShowAutoRestoreLoader = Boolean(
     !savedFilterId &&
+      !skipAutoRestoreOnceRef.current &&
       ((authLoading && hasStoredLastOpenedFilter) ||
-        (!authLoading && user && lastOpenedFilterIdForCurrentUser))
+        (!authLoading &&
+          user &&
+          lastOpenedFilterIdForCurrentUser &&
+          autoRestoreAttemptedUserRef.current !== user.uid))
   );
 
   useEffect(() => {
@@ -237,6 +255,12 @@ const Index = () => {
 
   useEffect(() => {
     const handleNewScreen = () => {
+      skipAutoRestoreOnceRef.current = true;
+      try {
+        sessionStorage.removeItem(SKIP_AUTO_RESTORE_ONCE_KEY);
+      } catch {
+        // Ignore storage errors.
+      }
       setBuilderType("screen");
       setEnabledFilters(DEFAULT_ENABLED_FILTERS);
       setFilterValues({});
@@ -257,6 +281,12 @@ const Index = () => {
       setMobileFiltersOpen(false);
     };
     const handleNewWatchlist = () => {
+      skipAutoRestoreOnceRef.current = true;
+      try {
+        sessionStorage.removeItem(SKIP_AUTO_RESTORE_ONCE_KEY);
+      } catch {
+        // Ignore storage errors.
+      }
       setBuilderType("watchlist");
       setEnabledFilters(DEFAULT_ENABLED_FILTERS);
       setFilterValues({});
@@ -364,6 +394,11 @@ const Index = () => {
 
     if (!user) {
       autoRestoreAttemptedUserRef.current = null;
+      return;
+    }
+
+    if (skipAutoRestoreOnceRef.current) {
+      skipAutoRestoreOnceRef.current = false;
       return;
     }
 
