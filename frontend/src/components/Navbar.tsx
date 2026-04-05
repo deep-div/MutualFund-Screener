@@ -127,10 +127,8 @@ const Navbar = ({ mobileAppliedFiltersCount = 0 }: NavbarProps) => {
   const isSavedGroup = activeScreenGroup === "saved";
   const isWatchlistGroup = activeScreenGroup === "watchlist";
   const isUserCollectionGroup = isSavedGroup || isWatchlistGroup;
-  const isExploreRoute = location.pathname === "/explore";
   const isScreenerRoute =
     location.pathname === "/" ||
-    isExploreRoute ||
     location.pathname.startsWith("/filters/") ||
     location.pathname === "/screener/create" ||
     location.pathname === "/watchlist/create";
@@ -458,17 +456,10 @@ const Navbar = ({ mobileAppliedFiltersCount = 0 }: NavbarProps) => {
     }
   }, [screenExplorerOpen]);
 
-  useEffect(() => {
-    if (isExploreRoute) {
-      setActiveScreenGroup("saved");
-      setScreenExplorerOpen(true);
-      return;
-    }
-    setScreenExplorerOpen(false);
-  }, [isExploreRoute]);
-
   const handleExploreClick = () => {
-    navigate("/explore");
+    if (!isScreenerRoute) {
+      navigate("/");
+    }
     setCreateMenuOpen(false);
     setMobileCreateMenuOpen(false);
     setActiveScreenGroup("saved");

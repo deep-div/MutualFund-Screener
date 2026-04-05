@@ -21,7 +21,6 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/explore" element={<Index />} />
             <Route path="/screener/create" element={<Index />} />
             <Route path="/watchlist/create" element={<Index />} />
             <Route path="/filters/:savedFilterId" element={<Index />} />
