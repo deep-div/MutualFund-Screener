@@ -21,30 +21,16 @@ from app.domains.ingestion.schemas import (
     SchemeSubCategory
 )
 from app.core.logging import logger
+from app.core.config import MF_ENRICHMENT_ENABLED
 
 nest_asyncio.apply()
 
-# Global switch to enable/disable rate limiting across ingestion.
-
-## For Production Render Set to False so we can process data fast before render sleeps.
-API_RATE_LIMITING_ENABLED: bool = False
-"""
-If True I get these and time taken is much more approx 1 hour and i get all the data below given which has rate limit.
-morningstar_rating: Optional[int] = None
-risk_label: Optional[str] = None
-aum_in_crores: Optional[float] = None
-min_sip: Optional[float] = None
-min_lumpsum: Optional[float] = None
-expense_ratio: Optional[float] = None
-exit_load: Optional[str] = None
-benchmark: Optional[str] = None
-If False I dont get these in Output, time is a hardly few minutes. No Rate limiting.
-DB code wont hurt old values of AUM remain.
-"""
-# Global switch to enable/disable mfdata scheme enrichment calls.
-# When False, the ingestion will not call https://mfdata.in/api/v1/schemes/{scheme_code}
-# and selected enrichment fields will remain None.
-MFDATA_ENRICHMENT_ENABLED: bool = API_RATE_LIMITING_ENABLED
+# Loaded from MF_ENRICHMENT_ENABLED env var (default: False).
+# False = fast mode: no mfdata.in calls, no rate limiting, completes in minutes.
+# True  = enriched mode: fetches AUM, expense ratio, Morningstar rating etc. from
+#         mfdata.in with rate limiting; takes ~1 hour. Old DB values are preserved when False.
+API_RATE_LIMITING_ENABLED: bool = MF_ENRICHMENT_ENABLED
+MFDATA_ENRICHMENT_ENABLED: bool = MF_ENRICHMENT_ENABLED
 
 MFDATA_ENRICHMENT_META_FIELDS = (
     "morningstar_rating",

@@ -1,9 +1,9 @@
-name: Cron Job Scheduler
+name: Cron Job - Enriched 
 
 on:
   schedule:
-    # 08:00 AM IST on Tuesday, Thursday, and Saturday (GitHub Actions uses UTC)
-    - cron: '30 2 * * 2,4,6'
+    # 08:00 AM IST on 1st of every month (GitHub Actions uses UTC)
+    - cron: '30 2 1 * *'
   workflow_dispatch:
 
 jobs:
@@ -22,9 +22,10 @@ jobs:
 
       - name: Start container
         run: |
-          docker run -d --name fundscreener-cron -p 80:80 \
+          docker run -d --name fundscreener-cron-enriched -p 80:80 \
             --env ENVIRONMENT="prod" \
             --env LOG_LEVEL="INFO" \
+            --env MF_ENRICHMENT_ENABLED="true" \
             --env DB_HOST="${{ secrets.DB_HOST }}" \
             --env DB_PORT="${{ secrets.DB_PORT }}" \
             --env DB_NAME="${{ secrets.DB_NAME }}" \
@@ -42,12 +43,12 @@ jobs:
             -H "accept: application/json" \
             -H "x-api-key: ${{ secrets.PIPELINE_TRIGGER_API_KEY }}"
 
-      - name: Keep container running for background job (15 min)
-        run: sleep 900
+      - name: Keep container running for enriched background job (2 hours)
+        run: sleep 7200
 
       - name: Cleanup container
         if: always()
         run: |
-          docker logs fundscreener-cron || true
-          docker stop fundscreener-cron || true
-          docker rm fundscreener-cron || true
+          docker logs fundscreener-cron-enriched || true
+          docker stop fundscreener-cron-enriched || true
+          docker rm fundscreener-cron-enriched || true
