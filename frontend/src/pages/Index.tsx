@@ -667,7 +667,7 @@ const Index = () => {
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       <Seo
         rawTitle
-        title="FundScreener — Free Mutual Fund Screener for Indian Investors"
+        title="FundScreener"
         description="Analyze, compare, and filter mutual funds by returns, risk, expense ratio, AUM, and category with FundScreener — a fast, free mutual fund screener for Indian investors."
         path="/"
       />

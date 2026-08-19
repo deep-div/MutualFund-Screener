@@ -4,7 +4,7 @@ export const SITE_NAME = "FundScreener";
 // SITE_URL non-www makes canonical/og:url tags agree with the served URL.
 export const SITE_URL = "https://fundscreener.online";
 
-export const CONTACT_EMAIL = "contact@fundscreener.online";
-export const SUPPORT_EMAIL = "support@fundscreener.online";
-export const PRIVACY_EMAIL = "privacy@fundscreener.online";
-export const LEGAL_EMAIL = "legal@fundscreener.online";
+export const CONTACT_EMAIL = "";
+export const SUPPORT_EMAIL = "";
+export const PRIVACY_EMAIL = "";
+export const LEGAL_EMAIL = "";
