@@ -1,4 +1,4 @@
-name: Scheduled Pipeline Trigger 08:00 AM IST
+name: Cron Job Scheduler
 
 on:
   schedule:
