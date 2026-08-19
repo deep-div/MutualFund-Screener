@@ -8,7 +8,7 @@ from app.core.config import settings
 from app.core.logging import logger
 
 engine = create_engine(
-    settings.DATABASE_URL,
+    settings.database_url,
     connect_args={"options": "-c timezone=Asia/Kolkata"},
     pool_pre_ping=True,
     pool_recycle=1800,
