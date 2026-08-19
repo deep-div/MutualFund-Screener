@@ -29,8 +29,6 @@ VITE_FIREBASE_STORAGE_BUCKET="<project>.firebasestorage.app"
 VITE_FIREBASE_MESSAGING_SENDER_ID="<sender-id>"
 VITE_FIREBASE_APP_ID="<app-id>"
 VITE_FIREBASE_MEASUREMENT_ID="<measurement-id>"
-
-VITE_API_BASE_URL="http://127.0.0.1:8000"
 ```
 
 ## Installation
@@ -47,7 +45,7 @@ npm run dev
 ```
 
 Dev server URL: `http://localhost:4000`  
-The app expects backend API at `VITE_API_BASE_URL`.
+API calls are proxied to `http://127.0.0.1:8000` via the Vite dev server proxy.
 
 ## Scripts
 

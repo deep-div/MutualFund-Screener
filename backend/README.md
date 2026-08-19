@@ -95,11 +95,11 @@ Base prefix: `/api/v1`
 - `GET /schemes/leaderboards`
 - `GET /schemes/{external_id}/analytics`
 - `POST /users`
-- `POST /users/filters`
-- `GET /users/filters`
-- `GET /users/filters/defaults`
-- `PUT /users/filters/{external_id}`
-- `DELETE /users/filters/{external_id}`
+- `POST /users/screens`
+- `GET /users/screens`
+- `GET /users/screens/defaults`
+- `PUT /users/screens/{external_id}`
+- `DELETE /users/screens/remove`
 
 ## Notes
 
