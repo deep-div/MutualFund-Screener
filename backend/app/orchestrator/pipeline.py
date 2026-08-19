@@ -43,7 +43,3 @@ def run_pipeline():
     except Exception as e:
         logger.error(f"Fatal error in pipeline execution: {e}")
         raise
-
-
-# if __name__ == "__main__":
-#     run_pipeline() 

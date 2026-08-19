@@ -1479,6 +1479,3 @@ def run_metrics(raw_data):
     logger.info(f"NAV Metrics completed | Success: {len(final_response)} | Failed/Skipped: {failed_count}")
 
     return final_response
-
-# metrics = run_metrics(data)
-# print(json.dumps(metrics, indent=2))
