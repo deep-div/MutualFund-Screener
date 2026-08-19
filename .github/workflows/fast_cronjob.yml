@@ -43,9 +43,9 @@ jobs:
             -H "accept: application/json" \
             -H "x-api-key: ${{ secrets.PIPELINE_TRIGGER_API_KEY }}"
 
-      - name: Stream container logs (live until done or 30 min timeout)
+      - name: Stream container logs (live until done or 15 min timeout)
         run: |
-          timeout 1800 docker logs -f fundscreener-cron || true
+          timeout 900 docker logs -f fundscreener-cron || true
 
       - name: Cleanup container
         if: always()
