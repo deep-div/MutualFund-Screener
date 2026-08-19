@@ -24,8 +24,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str = ""
 
     # App environment and logging
-    ENVIRONMENT: str = "dev"
-    LOG_LEVEL: str = "INFO"
+    ENVIRONMENT: str
+    LOG_LEVEL: str
 
     # Plain API key used for pipeline trigger auth.
     PIPELINE_TRIGGER_API_KEY: str = ""
