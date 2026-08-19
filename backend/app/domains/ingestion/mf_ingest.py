@@ -486,6 +486,17 @@ class MFAPIFetcher:
                 "fof domestic": "fofs domestic",
                 "fund of funds overseas": "fofs overseas",
                 "fof overseas": "fofs overseas",
+                # API variant → normalized enum value
+                "ultra short to short term fund": "ultra short duration fund",
+                "short term fund": "short duration fund",
+                "ultra short term fund": "ultra short duration fund",
+                "medium to long term fund": "medium to long duration fund",
+                "medium term fund": "medium duration fund",
+                "dynamic term fund": "dynamic bond fund",
+                "balanced advantage fund  dynamic asset allocation": "dynamic asset allocation fund",
+                "sectoral fund": "sectoral thematic fund",
+                "elss  tax saver fund": "elss fund",
+                "banking and psu debt fund": "banking and psu fund",
             }
 
             v = normalization_map.get(v, v)
@@ -598,7 +609,11 @@ class MFAPIFetcher:
             elif "other" in left:
                 scheme_class = SchemeClass.OTHER
             else:
-                scheme_class = None
+                logger.warning(
+                    f"Unknown scheme class for scheme_code={scheme_code} | "
+                    f"scheme_category={scheme_category!r} | left={left!r}"
+                )
+                scheme_class = SchemeClass.OTHER
         elif normalized_scheme_category:
             matched_enum = self._match_scheme_sub_category(normalized_scheme_category)
             if matched_enum:
