@@ -1,0 +1,43 @@
+name: Scheduled Pipeline Trigger 08:00 AM IST
+
+on:
+  schedule:
+    # 08:00 AM IST on Tuesday, Thursday, and Saturday (GitHub Actions uses UTC)
+    - cron: '30 2 * * 2,4,6'
+  workflow_dispatch:
+
+jobs:
+  trigger-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Pull Docker image
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fundscreener:v1.0
+
+      - name: Start container
+        run: docker run -d --name fundscreener-cron -p 80:80 -p 443:443 ${{ secrets.DOCKERHUB_USERNAME }}/fundscreener:v1.0
+
+      - name: Wait for service
+        run: sleep 15
+
+      - name: Trigger pipeline
+        run: |
+          curl --fail --show-error --silent -X POST "http://localhost/api/v1/pipeline/trigger" \
+            -H "accept: application/json" \
+            -H "x-api-key: 9f1c7e4b8d3a2c6f5e1a9b7c4d8f2e6a1c3b5d7e9f0a2b4c6d8e1f3a5b7c9d2e4f6a8c1b3d5e7f9a0c2e4d6f8b1a3c5e7d9f0a2b4c6d8e1f3a5b7c9d2e4f6"
+
+      - name: Keep container running for background job (15 min)
+        run: sleep 900
+
+      - name: Cleanup container
+        if: always()
+        run: |
+          docker logs fundscreener-cron || true
+          docker stop fundscreener-cron || true
+          docker rm fundscreener-cron || true
