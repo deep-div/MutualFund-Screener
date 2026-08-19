@@ -209,6 +209,3 @@ __marimo__/
 # Alembic
 alembic/versions/
 
-# Rough
-z_dump/
-
