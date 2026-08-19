@@ -18,7 +18,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Pull Docker image
-        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mutualfund-screener:v1.0
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mutualfund-screener:latest
 
       - name: Start container
         run: |
@@ -31,7 +31,7 @@ jobs:
             --env DB_USER="${{ secrets.DB_USER }}" \
             --env DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
             --env PIPELINE_TRIGGER_API_KEY="${{ secrets.PIPELINE_TRIGGER_API_KEY }}" \
-            ${{ secrets.DOCKERHUB_USERNAME }}/mutualfund-screener:v1.0
+            ${{ secrets.DOCKERHUB_USERNAME }}/mutualfund-screener:latest
 
       - name: Wait for service
         run: sleep 15

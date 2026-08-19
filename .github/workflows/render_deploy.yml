@@ -29,7 +29,7 @@ jobs:
           file: ./dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/mutualfund-screener:v1.0
+            ${{ secrets.DOCKERHUB_USERNAME }}/mutualfund-screener:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -51,7 +51,7 @@ jobs:
             exit 1
           fi
 
-          IMAGE_PATH="docker.io/${DOCKERHUB_USERNAME}/mutualfund-screener:v1.0"
+          IMAGE_PATH="docker.io/${DOCKERHUB_USERNAME}/mutualfund-screener:latest"
 
           SERVICE_JSON="$(curl --fail --show-error --silent \
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
