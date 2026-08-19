@@ -24,7 +24,7 @@ jobs:
         run: |
           docker run -d --name fundscreener-cron-enriched -p 80:80 \
             --env ENVIRONMENT="prod" \
-            --env LOG_LEVEL="INFO" \
+            --env LOG_LEVEL="WARNING" \
             --env MF_ENRICHMENT_ENABLED="true" \
             --env DB_HOST="${{ secrets.DB_HOST }}" \
             --env DB_PORT="${{ secrets.DB_PORT }}" \
