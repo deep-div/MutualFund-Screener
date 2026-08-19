@@ -142,6 +142,7 @@ backend/celerybeat.pid
 backend/*.sage.py
 
 # Environments
+backend/.env
 backend/.envrc
 backend/.venv
 backend/env/
@@ -235,6 +236,7 @@ frontend/yarn-error.log*
 frontend/pnpm-debug.log*
 frontend/lerna-debug.log*
 
+frontend/.env
 frontend/node_modules
 frontend/dist
 frontend/dist-ssr
