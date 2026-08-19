@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     image: mutual-fund-screener:v1.0
     container_name: mutual-fund-screener
     ports:
