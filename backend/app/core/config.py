@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     # Optional direct override — takes precedence if set
     DATABASE_URL: str = ""
 
+    # App environment and logging
+    ENVIRONMENT: str = "dev"
+    LOG_LEVEL: str = "INFO"
+
     # Plain API key used for pipeline trigger auth.
     PIPELINE_TRIGGER_API_KEY: str = ""
 
