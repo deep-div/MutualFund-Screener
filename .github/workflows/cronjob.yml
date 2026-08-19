@@ -23,7 +23,7 @@ jobs:
       - name: Start container
         run: |
           docker run -d --name fundscreener-cron -p 80:80 \
-            --env ENVIRONMENT="production" \
+            --env ENVIRONMENT="prod" \
             --env LOG_LEVEL="INFO" \
             --env DB_HOST="${{ secrets.DB_HOST }}" \
             --env DB_PORT="${{ secrets.DB_PORT }}" \
