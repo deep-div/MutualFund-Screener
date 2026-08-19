@@ -57,13 +57,7 @@ jobs:
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
             "https://api.render.com/v1/services/${RENDER_SERVICE_ID}")"
 
-          OWNER_ID="$(echo "${SERVICE_JSON}" | jq -r '.ownerId // empty')"
           REGISTRY_CRED_ID="$(echo "${SERVICE_JSON}" | jq -r '.registryCredential.id // empty')"
-
-          if [ -z "${OWNER_ID}" ]; then
-            echo "Could not read ownerId from Render service."
-            exit 1
-          fi
 
           if [ -z "${REGISTRY_CRED_ID}" ]; then
             echo "No registry credential linked to this Render service. Link Docker Hub credentials in Render UI first."
@@ -71,10 +65,9 @@ jobs:
           fi
 
           PATCH_BODY="$(jq -nc \
-            --arg ownerId "${OWNER_ID}" \
             --arg imagePath "${IMAGE_PATH}" \
             --arg registryCredentialId "${REGISTRY_CRED_ID}" \
-            '{image:{ownerId:$ownerId,imagePath:$imagePath,registryCredentialId:$registryCredentialId}}')"
+            '{image:{imagePath:$imagePath,registryCredentialId:$registryCredentialId}}')"
 
           curl --fail --show-error --silent \
             -X PATCH \
