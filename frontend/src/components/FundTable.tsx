@@ -297,6 +297,7 @@ const FundTable = ({
       return;
     }
     if (requestId === fetchRequestIdRef.current) {
+      retryCountRef.current = 0;
       setLoading(false);
     }
   };
