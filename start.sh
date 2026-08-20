@@ -1,16 +1,13 @@
 #!/bin/sh
 set -e
 
-if [ "${NGINX_CONF_PROFILE:-default}" = "vps" ] && [ -f /etc/nginx/default.vps.conf.template ]; then
-  cp /etc/nginx/default.vps.conf.template /etc/nginx/conf.d/default.conf
-fi
-
 cd /app/backend
 uvicorn app.main:app --host 127.0.0.1 --port 8000 &
 BACKEND_PID=$!
 
-# Wait until uvicorn is ready before accepting traffic through nginx
-until python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')" > /dev/null 2>&1; do
+for i in $(seq 1 60); do
+  python3 -c "import urllib.request,json; assert json.loads(urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health').read()).get('status')=='ok'" 2>/dev/null && break
+  [ "$i" -eq 60 ] && { echo "ERROR: uvicorn did not start after 60 attempts" >&2; exit 1; }
   sleep 0.5
 done
 
