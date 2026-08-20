@@ -35,7 +35,18 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/mutualfund-screener:latest
 
       - name: Wait for service
-        run: sleep 15
+        run: |
+          for i in $(seq 1 60); do
+            if curl --silent --fail http://localhost/health > /dev/null 2>&1; then
+              echo "Service is up"
+              exit 0
+            fi
+            echo "Attempt $i/30 - waiting..."
+            sleep 5
+          done
+          echo "Service failed to start after 300s"
+          docker logs fundscreener-cron-enriched
+          exit 1
 
       - name: Trigger pipeline
         run: |
