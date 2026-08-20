@@ -88,6 +88,7 @@ const FundTable = ({
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const retryCountRef = useRef(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [draftTitle, setDraftTitle] = useState("");
@@ -280,15 +281,23 @@ const FundTable = ({
       }
     } catch (err) {
       if (requestId !== fetchRequestIdRef.current) return;
+      // Retry once silently — keep skeleton showing during the wait
+      if (retryCountRef.current < 1) {
+        retryCountRef.current += 1;
+        setTimeout(() => fetchPage(nextOffset, append), 1500);
+        return; // skip finally so loading stays true and skeleton remains visible
+      }
+      retryCountRef.current = 0;
       setError(err instanceof Error ? err.message : "Failed to load data.");
       if (!append) {
         setItems([]);
         setTotal(0);
       }
-    } finally {
-      if (requestId === fetchRequestIdRef.current) {
-        setLoading(false);
-      }
+      setLoading(false);
+      return;
+    }
+    if (requestId === fetchRequestIdRef.current) {
+      setLoading(false);
     }
   };
 

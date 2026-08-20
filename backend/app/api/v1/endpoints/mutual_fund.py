@@ -41,15 +41,19 @@ def list_schemes(
     limit: int = 10,
     offset: int = 0,
 ):
-    scheme_external_ids = [ext_id for ext_id in (payload.scheme_external_id or []) if ext_id]
-    return get_filtered_schemes(
-        screens=payload.screens,
-        limit=limit,
-        offset=offset,
-        sort_field=payload.sort_field,
-        sort_order=payload.sort_order,
-        scheme_external_ids=scheme_external_ids,
-    )
+    try:
+        scheme_external_ids = [ext_id for ext_id in (payload.scheme_external_id or []) if ext_id]
+        return get_filtered_schemes(
+            screens=payload.screens,
+            limit=limit,
+            offset=offset,
+            sort_field=payload.sort_field,
+            sort_order=payload.sort_order,
+            scheme_external_ids=scheme_external_ids,
+        )
+    except Exception as exc:
+        logger.error(f"Failed to fetch schemes: {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch schemes")
 
 
 @router.get("/schemes/search")
@@ -58,11 +62,19 @@ def scheme_search(
     limit: int = 10,
     offset: int = 0,
 ):
-    return search_schemes(query=query, limit=limit, offset=offset)
+    try:
+        return search_schemes(query=query, limit=limit, offset=offset)
+    except Exception as exc:
+        logger.error(f"Failed to search schemes: {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to search schemes")
 
 @router.get("/schemes/leaderboards")
 def scheme_leaderboards():
-    return get_leaderboards()
+    try:
+        return get_leaderboards()
+    except Exception as exc:
+        logger.error(f"Failed to fetch leaderboards: {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch leaderboards")
 
 @router.get("/schemes/{external_id}/analytics")
 def scheme_analytics_by_external_id(
