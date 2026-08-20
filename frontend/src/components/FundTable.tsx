@@ -1107,7 +1107,7 @@ const FundTable = ({
           </table>
 
           {error && (
-            <div className="p-4 text-sm text-negative">Unable to load funds. Please refresh the page.</div>
+            <div className="p-4 text-sm text-negative">{error}</div>
           )}
           {showEmptyWatchlistState && !error && (
             <div className="absolute inset-y-0 left-0 right-0 z-10 flex items-center justify-center px-4 pb-20 sm:pb-0">

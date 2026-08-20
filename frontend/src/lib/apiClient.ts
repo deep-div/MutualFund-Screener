@@ -79,7 +79,7 @@ const request = async <T>(
   const data = await parseResponse(res);
 
   if (!res.ok) {
-    const message = typeof data === "string" && data ? data : `Something went wrong. Please try again.`;
+    const message = typeof data === "string" && data ? data : `Request failed with status ${res.status}`;
     throw new ApiError(message, res.status, data);
   }
 
