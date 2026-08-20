@@ -21,7 +21,7 @@ from app.domains.ingestion.schemas import (
     SchemeSubCategory
 )
 from app.core.logging import logger
-from app.core.config import MF_ENRICHMENT_ENABLED
+from app.core.config import settings
 
 nest_asyncio.apply()
 
@@ -29,8 +29,8 @@ nest_asyncio.apply()
 # False = fast mode: no mfdata.in calls, no rate limiting, completes in minutes.
 # True  = enriched mode: fetches AUM, expense ratio, Morningstar rating etc. from
 #         mfdata.in with rate limiting; takes ~1 hour. Old DB values are preserved when False.
-API_RATE_LIMITING_ENABLED: bool = MF_ENRICHMENT_ENABLED
-MFDATA_ENRICHMENT_ENABLED: bool = MF_ENRICHMENT_ENABLED
+API_RATE_LIMITING_ENABLED: bool = settings.MF_ENRICHMENT_ENABLED
+MFDATA_ENRICHMENT_ENABLED: bool = settings.MF_ENRICHMENT_ENABLED
 
 MFDATA_ENRICHMENT_META_FIELDS = (
     "morningstar_rating",
