@@ -604,7 +604,13 @@ class MFAPIFetcher:
                 scheme_class = SchemeClass.DEBT
             elif "hybrid" in left:
                 scheme_class = SchemeClass.HYBRID
+            elif "index funds" in left:
+                scheme_class = SchemeClass.EQUITY
+            elif "life cycle funds" in left:
+                scheme_class = SchemeClass.HYBRID
             elif "solution oriented" in left:
+                scheme_class = SchemeClass.OTHER
+            elif "overseas fund of funds" in left:
                 scheme_class = SchemeClass.OTHER
             elif "other" in left:
                 scheme_class = SchemeClass.OTHER
@@ -1320,7 +1326,7 @@ class MFAPIFetcher:
                         f"Invalid SchemeClass counts: {invalid_scheme_class_counts}"
                     )
 
-            logger.info(f"Final schemes ready: {len(filtered_results)}")
+            logger.success(f"Final schemes ready: {len(filtered_results)}")
             return filtered_results
 
 def run_ingestion():
