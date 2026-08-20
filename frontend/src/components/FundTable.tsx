@@ -11,6 +11,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { saveUserFilters, updateUserFilters } from "@/services/userService";
 const LIMIT = 15;
 const SKELETON_ROWS = 10;
+// Cold backend/DB starts can 500 the first request(s). Retry with backoff so the
+// user keeps seeing the skeleton and never the transient error, until warmup finishes.
+const MAX_FETCH_RETRIES = 4;
+const FETCH_RETRY_DELAYS_MS = [1000, 2000, 4000, 6000];
 const SCREEN_DEFAULT_TITLE = "Screener";
 const SCREEN_DEFAULT_DESCRIPTION =
   "Describe the purpose of this screen (e.g., tax-saving, growth, or tracking)";
@@ -86,9 +90,8 @@ const FundTable = ({
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [items, setItems] = useState<SchemeListItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const retryCountRef = useRef(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [draftTitle, setDraftTitle] = useState("");
@@ -232,7 +235,7 @@ const FundTable = ({
     setWatchlistExternalIds((prev) => prev.filter((id) => id !== normalized));
   };
 
-  const fetchPage = async (nextOffset: number, append: boolean) => {
+  const fetchPage = async (nextOffset: number, append: boolean, attempt = 0) => {
     const requestId = ++fetchRequestIdRef.current;
     if (isWatchlist && normalizedWatchlistExternalIds.length === 0) {
       setLoading(false);
@@ -281,23 +284,38 @@ const FundTable = ({
       }
     } catch (err) {
       if (requestId !== fetchRequestIdRef.current) return;
-      // Retry once silently — keep skeleton showing during the wait
-      if (retryCountRef.current < 1) {
-        retryCountRef.current += 1;
-        setTimeout(() => fetchPage(nextOffset, append), 1500);
+      // The API can be slow/cold (managed DB waking from idle), so data may
+      // arrive late. Keep the skeleton visible and keep retrying with a gentle,
+      // capped backoff — never surface a transient error during the wait.
+      // `attempt` is per-chain so concurrent fetches (e.g. filters settling on
+      // mount) don't share a budget, and a newer fetch supersedes this one.
+      const delay =
+        FETCH_RETRY_DELAYS_MS[Math.min(attempt, FETCH_RETRY_DELAYS_MS.length - 1)];
+      const scheduleRetry = () => {
+        setTimeout(() => {
+          if (requestId !== fetchRequestIdRef.current) return;
+          fetchPage(nextOffset, append, attempt + 1);
+        }, delay);
+      };
+
+      // Initial / filter-driven load: retry until data arrives so the user only
+      // ever sees the skeleton, no matter how long the backend takes.
+      if (!append) {
+        scheduleRetry();
         return; // skip finally so loading stays true and skeleton remains visible
       }
-      retryCountRef.current = 0;
-      setError(err instanceof Error ? err.message : "Failed to load data.");
-      if (!append) {
-        setItems([]);
-        setTotal(0);
+
+      // "Load more" pagination: bounded retries, then surface an error so the
+      // button doesn't spin forever with no feedback.
+      if (attempt < MAX_FETCH_RETRIES) {
+        scheduleRetry();
+        return;
       }
+      setError(err instanceof Error ? err.message : "Failed to load data.");
       setLoading(false);
       return;
     }
     if (requestId === fetchRequestIdRef.current) {
-      retryCountRef.current = 0;
       setLoading(false);
     }
   };

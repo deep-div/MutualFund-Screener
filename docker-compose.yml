@@ -19,3 +19,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./backend/.env:/app/backend/.env:ro
+
+
+
+# docker compose --env-file ./frontend/.env up --build
