@@ -6,6 +6,16 @@ from pathlib import Path
 
 from app.core.config import settings
 
+SUCCESS = 35
+logging.addLevelName(SUCCESS, "SUCCESS")
+
+
+def _success(self, message, *args, **kwargs):
+    if self.isEnabledFor(SUCCESS):
+        self._log(SUCCESS, message, args, **kwargs)
+
+
+logging.Logger.success = _success
 
 # Maximum number of log entries kept in the file before oldest are trimmed
 MAX_LOG_LINES = 500

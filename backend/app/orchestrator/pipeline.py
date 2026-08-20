@@ -39,7 +39,7 @@ def run_pipeline():
             raise
 
         update_pipeline_run(run_id, pipeline_status="success", completed_at=datetime.now(ist))
-        logger.info("Pipeline execution completed successfully")
+        logger.success("Pipeline execution completed successfully")
     except Exception as e:
         logger.error(f"Fatal error in pipeline execution: {e}")
         raise

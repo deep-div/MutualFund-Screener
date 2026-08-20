@@ -56,7 +56,14 @@ jobs:
 
       - name: Stream container logs (live until done or 15 min timeout)
         run: |
-          timeout 900 docker logs -f fundscreener-cron || true
+          docker logs -f fundscreener-cron 2>&1 | while IFS= read -r line; do
+            echo "$line"
+            if echo "$line" | grep -q "Pipeline execution completed successfully"; then
+              echo "Success detected — waiting 5 minutes for final logs"
+              sleep 300
+              break
+            fi
+          done || true
 
       - name: Cleanup container
         if: always()
