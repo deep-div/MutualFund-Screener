@@ -1,0 +1,116 @@
+<mxfile host="65bd71144e">
+    <diagram id="mf-screener-hld" name="Mutual Fund Screener - HLD">
+        <mxGraphModel dx="1202" dy="1013" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="920" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-1" parent="1" style="text;whiteSpace=wrap;html=1;fontStyle=1;labelBackgroundColor=default;fontSize=11;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="&lt;span style=&quot;forced-color-adjust: none; color: rgb(0, 0, 0); font-family: Helvetica; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;&lt;br&gt;&lt;/span&gt;" vertex="1">
+                    <mxGeometry height="20" width="80" x="1020" y="680" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#1a1a1a;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="Mutual Fund Screener - High Level Design (HLD)" vertex="1">
+                    <mxGeometry height="40" width="1370" x="170" y="310" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;verticalAlign=top;fontSize=13;fontStyle=2;fontColor=#666666;arcSize=3;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="" vertex="1">
+                    <mxGeometry height="493" width="760" x="240" y="480" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-4" parent="1" style="shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;labelBackgroundColor=#f5f5f5;fontSize=10;fontStyle=1;image=https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="Docker" vertex="1">
+                    <mxGeometry height="42" width="42" x="270" y="501" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;verticalAlign=top;fontSize=13;fontStyle=2;fontColor=#666666;arcSize=3;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="Data / Managed Services" vertex="1">
+                    <mxGeometry height="259" width="360" x="1100" y="511" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;verticalAlign=top;fontSize=13;fontStyle=2;fontColor=#666666;arcSize=3;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="External Mutual-Fund Data Sources&amp;nbsp;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="210" width="360" x="1100" y="790" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-7" edge="1" parent="1" source="sb1yQLgrVRTEPylsFoBg-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" target="sb1yQLgrVRTEPylsFoBg-9" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-8" parent="1" style="shape=label;html=1;whiteSpace=wrap;rounded=1;arcSize=10;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;align=left;verticalAlign=middle;spacingLeft=52;image=https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/googlechrome.svg;imageWidth=36;imageHeight=36;imageAlign=left;imageVerticalAlign=middle;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="User / Browser&lt;br&gt;Screener&amp;nbsp;&lt;div&gt;• Fund analytics&amp;nbsp;&lt;/div&gt;&lt;div&gt;• Blogs&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="80" width="230" x="520" y="370" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-9" parent="1" style="shape=label;html=1;whiteSpace=wrap;rounded=1;arcSize=8;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;align=left;verticalAlign=middle;spacingLeft=56;image=https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nginx/nginx-original.svg;imageWidth=40;imageHeight=40;imageAlign=left;imageVerticalAlign=middle;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="Nginx&#xa;Reverse proxy + static server&#xa;Rate limiting • Gzip • :80 / :443" vertex="1">
+                    <mxGeometry height="80" width="330" x="470" y="501" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-10" parent="1" style="shape=label;html=1;whiteSpace=wrap;rounded=1;arcSize=8;fillColor=#e6f7ff;strokeColor=#61dafb;fontSize=12;fontStyle=1;align=left;verticalAlign=middle;spacingLeft=56;image=https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg;imageWidth=42;imageHeight=42;imageAlign=left;imageVerticalAlign=middle;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="React (TypeScript + Vite)&lt;br&gt;• Tailwind • TanStack Query&lt;br&gt;• Recharts • Served as static dist" vertex="1">
+                    <mxGeometry height="100" width="300" x="290" y="650" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-11" edge="1" parent="1" source="sb1yQLgrVRTEPylsFoBg-13" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;curved=0;startArrow=classic;startFill=1;strokeColor=#FFCA28;exitX=1;exitY=0.5;exitDx=0;exitDy=0;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" target="sb1yQLgrVRTEPylsFoBg-18">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points"/>
+                        <mxPoint x="819.9999999999998" y="650" as="sourcePoint"/>
+                        <mxPoint x="905" y="522" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-12" connectable="0" parent="sb1yQLgrVRTEPylsFoBg-11" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="&lt;div&gt;&lt;b&gt;Authentication&amp;nbsp;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;Authorization&lt;/b&gt;&lt;/div&gt;" vertex="1">
+                    <mxGeometry relative="1" x="-0.0796" y="2" as="geometry">
+                        <mxPoint x="2" y="-3" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-13" parent="1" style="shape=label;html=1;whiteSpace=wrap;rounded=1;arcSize=8;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;align=left;verticalAlign=middle;spacingLeft=58;image=https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg;imageWidth=42;imageHeight=42;imageAlign=left;imageVerticalAlign=middle;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="FastAPI Backend (Uvicorn)&lt;br&gt;• Screener API • Search • Leaderboards&lt;br&gt;• Users/Screens • Blogs • Pipeline trigger&lt;br&gt;• SQLAlchemy + Alembic&amp;nbsp;" vertex="1">
+                    <mxGeometry height="100" width="320" x="660" y="650" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-14" edge="1" parent="1" source="sb1yQLgrVRTEPylsFoBg-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=light-dark(#d79b00, #ededed);strokeWidth=2;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" target="sb1yQLgrVRTEPylsFoBg-20">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-15" edge="1" parent="1" source="sb1yQLgrVRTEPylsFoBg-16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=light-dark(#d79b00, #ededed);strokeWidth=2;flowAnimation=1;curved=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" target="sb1yQLgrVRTEPylsFoBg-21">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-16" parent="1" style="shape=label;html=1;whiteSpace=wrap;rounded=1;arcSize=8;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontStyle=1;align=left;verticalAlign=middle;spacingLeft=54;image=https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg;imageWidth=40;imageHeight=40;imageAlign=left;imageVerticalAlign=middle;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="Data Pipeline (background task)&lt;br&gt;Ingestion  → Metrics  → DB Storage&lt;br&gt;• CAGR • volatility • Sharpe • drawdown" vertex="1">
+                    <mxGeometry height="100" width="320" x="660" y="845" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-17" parent="1" style="shape=label;html=1;whiteSpace=wrap;rounded=1;arcSize=10;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;align=left;verticalAlign=middle;spacingLeft=52;image=https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg;imageWidth=38;imageHeight=38;imageAlign=left;imageVerticalAlign=middle;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="PostgreSQL&lt;br&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;•&amp;nbsp;&lt;/span&gt;blogs • metrics/screener (JSONB)&lt;br&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;•&amp;nbsp;&lt;/span&gt;users IDs • User watchlist &amp;amp;screens&amp;nbsp;&lt;div&gt;•&amp;nbsp;pipeline logs&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="90" width="300" x="1130" y="655" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-18" parent="1" style="shape=label;html=1;whiteSpace=wrap;rounded=1;arcSize=10;fillColor=#fff2cc;strokeColor=#ffca28;fontSize=11;fontStyle=1;align=left;verticalAlign=middle;spacingLeft=52;image=https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg;imageWidth=38;imageHeight=38;imageAlign=left;imageVerticalAlign=middle;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="Firebase Auth ID-token login&lt;br&gt;&amp;nbsp;(JWT verified by backend)" vertex="1">
+                    <mxGeometry height="80" width="300" x="1130" y="540" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-19" parent="1" style="shape=label;html=1;whiteSpace=wrap;rounded=1;arcSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;align=left;verticalAlign=middle;spacingLeft=44;image=https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/apidog.svg;imageWidth=30;imageHeight=30;imageAlign=left;imageVerticalAlign=middle;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="mfapi.in&#xa;latest schemes + NAV history (primary)" vertex="1">
+                    <mxGeometry height="42" width="300" x="1140" y="820" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-20" parent="1" style="shape=label;html=1;whiteSpace=wrap;rounded=1;arcSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;align=left;verticalAlign=middle;spacingLeft=44;image=https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/apidog.svg;imageWidth=30;imageHeight=30;imageAlign=left;imageVerticalAlign=middle;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="AMFI  •  captnemo.in&#xa;NAV fallback sources" vertex="1">
+                    <mxGeometry height="50" width="300" x="1140" y="870" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-21" parent="1" style="shape=label;html=1;whiteSpace=wrap;rounded=1;arcSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;align=left;verticalAlign=middle;spacingLeft=44;image=https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/apidog.svg;imageWidth=30;imageHeight=30;imageAlign=left;imageVerticalAlign=middle;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="mfdata.in&#xa;enriched metadata (AUM, expense ratio) — optional" vertex="1">
+                    <mxGeometry height="49" width="300" x="1140" y="928" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-22" edge="1" parent="1" source="sb1yQLgrVRTEPylsFoBg-9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;fontSize=11;strokeColor=#61dafb;strokeWidth=2;fontStyle=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" target="sb1yQLgrVRTEPylsFoBg-10" value="Frontend">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-23" edge="1" parent="1" source="sb1yQLgrVRTEPylsFoBg-9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;fontSize=11;strokeColor=#d6b656;strokeWidth=2;fontStyle=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" target="sb1yQLgrVRTEPylsFoBg-13" value="Backend">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-24" edge="1" parent="1" source="sb1yQLgrVRTEPylsFoBg-13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;startArrow=classic;fontSize=11;strokeColor=#6c8ebf;strokeWidth=2;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" target="sb1yQLgrVRTEPylsFoBg-17" value="">
+                    <mxGeometry relative="1" x="-0.0667" y="20" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-25" connectable="0" parent="sb1yQLgrVRTEPylsFoBg-24" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="&lt;span style=&quot;font-weight: 700;&quot;&gt;read / write&lt;/span&gt;" vertex="1">
+                    <mxGeometry relative="1" x="-0.0667" y="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-26" edge="1" parent="1" source="sb1yQLgrVRTEPylsFoBg-13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;fontSize=11;strokeColor=#9673a6;strokeWidth=2;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" target="sb1yQLgrVRTEPylsFoBg-16" value="&lt;b&gt;Trigger Background&amp;nbsp;&lt;/b&gt;&lt;div&gt;&lt;b&gt;Pipeline&lt;/b&gt;&lt;/div&gt;">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-27" edge="1" parent="1" source="sb1yQLgrVRTEPylsFoBg-16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;fontSize=11;strokeColor=#d79b00;strokeWidth=2;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" target="sb1yQLgrVRTEPylsFoBg-19" value="&lt;b&gt;Fetch fund NAV&amp;nbsp;&lt;/b&gt;&lt;div&gt;&lt;b&gt;&amp;amp; metadata&lt;br&gt;&lt;/b&gt;&lt;/div&gt;">
+                    <mxGeometry relative="1" x="-0.2523" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-28" edge="1" parent="1" source="sb1yQLgrVRTEPylsFoBg-16" style="rounded=0;html=1;endArrow=classic;fontSize=11;strokeColor=#6c8ebf;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;curved=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" target="sb1yQLgrVRTEPylsFoBg-17" value="">
+                    <mxGeometry relative="1" x="0.2791" y="59" as="geometry">
+                        <mxPoint as="offset"/>
+                        <Array as="points"/>
+                        <mxPoint x="919.9999999999998" y="811" as="sourcePoint"/>
+                        <mxPoint x="1220.0476190476188" y="670" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="sb1yQLgrVRTEPylsFoBg-29" connectable="0" parent="sb1yQLgrVRTEPylsFoBg-28" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="&lt;b&gt;Fund Details&amp;nbsp;&lt;/b&gt;&lt;div&gt;&lt;b&gt;&amp;amp; &lt;/b&gt;&lt;b style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Metrics&lt;/b&gt;&lt;/div&gt;" vertex="1">
+                    <mxGeometry relative="1" x="-0.0389" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

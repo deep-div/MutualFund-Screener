@@ -2,6 +2,10 @@
 
 A full-stack mutual fund screening and analytics platform.
 
+**Architecture**
+
+![Architecture](assests/architecture.gif)
+
 **Home**
 ![Home](assets/home.png)
 
